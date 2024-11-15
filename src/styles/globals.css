@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,10 +12,22 @@
 	-webkit-text-size-adjust: 100%;
 
 	/* Fonts */
-	--heading: sans-serif;
-	--body: sans-serif;
+	--heading: "Figtree", sans-serif;
+	--body: "Inter", sans-serif;
 
 	/* Colors */
+	--primary: #6f42c1;
+	--secondary: #f67f36;
+	--neutral-0: #ffffff;
+	--neutral-100: #f6f8fa;
+	--neutral-200: #e2e4e9;
+	--neutral-300: #cdd0d5;
+	--neutral-400: #868c98;
+	--neutral-500: #525866;
+	--neutral-600: #3c4353;
+	--neutral-700: #20232d;
+	--neutral-800: #14161a;
+	--neutral-900: #0a0d14;
 	--foreground: transparent;
 	--background: transparent;
 }
@@ -41,7 +55,7 @@ html {
 }
 
 body {
-	background: var(--white);
+	background: #f2edf7;
 	color: var(--neutral-900);
 	overflow-x: hidden;
 	user-select: none;
@@ -62,6 +76,7 @@ h4,
 h5,
 h6 {
 	font-family: var(--heading);
+	text-wrap: pretty;
 }
 
 a,

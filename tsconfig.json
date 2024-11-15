@@ -20,7 +20,8 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"forceConsistentCasingInFileNames": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"verbatimModuleSyntax": true
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]

@@ -1,4 +1,5 @@
-import { create, StateCreator } from "zustand"
+import type { StateCreator } from "zustand"
+import { create } from "zustand"
 
 export const reportException =
 	<T>(stateCreator: StateCreator<T>): StateCreator<T> =>
