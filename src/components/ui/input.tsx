@@ -23,7 +23,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						{label}
 					</label>
 				)}
-
 				<div className="relative">
 					<input
 						type={togglePassword ? "text" : type}
@@ -34,7 +33,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						ref={ref}
 						{...props}
 					/>
-
 					{type === "password" ? (
 						<button
 							type="button"
@@ -46,7 +44,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						</button>
 					) : null}
 				</div>
-
 				{error && <p className="text-xs text-error">{error}</p>}
 			</div>
 		)

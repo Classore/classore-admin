@@ -1,6 +1,6 @@
 import type { RemixiconComponentType } from "@remixicon/react"
 
-import type { AdminProps } from "@/types"
+import type { RoleProps } from "@/types"
 
 export type DashboardLinkProps = {
 	label: string
@@ -11,22 +11,23 @@ export type DashboardLinkProps = {
 	}[]
 }
 
-export const role_access: Record<AdminProps["role"], string[]> = {
-	ADMIN: ["dashboard", "courses", "teacher", "users", "account", "settings"],
-	SUB_TEACHER: ["dashboard", "courses", "account"],
-	SUPER_ADMIN: [
+export const role_access: Record<RoleProps["name"], string[]> = {
+	admin: ["dashboard", "courses", "teacher", "users", "account", "settings"],
+	teacher: ["dashboard", "courses", "account"],
+	super: [
 		"dashboard",
 		"courses",
 		"teachers",
 		"users",
-		"payments",
+		"transactions",
 		"subscriptions",
 		"account",
 		"admins",
+		"roles & permissions",
 		"waitlist",
 		"settings",
 	],
-	TEACHER: ["dashboard", "courses", "account"],
+	sub: ["dashboard", "courses", "account"],
 }
 
 export const dashboard_links: DashboardLinkProps[] = [
@@ -46,8 +47,8 @@ export const dashboard_links: DashboardLinkProps[] = [
 				href: "/dashboard/users",
 			},
 			{
-				label: "payments",
-				href: "/dashboard/payments",
+				label: "transactions",
+				href: "/dashboard/transactions",
 			},
 			{
 				label: "subscriptions",
@@ -60,6 +61,10 @@ export const dashboard_links: DashboardLinkProps[] = [
 			{
 				label: "admins",
 				href: "/dashboard/admins",
+			},
+			{
+				label: "roles & permissions",
+				href: "/dashboard/roles-and-permissions",
 			},
 		],
 	},

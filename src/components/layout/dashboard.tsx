@@ -9,7 +9,7 @@ import { normalize } from "@/lib"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const { user } = useUserStore()
-	const role = user?.role ?? "SUPER_ADMIN"
+	const role = user?.role.name ?? "super"
 	const { pathname } = useRouter()
 
 	const isActiveRoute = (href: string) => normalize(pathname) === href

@@ -9,13 +9,13 @@ import { Seo } from "@/components/shared"
 const Page = () => {
 	return (
 		<>
-			<Seo title="Admins" />
+			<Seo title="Roles and Permissions" />
 			<DashboardLayout>
 				<div className="h-full w-full p-6">
 					<div className="flex w-full items-center justify-between">
 						<Input />
-						<Link href="/dashboard/admins/create">
-							<Button>Add Admin</Button>
+						<Link href="/dashboard/roles-and-permissions/create">
+							<Button>Add Role</Button>
 						</Link>
 					</div>
 					<div className="flex w-full flex-col"></div>

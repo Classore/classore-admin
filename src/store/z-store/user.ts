@@ -1,7 +1,7 @@
 import Cookies from "js-cookie"
 
 import { createPersistMiddleware } from "../middleware"
-import type { Maybe, AdminProps } from "@/types"
+import type { AdminProps, Maybe } from "@/types"
 
 interface UserStore {
 	user: Maybe<AdminProps>

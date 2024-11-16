@@ -10,9 +10,9 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title="Payment" />
+			<Seo title="Transactions" />
 			<DashboardLayout>
-				<div>Payment {id}</div>
+				<div>Transactions {id}</div>
 			</DashboardLayout>
 		</>
 	)

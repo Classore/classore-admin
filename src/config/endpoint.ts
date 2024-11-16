@@ -2,7 +2,10 @@ export const endpoints = (id?: string) => {
 	const admins = {}
 
 	const auth = {
-		signin: "/auth/signin",
+		signin: "/admin/staff/login",
+		create: "/admin/staff/create",
+		create_role: `/admin/role/create`,
+		get_roles: `/admin/role/fetch`,
 	}
 
 	const courses = {
@@ -22,8 +25,7 @@ export const endpoints = (id?: string) => {
 	const users = {}
 
 	const waitlist = {
-		join: `/mail/join-waitlist`,
-		get: `/mail/fetch-waitlist`,
+		get: `/admin/waitlist/fetch`,
 	}
 
 	return { admins, auth, courses, payments, subscriptions, teachers, users, waitlist }

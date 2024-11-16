@@ -8,7 +8,7 @@ const createInstance = () => {
 
 	instance.interceptors.request.use(
 		(config) => {
-			const token = Cookies.get("SPACEET_TOKEN")
+			const token = Cookies.get("CLASSORE_ADMIN_TOKEN")
 			if (token) {
 				config.headers.Authorization = `Bearer ${token}`
 			}
