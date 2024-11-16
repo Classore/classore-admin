@@ -54,7 +54,7 @@ const Page = () => {
 		onSuccess: () => {
 			toast.success("Role added successfully!")
 			router.push("/dashboard/roles-and-permissions").then(() => {
-				queryClient.invalidateQueries({ queryKey: ["get-roles"] })
+				queryClient.invalidateQueries({ queryKey: ["get-admin-roles"] })
 			})
 		},
 		onError: ({ response }: HttpError) => {
@@ -67,6 +67,10 @@ const Page = () => {
 	const { errors, handleChange, handleSubmit, setFieldValue, values } = useFormik({
 		initialValues,
 		onSubmit: (values) => {
+			if (!values.name) {
+				toast.error("Please provide a role name!")
+				return
+			}
 			mutateAsync(values)
 		},
 	})

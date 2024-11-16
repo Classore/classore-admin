@@ -6,8 +6,8 @@ import { DataTable, Pagination, Seo } from "@/components/shared"
 import { DashboardLayout } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { GetWaitlistQuery } from "@/queries"
+import { waitlistColumns } from "@/config"
 import { exportToXLSX } from "@/lib"
-import { columns } from "@/config"
 
 type User = {
 	"First Name": string
@@ -66,7 +66,7 @@ const Page = () => {
 							Export
 						</Button>
 					</div>
-					<DataTable columns={columns} data={data?.data.data ?? []} />
+					<DataTable columns={waitlistColumns} data={data?.data.data ?? []} />
 					<Pagination
 						current={page}
 						onPageChange={setPage}
