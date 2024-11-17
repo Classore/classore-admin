@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button"
 import { GetWaitlistQuery } from "@/queries"
 import { waitlistColumns } from "@/config"
 import { exportToXLSX } from "@/lib"
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select"
 
 type User = {
 	"First Name": string
@@ -17,9 +24,12 @@ type User = {
 	Date: Date | string
 }
 
+const filters = ["ALL", "PARENT", "STUDENT"] as const
+type Filter = (typeof filters)[number] | (string & {})
 const LIMIT = 10
 
 const Page = () => {
+	const [filter, setFilter] = React.useState<Filter>("")
 	const [page, setPage] = React.useState(1)
 
 	const [{ data }, { data: waitlist }] = useQueries({
@@ -61,7 +71,19 @@ const Page = () => {
 			<Seo title="Waitlist" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-10 p-6">
-					<div className="flex w-full items-center justify-end">
+					<div className="flex w-full items-center justify-end gap-4">
+						<Select value={filter} onValueChange={setFilter}>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue placeholder="Filter by role" />
+							</SelectTrigger>
+							<SelectContent>
+								{filters.map((filter) => (
+									<SelectItem key={filter} value={filter}>
+										{filter}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 						<Button onClick={handleDownload} className="w-fit text-sm" variant="outline">
 							Export
 						</Button>
