@@ -24,23 +24,23 @@ type User = {
 	Date: Date | string
 }
 
-const filters = ["ALL", "PARENT", "STUDENT"] as const
-type Filter = (typeof filters)[number] | (string & {})
+const roles = ["ALL", "PARENT", "STUDENT"] as const
+type Role = (typeof roles)[number] | (string & {})
 const LIMIT = 10
 
 const Page = () => {
-	const [filter, setFilter] = React.useState<Filter>("")
+	const [role, setRole] = React.useState<Role>("")
 	const [page, setPage] = React.useState(1)
 
 	const [{ data }, { data: waitlist }] = useQueries({
 		queries: [
 			{
-				queryFn: () => GetWaitlistQuery({ limit: LIMIT, page }),
-				queryKey: ["get-waitlist", page],
+				queryFn: () => GetWaitlistQuery({ limit: LIMIT, page, role }),
+				queryKey: ["get-waitlist", page, role],
 			},
 			{
-				queryFn: () => GetWaitlistQuery({ limit: 1000 }),
-				queryKey: ["get-waitlist-for-export"],
+				queryFn: () => GetWaitlistQuery({ limit: 1000, role }),
+				queryKey: ["get-waitlist-for-export", role],
 			},
 		],
 	})
@@ -72,19 +72,23 @@ const Page = () => {
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-10 p-6">
 					<div className="flex w-full items-center justify-end gap-4">
-						<Select value={filter} onValueChange={setFilter}>
+						<Select value={role} onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
 							<SelectTrigger className="w-[180px]">
 								<SelectValue placeholder="Filter by role" />
 							</SelectTrigger>
 							<SelectContent>
-								{filters.map((filter) => (
-									<SelectItem key={filter} value={filter}>
-										{filter}
+								{roles.map((role) => (
+									<SelectItem key={role} value={role}>
+										{role}
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
-						<Button onClick={handleDownload} className="w-fit text-sm" variant="outline">
+						<Button
+							onClick={handleDownload}
+							className="w-fit text-sm"
+							variant="outline"
+							disabled={!xlsxData.length}>
 							Export
 						</Button>
 					</div>

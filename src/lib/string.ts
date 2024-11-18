@@ -1,3 +1,5 @@
+import type { QueryParamsProps } from "@/types"
+
 export const capitalize = (value: string) => {
 	return value.charAt(0).toUpperCase() + value.slice(1)
 }
@@ -28,4 +30,15 @@ export const normalize = (path?: string): string => {
 		}
 	}
 	return normalPath
+}
+
+export const encodeQueryParams = (params: QueryParamsProps) => {
+	type Key = keyof typeof params
+	return Object.keys(params)
+		.filter(
+			(key) =>
+				params[key as Key] !== null && params[key as Key] !== undefined && params[key as Key] !== ""
+		)
+		.map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key as Key] as string)}`)
+		.join("&")
 }

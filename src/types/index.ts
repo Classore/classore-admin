@@ -114,6 +114,10 @@ export type PaginationProps = {
 	page?: number
 }
 
+export type QueryParamsProps = {
+	[key: string]: string | number | boolean | undefined | null
+}
+
 export type Node = {
 	__typename?: "Node"
 	id: string
