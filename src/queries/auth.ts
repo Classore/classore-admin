@@ -65,21 +65,29 @@ const GetRolesQuery = async (params: PaginationProps) => {
 		.then((res) => res.data)
 }
 
-const GetWaitlistQuery = async (
-	params: PaginationProps & { role?: "PARENT" | "STUDENT" | (string & {}) }
-) => {
-	type Key = keyof typeof params
-	const query = Object.keys(params)
-		.map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key as Key] as string)}`)
-		.filter(
-			(key) =>
-				params[key as Key] !== null && params[key as Key] !== undefined && params[key as Key] !== ""
-		)
-		.map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key as Key] as string)}`)
-		.join("&")
+const GetWaitlistQuery = async ({
+	limit,
+	page,
+	role,
+	search,
+}: PaginationProps & { role?: "PARENT" | "STUDENT" | (string & {}); search?: string }) => {
+	const params = role ? { limit, page, role, search } : { limit, page, search }
 	return axios
-		.get<HttpResponse<PaginatedResponse<WaitlistUserProps>>>(`${endpoints().waitlist.get}?${query}`)
+		.get<HttpResponse<PaginatedResponse<WaitlistUserProps>>>(endpoints().waitlist.get, { params })
 		.then((res) => res.data)
 }
 
-export { CreateAdminMutation, CreateRoleMutation, GetRolesQuery, GetWaitlistQuery, SignInMutation }
+const DeleteWaitlistUser = async (id: string) => {
+	return axios
+		.put<HttpResponse<WaitlistUserProps>>(endpoints().auth.delete_entity, { id, type: "WAITLIST" })
+		.then((res) => res.data)
+}
+
+export {
+	CreateAdminMutation,
+	CreateRoleMutation,
+	DeleteWaitlistUser,
+	GetRolesQuery,
+	GetWaitlistQuery,
+	SignInMutation,
+}

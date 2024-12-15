@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
 import type { PaginatedRoleProps, WaitlistUserProps } from "@/types"
+import { DeleteAction } from "@/components/actions/waitlist/delete"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export const waitlistColumns: ColumnDef<WaitlistUserProps>[] = [
@@ -50,6 +51,11 @@ export const waitlistColumns: ColumnDef<WaitlistUserProps>[] = [
 		accessorKey: "waitlists_createdOn",
 		header: "Joined On",
 		cell: ({ row }) => <span>{format(row.original.waitlists_createdOn, "dd/MM/yyyy")}</span>,
+	},
+	{
+		id: "actions",
+		header: "",
+		cell: ({ row }) => <DeleteAction id={row.original.waitlists_id} />,
 	},
 ]
 

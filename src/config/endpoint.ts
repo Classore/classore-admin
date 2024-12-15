@@ -6,6 +6,7 @@ export const endpoints = (id?: string) => {
 		create: "/admin/staff/create",
 		create_role: `/admin/role/create`,
 		get_roles: `/admin/role/fetch`,
+		delete_entity: `/auth/delete-entity`,
 	}
 
 	const courses = {

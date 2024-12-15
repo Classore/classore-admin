@@ -5,8 +5,10 @@ import React from "react"
 import { DataTable, Pagination, Seo } from "@/components/shared"
 import { DashboardLayout } from "@/components/layout"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { GetWaitlistQuery } from "@/queries"
 import { waitlistColumns } from "@/config"
+import { useDebounce } from "@/hooks"
 import { exportToXLSX } from "@/lib"
 import {
 	Select,
@@ -30,13 +32,16 @@ const LIMIT = 10
 
 const Page = () => {
 	const [role, setRole] = React.useState<Role>("")
+	const [query, setQuery] = React.useState("")
 	const [page, setPage] = React.useState(1)
+
+	const search = useDebounce(query, 500)
 
 	const [{ data }, { data: waitlist }] = useQueries({
 		queries: [
 			{
-				queryFn: () => GetWaitlistQuery({ limit: LIMIT, page, role }),
-				queryKey: ["get-waitlist", page, role],
+				queryFn: () => GetWaitlistQuery({ limit: LIMIT, page, role, search }),
+				queryKey: ["get-waitlist", page, role, search],
 			},
 			{
 				queryFn: () => GetWaitlistQuery({ limit: 1000, role }),
@@ -71,26 +76,34 @@ const Page = () => {
 			<Seo title="Waitlist" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-10 p-6">
-					<div className="flex w-full items-center justify-end gap-4">
-						<Select value={role} onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
-							<SelectTrigger className="w-[180px]">
-								<SelectValue placeholder="Filter by role" />
-							</SelectTrigger>
-							<SelectContent>
-								{roles.map((role) => (
-									<SelectItem key={role} value={role}>
-										{role}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Button
-							onClick={handleDownload}
-							className="w-fit text-sm"
-							variant="outline"
-							disabled={!xlsxData.length}>
-							Export
-						</Button>
+					<div className="flex w-full items-center justify-between gap-4">
+						<Input
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							placeholder="Search..."
+							className="h-10"
+						/>
+						<div className="flex items-center gap-4">
+							<Select value={role} onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
+								<SelectTrigger className="w-[180px]">
+									<SelectValue placeholder="Filter by role" />
+								</SelectTrigger>
+								<SelectContent>
+									{roles.map((role) => (
+										<SelectItem key={role} value={role}>
+											{role}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Button
+								onClick={handleDownload}
+								className="w-fit text-sm"
+								variant="outline"
+								disabled={!xlsxData.length}>
+								Export
+							</Button>
+						</div>
 					</div>
 					<DataTable columns={waitlistColumns} data={data?.data.data ?? []} />
 					<Pagination
