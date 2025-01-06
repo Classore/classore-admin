@@ -70,8 +70,8 @@ export const AdminActions = ({ admin }: Props) => {
 						</div>
 						<DialogTitle className="my-4">Revoke Admin Access</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to revoke this "{admin.first_name} {admin.last_name}" access
-							to Classore Admin?
+							Are you sure you want to revoke this &ldquo;{admin.first_name} {admin.last_name}
+							&rdquo; access to Classore Admin?
 						</DialogDescription>
 						<div className="mt-6 flex w-full items-center justify-end gap-x-4">
 							<Button onClick={() => setIsRevokeOpen(false)} className="w-fit" variant="outline">
