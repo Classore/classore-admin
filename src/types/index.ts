@@ -179,15 +179,13 @@ export type RoleProps = {
 
 export type AdminProps = Node & {
 	__typename?: "User";
-	id: string;
-	createdOn: Date;
-	updatedOn: Date;
+	access_token: string;
+	email: string;
 	first_name: string;
+	is_blocked: boolean;
+	is_deleted: boolean;
 	last_name: string;
 	phone_number: string;
-	email: string;
-	is_deleted: boolean;
-	is_blocked: boolean;
 	role: string;
 };
 
