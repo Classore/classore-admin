@@ -1,14 +1,14 @@
-import React from "react"
+import React from "react";
 
 export const useInterval = (callback: () => void, delay: number) => {
-	const savedCallback = React.useRef(callback)
+	const savedCallback = React.useRef(callback);
 
 	React.useEffect(() => {
-		savedCallback.current = callback
-	}, [callback])
+		savedCallback.current = callback;
+	}, [callback]);
 
 	React.useEffect(() => {
-		const id = setInterval(() => savedCallback.current(), delay)
-		return () => clearInterval(id)
-	}, [delay])
-}
+		const id = setInterval(() => savedCallback.current(), delay);
+		return () => clearInterval(id);
+	}, [delay]);
+};

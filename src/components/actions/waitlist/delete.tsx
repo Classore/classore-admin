@@ -1,12 +1,12 @@
-import { RiDeleteBinLine, RiLoaderLine } from "@remixicon/react"
-import { useMutation } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import { DeleteWaitlistUser } from "@/queries"
-import { queryClient } from "@/providers"
+import { DeleteWaitlistUser } from "@/queries";
+import { queryClient } from "@/providers";
 
 interface Props {
-	id: string
+	id: string;
 }
 
 export const DeleteAction = ({ id }: Props) => {
@@ -14,14 +14,14 @@ export const DeleteAction = ({ id }: Props) => {
 		mutationFn: (id: string) => DeleteWaitlistUser(id),
 		mutationKey: ["delete-waitlist-user", id],
 		onSuccess: () => {
-			toast.success("User deleted successfully")
-			queryClient.invalidateQueries({ queryKey: ["get-waitlist"] })
+			toast.success("User deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["get-waitlist"] });
 		},
 		onError: (error) => {
-			console.error(error)
-			toast.error("Something went wrong")
+			console.error(error);
+			toast.error("Something went wrong");
 		},
-	})
+	});
 
 	return (
 		<div className="flex items-center justify-center">
@@ -33,5 +33,5 @@ export const DeleteAction = ({ id }: Props) => {
 				)}
 			</button>
 		</div>
-	)
-}
+	);
+};

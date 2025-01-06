@@ -1,104 +1,61 @@
-import { RiLogoutCircleRLine } from "@remixicon/react"
-import { useRouter } from "next/router"
-import Link from "next/link"
-import React from "react"
+import { useRouter } from "next/router";
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
-import { dashboard_links, role_access } from "@/config"
-import type { DashboardLinkProps } from "@/config"
-import { Button } from "@/components/ui/button"
-import { useUserStore } from "@/store/z-store"
-import { getInitials, normalize } from "@/lib"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog"
+import { dashboard_links } from "@/config";
+import { Appbar } from "../shared";
+import { normalize } from "@/lib";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-	const [open, setOpen] = React.useState(false)
-	const { signOut, user } = useUserStore()
-	const role = user?.role.name ?? "super"
-	const { pathname } = useRouter()
+	const { pathname } = useRouter();
 
-	const isActiveRoute = (href: string) => normalize(pathname) === href
-
-	const filterLinksByRole = (links: DashboardLinkProps["links"]) => {
-		return links.filter((link) => role_access[role].includes(link.label))
-	}
-
-	const handleSignOut = () => {
-		signOut().then(() => {
-			setOpen(false)
-		})
-	}
+	const isActiveRoute = (href: string) => normalize(pathname) === href;
 
 	return (
 		<div className="flex h-screen w-screen items-start overflow-hidden">
-			<aside className="flex h-full w-[285px] flex-col bg-primary-400">
-				<div className="min-h-24 w-full border-b"></div>
+			<aside className="flex h-full w-[256px] flex-col bg-white">
+				<div className="min-h-24 w-full px-6 py-9">
+					<div className="relative h-8 w-[140px]">
+						<Image
+							src="/assets/images/classore.png"
+							alt="classore"
+							fill
+							sizes="100%"
+							className="object-cover"
+						/>
+					</div>
+				</div>
 				<div className="flex h-full w-full flex-col overflow-y-scroll">
-					<div className="flex h-full min-h-[700px] w-full flex-col justify-between gap-10 p-4">
-						{dashboard_links.map(({ label, links }) => {
-							const filtered = filterLinksByRole(links)
-							return (
-								<div key={label} className="flex w-full flex-col gap-4">
-									<p className="text-[10px] font-medium uppercase text-neutral-200">{label}</p>
-									<div className="flex w-full flex-col gap-4">
-										{filtered.map(({ href, label }) => (
+					<div className="flex w-full flex-col px-6">
+						<p className="text-[10px] font-medium uppercase text-neutral-200">admin menu</p>
+						<div className="flex w-full flex-col">
+							{dashboard_links.value.map(({ id, links }) => {
+								return (
+									<div
+										key={id}
+										className="flex w-full flex-col gap-2 border-b py-4 last:border-b-0">
+										{links.map(({ href, icon: Icon, name }) => (
 											<Link
-												key={label}
+												key={name}
 												href={href}
-												className={`relative flex h-9 items-center gap-2 rounded-md px-3 text-sm capitalize transition-colors hover:bg-white/35 ${isActiveRoute(href) ? "border bg-white/80 text-primary-400" : "text-white"}`}>
-												{label}
+												className={`relative flex h-10 items-center gap-2 rounded-md px-3 text-xs capitalize transition-colors hover:bg-primary-100 ${isActiveRoute(href) ? "bg-primary-100 font-medium text-primary-400" : "text-neutral-400"}`}>
+												<Icon size={20} /> {name}
 											</Link>
 										))}
 									</div>
-								</div>
-							)
-						})}
-					</div>
-					<div className="grid min-h-24 w-full place-items-center border-t text-white">
-						<div className="flex h-[68px] w-full items-center gap-4 px-4">
-							<Avatar className="size-8">
-								<AvatarImage src="" alt={user?.first_name} />
-								<AvatarFallback className="font-semibold text-primary-300">
-									{getInitials(`${user?.first_name} ${user?.last_name}`)}
-								</AvatarFallback>
-							</Avatar>
-							<div className="flex flex-col">
-								<p className="text-sm capitalize text-white">{`${user?.first_name} ${user?.last_name}`}</p>
-								<p className="text-xs lowercase text-white/70">{user?.email}</p>
-							</div>
-							<Dialog open={open} onOpenChange={setOpen}>
-								<DialogTrigger asChild>
-									<button>
-										<RiLogoutCircleRLine size={16} />
-									</button>
-								</DialogTrigger>
-								<DialogContent className="left-1/2 top-1/2 w-[400px] -translate-x-1/2 -translate-y-1/2">
-									<DialogTitle>Logout</DialogTitle>
-									<DialogDescription>Are you sure you want to logout?</DialogDescription>
-									<div className="grid w-full grid-cols-2 gap-4">
-										<Button variant="outline" className="w-full" onClick={() => setOpen(false)}>
-											Cancel
-										</Button>
-										<Button className="w-full" onClick={() => handleSignOut()}>
-											Continue
-										</Button>
-									</div>
-								</DialogContent>
-							</Dialog>
+								);
+							})}
 						</div>
 					</div>
 				</div>
 			</aside>
-			<main className="flex h-full w-full max-w-[calc(100vw-280px)] flex-1 flex-col bg-white">
-				<div className="h-24 w-full border-b"></div>
-				<div className="w-full overflow-y-scroll">{children}</div>
+			<main className="flex h-full w-full max-w-[calc(100vw-256px)] flex-1 flex-col">
+				<Appbar />
+				<div className="w-full flex-1 overflow-y-scroll bg-[#F6F8FA] px-8 py-6">
+					{children}
+				</div>
 			</main>
 		</div>
-	)
+	);
 }

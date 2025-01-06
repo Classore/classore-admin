@@ -1,10 +1,10 @@
-import type { VariantProps } from "class-variance-authority"
-import { cva } from "class-variance-authority"
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface Props extends VariantProps<typeof spinnerVariants> {
-	className?: string
+	className?: string;
 }
 
 const spinnerVariants = cva("size-5 rounded-full animate-spin", {
@@ -25,8 +25,8 @@ const spinnerVariants = cva("size-5 rounded-full animate-spin", {
 		variant: "light",
 		size: "md",
 	},
-})
+});
 
 export const Spinner = ({ className, size, variant }: Props) => {
-	return <div className={cn(spinnerVariants({ className, size, variant }))}></div>
-}
+	return <div className={cn(spinnerVariants({ className, size, variant }))}></div>;
+};
