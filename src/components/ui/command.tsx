@@ -1,11 +1,11 @@
 // https://ui.shadcn.com/docs/components/command#installation
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import type { DialogProps } from "@radix-ui/react-dialog"
-import { Command as CommandPrimitive } from "cmdk"
-import { SearchNormal1 } from "iconsax-react"
-import * as React from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import type { DialogProps } from "@radix-ui/react-dialog";
+import { Command as CommandPrimitive } from "cmdk";
+import { SearchNormal1 } from "iconsax-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const Command = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive>,
@@ -13,11 +13,14 @@ const Command = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<CommandPrimitive
 		ref={ref}
-		className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white", className)}
+		className={cn(
+			"flex h-full w-full flex-col overflow-hidden rounded-md bg-white",
+			className
+		)}
 		{...props}
 	/>
-))
-Command.displayName = CommandPrimitive.displayName
+));
+Command.displayName = CommandPrimitive.displayName;
 
 const CommandDialog = ({ children, ...props }: DialogProps) => {
 	return (
@@ -28,8 +31,8 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 				</Command>
 			</DialogContent>
 		</Dialog>
-	)
-}
+	);
+};
 
 const CommandInput = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Input>,
@@ -47,9 +50,9 @@ const CommandInput = React.forwardRef<
 			{...props}
 		/>
 	</div>
-))
+));
 
-CommandInput.displayName = CommandPrimitive.Input.displayName
+CommandInput.displayName = CommandPrimitive.Input.displayName;
 
 const CommandList = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.List>,
@@ -60,9 +63,9 @@ const CommandList = React.forwardRef<
 		className={cn("max-h-[400px] w-full overflow-y-auto overflow-x-hidden", className)}
 		{...props}
 	/>
-))
+));
 
-CommandList.displayName = CommandPrimitive.List.displayName
+CommandList.displayName = CommandPrimitive.List.displayName;
 
 const CommandEmpty = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Empty>,
@@ -73,9 +76,9 @@ const CommandEmpty = React.forwardRef<
 		className="py-2 text-center text-sm text-neutral-400"
 		{...props}
 	/>
-))
+));
 
-CommandEmpty.displayName = CommandPrimitive.Empty.displayName
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
 const CommandGroup = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Group>,
@@ -89,9 +92,9 @@ const CommandGroup = React.forwardRef<
 		)}
 		{...props}
 	/>
-))
+));
 
-CommandGroup.displayName = CommandPrimitive.Group.displayName
+CommandGroup.displayName = CommandPrimitive.Group.displayName;
 
 const CommandSeparator = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Separator>,
@@ -102,8 +105,8 @@ const CommandSeparator = React.forwardRef<
 		className={cn("-mx-1 h-px bg-neutral-300", className)}
 		{...props}
 	/>
-))
-CommandSeparator.displayName = CommandPrimitive.Separator.displayName
+));
+CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
 const CommandItem = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Item>,
@@ -117,9 +120,9 @@ const CommandItem = React.forwardRef<
 		)}
 		{...props}
 	/>
-))
+));
 
-CommandItem.displayName = CommandPrimitive.Item.displayName
+CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 export {
 	Command,
@@ -130,4 +133,4 @@ export {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-}
+};

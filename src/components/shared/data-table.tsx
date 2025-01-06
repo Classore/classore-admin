@@ -1,12 +1,12 @@
-import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table"
-import React from "react"
+import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import React from "react";
 import {
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
 	Table,
@@ -15,17 +15,17 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 interface Props<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[]
-	data: TData[]
+	columns: ColumnDef<TData, TValue>[];
+	data: TData[];
 }
 
 export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>) {
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
-	const [rowSelection, setRowSelection] = React.useState({})
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [rowSelection, setRowSelection] = React.useState({});
 
 	const table = useReactTable({
 		columns,
@@ -41,7 +41,7 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 			columnFilters,
 			rowSelection,
 		},
-	})
+	});
 
 	return (
 		<div className="w-full">
@@ -56,7 +56,7 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 											? null
 											: flexRender(header.column.columnDef.header, header.getContext())}
 									</TableHead>
-								)
+								);
 							})}
 						</TableRow>
 					))}
@@ -82,5 +82,5 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 				</TableBody>
 			</Table>
 		</div>
-	)
+	);
 }

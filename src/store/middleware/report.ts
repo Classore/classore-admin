@@ -1,5 +1,5 @@
-import type { StateCreator } from "zustand"
-import { create } from "zustand"
+import type { StateCreator } from "zustand";
+import { create } from "zustand";
 
 export const reportException =
 	<T>(stateCreator: StateCreator<T>): StateCreator<T> =>
@@ -7,15 +7,15 @@ export const reportException =
 		stateCreator(
 			(args) => {
 				try {
-					set(args)
+					set(args);
 				} catch (error: unknown) {
-					console.error("Error :(", error)
-					throw error
+					console.error("Error :(", error);
+					throw error;
 				}
 			},
 			get,
 			api
-		)
+		);
 
 export const createReportableStore = <T>(storeCreator: StateCreator<T>) =>
-	create<T>()(reportException<T>(storeCreator))
+	create<T>()(reportException<T>(storeCreator));

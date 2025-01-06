@@ -1,18 +1,18 @@
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "next/router"
-import { useFormik } from "formik"
-import { toast } from "sonner"
-import React from "react"
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import { useFormik } from "formik";
+import { toast } from "sonner";
+import React from "react";
 
-import { DashboardLayout } from "@/components/layout"
-import { Seo, Spinner } from "@/components/shared"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import type { CreateRoleDto } from "@/queries"
-import { Input } from "@/components/ui/input"
-import { CreateRoleMutation } from "@/queries"
-import { queryClient } from "@/providers"
-import type { HttpError } from "@/types"
+import { DashboardLayout } from "@/components/layout";
+import { Seo, Spinner } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import type { CreateRoleDto } from "@/queries";
+import { Input } from "@/components/ui/input";
+import { CreateRoleMutation } from "@/queries";
+import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 
 const initialValues: CreateRoleDto = {
 	name: "",
@@ -28,7 +28,7 @@ const initialValues: CreateRoleDto = {
 	videos_write: "NO",
 	waitlist_read: "NO",
 	waitlist_write: "NO",
-}
+};
 
 const permissions: { label: string; value: keyof CreateRoleDto }[] = [
 	{ label: "Read from admin", value: "admin_read" },
@@ -43,37 +43,37 @@ const permissions: { label: string; value: keyof CreateRoleDto }[] = [
 	{ label: "Write to courses", value: "videos_write" },
 	{ label: "Read from waitlist", value: "waitlist_read" },
 	{ label: "Write to waitlist", value: "waitlist_write" },
-]
+];
 
 const Page = () => {
-	const router = useRouter()
+	const router = useRouter();
 
 	const { isPending, mutateAsync } = useMutation({
 		mutationFn: (payload: CreateRoleDto) => CreateRoleMutation(payload),
 		mutationKey: ["create-role"],
 		onSuccess: () => {
-			toast.success("Role added successfully!")
+			toast.success("Role added successfully!");
 			router.push("/dashboard/roles-and-permissions").then(() => {
-				queryClient.invalidateQueries({ queryKey: ["get-admin-roles"] })
-			})
+				queryClient.invalidateQueries({ queryKey: ["get-admin-roles"] });
+			});
 		},
 		onError: ({ response }: HttpError) => {
-			console.error(response)
-			const { message } = response.data
-			toast.error(message)
+			console.error(response);
+			const { message } = response.data;
+			toast.error(message);
 		},
-	})
+	});
 
 	const { errors, handleChange, handleSubmit, setFieldValue, values } = useFormik({
 		initialValues,
 		onSubmit: (values) => {
 			if (!values.name) {
-				toast.error("Please provide a role name!")
-				return
+				toast.error("Please provide a role name!");
+				return;
 			}
-			mutateAsync(values)
+			mutateAsync(values);
 		},
-	})
+	});
 
 	return (
 		<>
@@ -112,7 +112,7 @@ const Page = () => {
 				</div>
 			</DashboardLayout>
 		</>
-	)
-}
+	);
+};
 
-export default Page
+export default Page;

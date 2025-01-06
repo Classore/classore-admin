@@ -1,12 +1,12 @@
-import type { VariantProps } from "class-variance-authority"
-import { cva } from "class-variance-authority"
-import { useRouter } from "next/router"
-import React from "react"
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import { useRouter } from "next/router";
+import React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface Props extends VariantProps<typeof loaderVariants> {
-	className?: string
+	className?: string;
 }
 
 const loaderVariants = cva("animate-spin", {
@@ -26,55 +26,55 @@ const loaderVariants = cva("animate-spin", {
 		variant: "primary",
 		size: "md",
 	},
-})
+});
 
 const useRouteChangeLoader = () => {
-	const [loading, setLoading] = React.useState(false)
-	const router = useRouter()
-	const prevPathRef = React.useRef(router.asPath)
+	const [loading, setLoading] = React.useState(false);
+	const router = useRouter();
+	const prevPathRef = React.useRef(router.asPath);
 
 	const shouldShowLoader = React.useCallback((url: string) => {
-		const currentPath = prevPathRef.current.split("?")[0]
-		const nextPath = url.split("?")[0]
-		return currentPath !== nextPath
-	}, [])
+		const currentPath = prevPathRef.current.split("?")[0];
+		const nextPath = url.split("?")[0];
+		return currentPath !== nextPath;
+	}, []);
 
 	const handleStart = React.useCallback(
 		(url: string) => {
 			if (shouldShowLoader(url)) {
-				setLoading(true)
+				setLoading(true);
 			}
 		},
 		[shouldShowLoader]
-	)
+	);
 
 	const handleComplete = React.useCallback(() => {
-		prevPathRef.current = router.asPath
-		setLoading(false)
-	}, [router.asPath])
+		prevPathRef.current = router.asPath;
+		setLoading(false);
+	}, [router.asPath]);
 
 	React.useEffect(() => {
 		if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-			return
+			return;
 		}
-		router.events.on("routeChangeStart", handleStart)
-		router.events.on("routeChangeComplete", handleComplete)
-		router.events.on("routeChangeError", handleComplete)
+		router.events.on("routeChangeStart", handleStart);
+		router.events.on("routeChangeComplete", handleComplete);
+		router.events.on("routeChangeError", handleComplete);
 
 		return () => {
-			router.events.off("routeChangeStart", handleStart)
-			router.events.off("routeChangeComplete", handleComplete)
-			router.events.off("routeChangeError", handleComplete)
-		}
-	}, [router, handleStart, handleComplete])
+			router.events.off("routeChangeStart", handleStart);
+			router.events.off("routeChangeComplete", handleComplete);
+			router.events.off("routeChangeError", handleComplete);
+		};
+	}, [router, handleStart, handleComplete]);
 
-	return loading
-}
+	return loading;
+};
 
 export const Loader = () => {
-	const loading = useRouteChangeLoader()
-	return loading ? <Loading /> : null
-}
+	const loading = useRouteChangeLoader();
+	return loading ? <Loading /> : null;
+};
 
 export const Loading = React.memo(({ className, size, variant }: Props) => {
 	return (
@@ -89,7 +89,7 @@ export const Loading = React.memo(({ className, size, variant }: Props) => {
 				<path d="M16.9497 7.05015C14.2161 4.31648 9.78392 4.31648 7.05025 7.05015C6.65973 7.44067 6.02656 7.44067 5.63604 7.05015C5.24551 6.65962 5.24551 6.02646 5.63604 5.63593C9.15076 2.12121 14.8492 2.12121 18.364 5.63593C18.7545 6.02646 18.7545 6.65962 18.364 7.05015C17.9734 7.44067 17.3403 7.44067 16.9497 7.05015Z"></path>
 			</svg>
 		</div>
-	)
-})
+	);
+});
 
-Loading.displayName = "Loading"
+Loading.displayName = "Loading";

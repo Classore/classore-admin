@@ -1,41 +1,41 @@
-import { useQueries } from "@tanstack/react-query"
-import { toast } from "sonner"
-import React from "react"
+import { useQueries } from "@tanstack/react-query";
+import { toast } from "sonner";
+import React from "react";
 
-import { DataTable, Pagination, Seo } from "@/components/shared"
-import { DashboardLayout } from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { GetWaitlistQuery } from "@/queries"
-import { waitlistColumns } from "@/config"
-import { useDebounce } from "@/hooks"
-import { exportToXLSX } from "@/lib"
+import { DataTable, Pagination, Seo } from "@/components/shared";
+import { DashboardLayout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { GetWaitlistQuery } from "@/queries";
+import { waitlistColumns } from "@/config";
+import { useDebounce } from "@/hooks";
+import { exportToXLSX } from "@/lib";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 type User = {
-	"First Name": string
-	"Last Name": string
-	Email: string
-	Role: string
-	Date: Date | string
-}
+	"First Name": string;
+	"Last Name": string;
+	Email: string;
+	Role: string;
+	Date: Date | string;
+};
 
-const roles = ["ALL", "PARENT", "STUDENT"] as const
-type Role = (typeof roles)[number] | (string & {})
-const LIMIT = 10
+const roles = ["ALL", "PARENT", "STUDENT"] as const;
+type Role = (typeof roles)[number] | (string & {});
+const LIMIT = 10;
 
 const Page = () => {
-	const [role, setRole] = React.useState<Role>("")
-	const [query, setQuery] = React.useState("")
-	const [page, setPage] = React.useState(1)
+	const [role, setRole] = React.useState<Role>("");
+	const [query, setQuery] = React.useState("");
+	const [page, setPage] = React.useState(1);
 
-	const search = useDebounce(query, 500)
+	const search = useDebounce(query, 500);
 
 	const [{ data }, { data: waitlist }] = useQueries({
 		queries: [
@@ -48,10 +48,10 @@ const Page = () => {
 				queryKey: ["get-waitlist-for-export", role],
 			},
 		],
-	})
+	});
 
 	const xlsxData: User[] = React.useMemo(() => {
-		if (!waitlist) return []
+		if (!waitlist) return [];
 		return waitlist.data.data.reduce((acc, user) => {
 			acc.push({
 				"First Name": user.waitlists_first_name,
@@ -59,17 +59,17 @@ const Page = () => {
 				Email: user.waitlists_email,
 				Role: user.waitlists_waitlist_type,
 				Date: user.waitlists_createdOn,
-			})
-			return acc
-		}, [] as User[])
-	}, [waitlist])
+			});
+			return acc;
+		}, [] as User[]);
+	}, [waitlist]);
 
 	const handleDownload = async () => {
 		if (xlsxData) {
-			exportToXLSX(xlsxData, { filename: "waitlist" })
-			toast.success("Exported to Excel")
+			exportToXLSX(xlsxData, { filename: "waitlist" });
+			toast.success("Exported to Excel");
 		}
-	}
+	};
 
 	return (
 		<>
@@ -84,7 +84,9 @@ const Page = () => {
 							className="h-10"
 						/>
 						<div className="flex items-center gap-4">
-							<Select value={role} onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
+							<Select
+								value={role}
+								onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
 								<SelectTrigger className="w-[180px]">
 									<SelectValue placeholder="Filter by role" />
 								</SelectTrigger>
@@ -115,7 +117,7 @@ const Page = () => {
 				</div>
 			</DashboardLayout>
 		</>
-	)
-}
+	);
+};
 
-export default Page
+export default Page;

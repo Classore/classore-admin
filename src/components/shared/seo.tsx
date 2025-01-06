@@ -1,18 +1,18 @@
-import { useRouter } from "next/router"
-import Head from "next/head"
+import { useRouter } from "next/router";
+import Head from "next/head";
 
-const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
-const DEFAULT_OG_IMAGE = "/assets/meta/screenshot.png"
+const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+const DEFAULT_OG_IMAGE = "/assets/meta/screenshot.png";
 
 interface SeoProps {
-	readonly title?: string
-	readonly description?: string
-	readonly siteName?: string
-	readonly canonical?: string
-	readonly ogImage?: string
-	readonly ogType?: string
-	readonly twitterHandle?: string
-	readonly noIndex?: boolean
+	readonly title?: string;
+	readonly description?: string;
+	readonly siteName?: string;
+	readonly canonical?: string;
+	readonly ogImage?: string;
+	readonly ogType?: string;
+	readonly twitterHandle?: string;
+	readonly noIndex?: boolean;
 }
 
 export function Seo({
@@ -25,8 +25,8 @@ export function Seo({
 	twitterHandle = "SpaceetHq",
 	noIndex = false,
 }: SeoProps) {
-	const router = useRouter()
-	const isHome = router.pathname === "/"
+	const router = useRouter();
+	const isHome = router.pathname === "/";
 
 	return (
 		<Head>
@@ -61,7 +61,11 @@ export function Seo({
 				<meta key="twitter:site" name="twitter:site" content={twitterHandle} />
 				<meta key="twitter:creator" name="twitter:creator" content={twitterHandle} />
 				<meta key="twitter:title" property="twitter:title" content={title} />
-				<meta key="twitter:description" property="twitter:description" content={description} />
+				<meta
+					key="twitter:description"
+					property="twitter:description"
+					content={description}
+				/>
 				<meta key="twitter:domain" name="twitter:domain" content={APP_URL} />
 
 				<link rel="shortcut icon" href="/favicon.ico" />
@@ -105,5 +109,5 @@ export function Seo({
 
 			<link rel="canonical" href={canonical ?? APP_URL} />
 		</Head>
-	)
+	);
 }

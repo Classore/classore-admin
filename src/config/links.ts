@@ -1,15 +1,15 @@
-import type { RemixiconComponentType } from "@remixicon/react"
+import {
+	RiAdminLine,
+	RiBarChart2Line,
+	RiBookLine,
+	RiCalendar2Line,
+	RiMessage3Line,
+	RiMoneyDollarCircleLine,
+	RiSettingsLine,
+	RiTeamLine,
+} from "@remixicon/react";
 
-import type { RoleProps } from "@/types"
-
-export type DashboardLinkProps = {
-	label: string
-	links: {
-		label: string
-		href: string
-		icon?: RemixiconComponentType
-	}[]
-}
+import type { RoleProps } from "@/types";
 
 export const role_access: Record<RoleProps["name"], string[]> = {
 	admin: ["dashboard", "courses", "teacher", "users", "account", "settings"],
@@ -28,61 +28,41 @@ export const role_access: Record<RoleProps["name"], string[]> = {
 		"settings",
 	],
 	sub: ["dashboard", "courses", "account"],
-}
+};
 
-export const dashboard_links: DashboardLinkProps[] = [
-	{
-		label: "main",
-		links: [
-			{
-				label: "dashboard",
-				href: "/dashboard",
-			},
-			{
-				label: "courses",
-				href: "/dashboard/courses",
-			},
-			{
-				label: "users",
-				href: "/dashboard/users",
-			},
-			{
-				label: "transactions",
-				href: "/dashboard/transactions",
-			},
-			{
-				label: "subscriptions",
-				href: "/dashboard/subscriptions",
-			},
-			{
-				label: "teachers",
-				href: "/dashboard/teachers",
-			},
-			{
-				label: "admins",
-				href: "/dashboard/admins",
-			},
-			{
-				label: "roles & permissions",
-				href: "/dashboard/roles-and-permissions",
-			},
-		],
-	},
-	{
-		label: "others",
-		links: [
-			{
-				label: "account",
-				href: "/dashboard/account",
-			},
-			{
-				label: "waitlist",
-				href: "/dashboard/waitlist",
-			},
-			{
-				label: "settings",
-				href: "/dashboard/settings",
-			},
-		],
-	},
-]
+export const dashboard_links = {
+	label: "admin menu",
+	value: [
+		{
+			id: "1",
+			links: [
+				{ name: "analytics", href: "/dashboard", icon: RiBarChart2Line },
+				{ name: "manage users", href: "/dashboard/users", icon: RiTeamLine },
+				{ name: "manage courses", href: "/dashboard/courses", icon: RiBookLine },
+			],
+		},
+		{
+			id: "2",
+			links: [
+				{ name: "manage forums", href: "/dashboard/forums", icon: RiMessage3Line },
+				{
+					name: "payments",
+					href: "/dashboard/subscriptions",
+					icon: RiMoneyDollarCircleLine,
+				},
+				{
+					name: "manage roles",
+					href: "/dashboard/roles-and-permissions",
+					icon: RiAdminLine,
+				},
+			],
+		},
+		{
+			id: "3",
+			links: [
+				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
+				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },
+			],
+		},
+	],
+};

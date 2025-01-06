@@ -1,48 +1,48 @@
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "next/router"
-import { useFormik } from "formik"
-import { toast } from "sonner"
-import React from "react"
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import { useFormik } from "formik";
+import { toast } from "sonner";
+import React from "react";
 
-import { Seo, Spinner } from "@/components/shared"
-import { Button } from "@/components/ui/button"
-import { useUserStore } from "@/store/z-store"
-import { Input } from "@/components/ui/input"
-import type { SignInDto } from "@/queries"
-import { SignInMutation } from "@/queries"
-import type { HttpError } from "@/types"
-import { signinSchema } from "@/schema"
+import { Seo, Spinner } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/z-store";
+import { Input } from "@/components/ui/input";
+import type { SignInDto } from "@/queries";
+import { SignInMutation } from "@/queries";
+import type { HttpError } from "@/types";
+import { signinSchema } from "@/schema";
 
 const initialValues: SignInDto = {
 	email: "",
 	password: "",
-}
+};
 
 const Page = () => {
-	const { signIn } = useUserStore()
-	const router = useRouter()
+	const { signIn } = useUserStore();
+	const router = useRouter();
 
 	const { isPending, mutateAsync } = useMutation({
 		mutationFn: (payload: SignInDto) => SignInMutation(payload),
 		onSuccess: (data) => {
-			const { data: user } = data
-			signIn(user, user.access_token)
-			router.push("/dashboard")
+			const { data: user } = data;
+			signIn(user, user.access_token);
+			router.push("/dashboard");
 		},
 		onError: ({ response }: HttpError) => {
-			console.error(response)
-			const { message } = response.data
-			toast.error(message)
+			console.error(response);
+			const { message } = response.data;
+			toast.error(message);
 		},
-	})
+	});
 
 	const { errors, handleChange, handleSubmit } = useFormik({
 		initialValues,
 		validationSchema: signinSchema,
 		onSubmit: (values) => {
-			mutateAsync(values)
+			mutateAsync(values);
 		},
-	})
+	});
 
 	return (
 		<>
@@ -82,7 +82,7 @@ const Page = () => {
 				</div>
 			</div>
 		</>
-	)
-}
+	);
+};
 
-export default Page
+export default Page;

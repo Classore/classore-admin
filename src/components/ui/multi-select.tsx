@@ -1,9 +1,9 @@
-import { Check, ChevronDown } from "@untitled-ui/icons-react"
-import { PopoverClose } from "@radix-ui/react-popover"
-import * as React from "react"
+import { Check, ChevronDown } from "@untitled-ui/icons-react";
+import { PopoverClose } from "@radix-ui/react-popover";
+import * as React from "react";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "./button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "./button";
 import {
 	Command,
 	CommandEmpty,
@@ -11,43 +11,45 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 
 type Option = {
-	label: string
-	value: string
-}
+	label: string;
+	value: string;
+};
 
-type Options = Option[]
+type Options = Option[];
 
 type MultiSelectProps = {
-	placeholder?: string
-	label?: string
-	options: Options
-}
+	placeholder?: string;
+	label?: string;
+	options: Options;
+};
 
 export const MultiSelect = ({ label, placeholder, options }: MultiSelectProps) => {
-	const inputRef = React.useRef<HTMLInputElement>(null)
-	const [openCombobox, setOpenCombobox] = React.useState(false)
-	const [selectedValues, setSelectedValues] = React.useState<Options>([])
+	const inputRef = React.useRef<HTMLInputElement>(null);
+	const [openCombobox, setOpenCombobox] = React.useState(false);
+	const [selectedValues, setSelectedValues] = React.useState<Options>([]);
 
 	const toggleOption = (option: Option) => {
 		setSelectedValues((currentOptions) =>
 			!currentOptions.includes(option)
 				? [...currentOptions, option]
 				: currentOptions.filter((l) => l.value !== option.value)
-		)
-		inputRef?.current?.focus()
-	}
+		);
+		inputRef?.current?.focus();
+	};
 
 	const onComboboxOpenChange = (value: boolean) => {
-		inputRef.current?.blur() // HACK: otherwise, would scroll automatically to the bottom of page
-		setOpenCombobox(value)
-	}
+		inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+		setOpenCombobox(value);
+	};
 
 	return (
 		<label className="flex flex-col gap-1.5 font-body">
-			{label ? <p className="text-sm text-neutral-400 dark:text-neutral-50">{label}</p> : null}
+			{label ? (
+				<p className="text-sm text-neutral-400 dark:text-neutral-50">{label}</p>
+			) : null}
 
 			<Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
 				<PopoverTrigger asChild>
@@ -74,7 +76,7 @@ export const MultiSelect = ({ label, placeholder, options }: MultiSelectProps) =
 							<CommandEmpty>No value(s) found...</CommandEmpty>
 							<CommandGroup>
 								{options.map((option) => {
-									const isActive = selectedValues.includes(option)
+									const isActive = selectedValues.includes(option);
 
 									return (
 										<CommandItem
@@ -92,7 +94,7 @@ export const MultiSelect = ({ label, placeholder, options }: MultiSelectProps) =
 												/>
 											</div>
 										</CommandItem>
-									)
+									);
 								})}
 							</CommandGroup>
 
@@ -111,5 +113,5 @@ export const MultiSelect = ({ label, placeholder, options }: MultiSelectProps) =
 				</PopoverContent>
 			</Popover>
 		</label>
-	)
-}
+	);
+};
