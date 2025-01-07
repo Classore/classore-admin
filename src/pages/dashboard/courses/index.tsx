@@ -1,4 +1,3 @@
-import Link from "next/link";
 import React from "react";
 import {
 	RiAddLine,
@@ -8,9 +7,9 @@ import {
 	RiBookReadLine,
 } from "@remixicon/react";
 
+import { AddCourse, UserCard } from "@/components/dashboard";
 import { SearchInput, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
-import { UserCard } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { ExamTable } from "@/components/tables";
 import { useDebounce } from "@/hooks";
@@ -22,6 +21,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
+import { exam_bundles } from "@/mock/courses";
+
 const exams = ["all", "national", "international"] as const;
 const sort_options = ["NAME", "DATE_CREATED"] as const;
 type SortBy = (typeof sort_options)[number] | (string & {});
@@ -30,6 +31,7 @@ type Exam = (typeof exams)[number];
 const Page = () => {
 	const [sort_by, setSortBy] = React.useState<SortBy>("");
 	const [exam, setExam] = React.useState<Exam>("all");
+	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
 
@@ -37,17 +39,16 @@ const Page = () => {
 
 	return (
 		<>
+			<AddCourse open={open} onOpenChange={setOpen} />
 			<Seo title="Courses" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
-							<Link href="/dashboard/courses/new" className="w-fit">
-								<Button size="sm">
-									<RiAddLine /> Add New Course
-								</Button>
-							</Link>
+							<Button className="w-fit" onClick={() => setOpen(true)} size="sm">
+								<RiAddLine /> Add New Course
+							</Button>
 						</div>
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<UserCard icon={RiBookMarkedLine} value={0} label="Total Categories" />
@@ -85,7 +86,12 @@ const Page = () => {
 							</div>
 						</div>
 						<div className="w-full">
-							<ExamTable exams={[]} onPageChange={setPage} page={page} total={0} />
+							<ExamTable
+								exams={exam_bundles}
+								onPageChange={setPage}
+								page={page}
+								total={exam_bundles.length}
+							/>
 						</div>
 					</div>
 				</div>

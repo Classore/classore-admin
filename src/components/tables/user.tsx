@@ -26,15 +26,15 @@ interface Props {
 export const UserTable = ({ onPageChange, page, total, users }: Props) => {
 	return (
 		<div>
-			<Table>
+			<Table className="font-body">
 				<TableHeader className="rounded-t-lg bg-neutral-50">
 					<TableRow className="rounded-t-lg text-xs text-neutral-400">
-						<TableHead>Name</TableHead>
-						<TableHead>Email</TableHead>
-						<TableHead>Account Type</TableHead>
-						<TableHead>Date and Time joined</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead className="max-w-[85px]"></TableHead>
+						<TableHead className="text-neutral-400">Name</TableHead>
+						<TableHead className="text-neutral-400">Email</TableHead>
+						<TableHead className="text-neutral-400">Account Type</TableHead>
+						<TableHead className="text-neutral-400">Date and Time joined</TableHead>
+						<TableHead className="text-neutral-400">Status</TableHead>
+						<TableHead className="max-w-[85px] text-neutral-400"></TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -63,9 +63,11 @@ const LineItem = ({ user }: { user: CastedUserProps }) => {
 					{user.user_first_name} {user.user_last_name}
 				</span>
 			</TableCell>
-			<TableCell className="text-xs">{user.user_email.toLowerCase()}</TableCell>
-			<TableCell className="text-xs">{user.user_user_type}</TableCell>
-			<TableCell className="text-xs">
+			<TableCell className="text-xs text-neutral-400">
+				{user.user_email.toLowerCase()}
+			</TableCell>
+			<TableCell className="text-xs text-neutral-400">{user.user_user_type}</TableCell>
+			<TableCell className="text-xs text-neutral-400">
 				{format(user.user_createdOn, "MMM dd,yyyy HH:mm a")}
 			</TableCell>
 			<TableCell className="text-xs">

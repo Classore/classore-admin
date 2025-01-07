@@ -45,7 +45,7 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 
 	return (
 		<div className="w-full">
-			<Table>
+			<Table className="font-body">
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
