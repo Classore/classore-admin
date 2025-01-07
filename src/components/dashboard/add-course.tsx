@@ -27,10 +27,12 @@ interface Props {
 }
 
 interface InnerProps {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleChange: (e: React.ChangeEvent<any>) => void;
 	onModeChange: (mode: Mode) => void;
 	onOpenChange: (open: boolean) => void;
 	onSubmit: () => void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	setFieldValue: (field: string, value: any) => void;
 	values: CreateCourseDto;
 }

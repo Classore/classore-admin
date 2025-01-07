@@ -40,7 +40,7 @@ const Page = () => {
 			});
 		}
 		return bundle?.courses;
-	}, []);
+	}, [bundle?.courses, search]);
 
 	const breadcrumbs = [
 		{ label: "Manage Courses", href: "/dashboard/courses" },

@@ -145,6 +145,7 @@ export const CreateCourse = () => {
 		chapterId: string,
 		lessonId: string,
 		field: "title" | "content" | "video" | "files",
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		value: any
 	) => {
 		setChapters((prev) =>

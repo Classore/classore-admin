@@ -33,7 +33,7 @@ const Page = () => {
 		if (exams?.data) {
 			return exams?.data?.data.find((exam) => exam.examination_id === String(categoryId));
 		}
-	}, [exams?.data]);
+	}, [categoryId, exams?.data]);
 
 	const bundle = React.useMemo(() => {
 		if (bundles?.data) {
@@ -41,7 +41,7 @@ const Page = () => {
 				(bundle) => bundle.examinationbundle_id === String(examination_bundle)
 			);
 		}
-	}, [bundles?.data]);
+	}, [bundles?.data, examination_bundle]);
 
 	const breadcrumbs = [
 		{ label: "Manage Courses", href: "/dashboard/courses" },
