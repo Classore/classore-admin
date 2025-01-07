@@ -3,6 +3,7 @@ import React from "react";
 
 import type { AdminProps } from "@/types";
 import { Button } from "../ui/button";
+import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -63,11 +64,7 @@ export const AdminActions = ({ admin }: Props) => {
 				</DialogTrigger>
 				<DialogContent className="w-[400px] max-w-[90%] p-1">
 					<div className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
-						<div className="grid size-16 place-items-center rounded-full border">
-							<div className="grid size-10 place-items-center rounded-full border">
-								<RiForbid2Line size={18} className="text-red-500" />
-							</div>
-						</div>
+						<IconLabel icon={RiForbid2Line} />
 						<DialogTitle className="my-4">Revoke Admin Access</DialogTitle>
 						<DialogDescription>
 							Are you sure you want to revoke this &ldquo;{admin.first_name} {admin.last_name}

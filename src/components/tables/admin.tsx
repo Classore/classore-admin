@@ -26,15 +26,15 @@ interface Props {
 export const AdminTable = ({ onPageChange, page, total, admins }: Props) => {
 	return (
 		<div>
-			<Table>
+			<Table className="font-body">
 				<TableHeader className="rounded-t-lg bg-neutral-50">
 					<TableRow className="rounded-t-lg text-xs text-neutral-400">
-						<TableHead>Name</TableHead>
-						<TableHead>Email</TableHead>
-						<TableHead>Access Type</TableHead>
-						<TableHead>Last logged in date and time</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead className="max-w-[85px]"></TableHead>
+						<TableHead className="text-neutral-400">Name</TableHead>
+						<TableHead className="text-neutral-400">Email</TableHead>
+						<TableHead className="text-neutral-400">Access Type</TableHead>
+						<TableHead className="text-neutral-400">Last logged in date and time</TableHead>
+						<TableHead className="text-neutral-400">Status</TableHead>
+						<TableHead className="max-w-[85px] text-neutral-400"></TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -63,9 +63,9 @@ const LineItem = ({ admin }: { admin: AdminProps }) => {
 					{admin.first_name} {admin.last_name}
 				</span>
 			</TableCell>
-			<TableCell className="text-xs">{admin.email.toLowerCase()}</TableCell>
-			<TableCell className="text-xs capitalize">{admin.role}</TableCell>
-			<TableCell className="text-xs">
+			<TableCell className="text-xs text-neutral-400">{admin.email.toLowerCase()}</TableCell>
+			<TableCell className="text-xs capitalize text-neutral-400">{admin.role}</TableCell>
+			<TableCell className="text-xs text-neutral-400">
 				{format(admin.createdOn, "MMM dd,yyyy HH:mm a")}
 			</TableCell>
 			<TableCell className="text-xs">

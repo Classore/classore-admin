@@ -32,7 +32,7 @@ const DialogContent = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
 		animate?: boolean;
 	}
->(({ animate, className, children, ...props }, ref) => (
+>(({ animate = true, className, children, ...props }, ref) => (
 	<DialogPortal>
 		<DialogOverlay />
 		<DialogPrimitive.Content

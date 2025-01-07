@@ -8,6 +8,7 @@
 		"start": "next start",
 		"lint": "next lint",
 		"prettier:write": "prettier --write \"./src/**/*.{ts,tsx}\"",
+		"prettier:all": "prettier --write .",
 		"prettier:check": "prettier --check \"./src/**/*.{ts,tsx}\"",
 		"check-code": "npm run prettier:check && npm run lint"
 	},
@@ -16,6 +17,7 @@
 		"@radix-ui/react-checkbox": "^1.1.2",
 		"@radix-ui/react-dialog": "^1.1.2",
 		"@radix-ui/react-popover": "^1.1.2",
+		"@radix-ui/react-radio-group": "^1.2.2",
 		"@radix-ui/react-select": "^2.1.2",
 		"@radix-ui/react-slot": "^1.1.0",
 		"@radix-ui/react-switch": "^1.1.1",
@@ -32,6 +34,7 @@
 		"date-fns": "^4.1.0",
 		"dayjs": "^1.11.13",
 		"formik": "^2.4.6",
+		"framer-motion": "^11.16.0",
 		"iconsax-react": "^0.0.8",
 		"js-cookie": "^3.0.5",
 		"lucide-react": "^0.456.0",

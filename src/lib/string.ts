@@ -1,4 +1,4 @@
-import type { QueryParamsProps } from "@/types";
+import type { QueryParamsProps, RatingProps } from "@/types";
 
 export const capitalize = (value: string) => {
 	return value.charAt(0).toUpperCase() + value.slice(1);
@@ -60,4 +60,9 @@ export const formatCurrency = (amount: number, currency = "NGN") => {
 export function fromSnakeCase(value?: string) {
 	if (!value) return "";
 	return value.split("_").join(" ");
+}
+
+export function aggregate(ratings: RatingProps[]) {
+	const average = ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length;
+	return average.toFixed(1);
 }

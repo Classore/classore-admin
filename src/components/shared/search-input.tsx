@@ -25,7 +25,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
 		return (
 			<div
 				className={cn(
-					"flex h-8 items-center gap-2 rounded border px-2 py-3 focus-within:border-primary-500",
+					"flex h-8 items-center gap-2 rounded border px-2 py-3 transition-all duration-500 focus-within:border-primary-500",
 					wrapperClassName
 				)}>
 				<RiSearchLine className="size-4" />

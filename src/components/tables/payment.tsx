@@ -40,15 +40,17 @@ const status: Record<SubscriptionProps["status"], string> = {
 export const PaymentTable = ({ onPageChange, page, total, subscriptions }: Props) => {
 	return (
 		<div>
-			<Table>
+			<Table className="font-body">
 				<TableHeader className="rounded-t-lg bg-neutral-50">
-					<TableRow className="rounded-t-lg text-xs text-neutral-400">
-						<TableHead className="">Exam</TableHead>
-						<TableHead className="w-[210px]">Bought by</TableHead>
-						<TableHead className="w-[118px] text-center">Amount</TableHead>
-						<TableHead className="w-[156px] text-center">Category</TableHead>
-						<TableHead className="w-[186px] text-center">Date and Time</TableHead>
-						<TableHead className="w-[141px] text-center">Status</TableHead>
+					<TableRow className="rounded-t-lg text-xs">
+						<TableHead className="text-neutral-400">Exam</TableHead>
+						<TableHead className="w-[210px] text-neutral-400">Bought by</TableHead>
+						<TableHead className="w-[118px] text-center text-neutral-400">Amount</TableHead>
+						<TableHead className="w-[156px] text-center text-neutral-400">Category</TableHead>
+						<TableHead className="w-[186px] text-center text-neutral-400">
+							Date and Time
+						</TableHead>
+						<TableHead className="w-[141px] text-center text-neutral-400">Status</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -75,14 +77,14 @@ const LineItem = ({ subscription }: { subscription: SubscriptionProps }) => {
 						</Avatar>
 						<span className="capitalize"></span>
 					</TableCell>
-					<TableCell className="text-xs">
+					<TableCell className="text-xs text-neutral-400">
 						{subscription.first_name} {subscription.last_name}
 					</TableCell>
-					<TableCell className="text-center text-xs">
+					<TableCell className="text-center text-xs font-medium">
 						{formatCurrency(subscription.amount, subscription.currency)}
 					</TableCell>
-					<TableCell className="text-xs"></TableCell>
-					<TableCell className="text-center text-xs">
+					<TableCell className="text-xs text-neutral-400"></TableCell>
+					<TableCell className="text-center text-xs text-neutral-400">
 						{format(subscription.createdOn, "MMM dd,yyyy HH:mm a")}
 					</TableCell>
 					<TableCell className="text-xs">

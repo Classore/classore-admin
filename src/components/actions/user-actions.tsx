@@ -51,7 +51,7 @@ export const UserActions = ({ user }: Props) => {
 						<div className="w-full">
 							<div className="w-full"></div>
 							<div className="flex w-full items-center justify-between">
-								<Button size="sm" className="w-fit" variant="destructive">
+								<Button size="sm" className="w-fit" variant="destructive-outline">
 									Delete Account
 								</Button>
 								<div className="flex items-center gap-x-4">

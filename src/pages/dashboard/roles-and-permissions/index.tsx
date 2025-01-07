@@ -13,7 +13,7 @@ import {
 } from "@remixicon/react";
 
 import { type CreateAdminDto, CreateAdminMutation } from "@/queries";
-import { SearchInput, Seo } from "@/components/shared";
+import { IconLabel, SearchInput, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
 import { GetStaffs, GetRolesQuery } from "@/queries";
 import { UserCard } from "@/components/dashboard";
@@ -134,11 +134,7 @@ const Page = () => {
 								</DialogTrigger>
 								<DialogContent className="w-[450px] max-w-[90%] p-1">
 									<div className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
-										<div className="grid size-16 place-items-center rounded-full border">
-											<div className="grid size-10 place-items-center rounded-full border">
-												<RiUserAddLine size={18} />
-											</div>
-										</div>
+										<IconLabel icon={RiUserAddLine} />
 										<div className="my-4 w-full">
 											<DialogTitle>Add New Admin</DialogTitle>
 											<DialogDescription hidden>

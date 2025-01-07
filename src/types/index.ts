@@ -201,13 +201,25 @@ export type ExamProps = Node & {
 	__typename?: "Exam";
 	amount: number;
 	category: string;
+	courses: CourseProps[];
+	number_of_students: number;
+	rating: RatingProps[];
 	subcategory: string;
-	title: string;
 };
 
 export type CourseProps = Node & {
 	__typename?: "Course";
+	amount: number;
+	media: {
+		files: string[];
+		videos: string[];
+	};
+	status: "PUBLISHED" | "UNPUBLISHED";
 	title: string;
+};
+
+export type ChapterProps = Node & {
+	__typename?: "Chapter";
 };
 
 export type WaitlistUserProps = {
@@ -248,4 +260,11 @@ export type SubscriptionProps = Node & {
 	user_email: string;
 	user_id: string;
 	user_type: "PARENT" | "STUDENT";
+};
+
+export type RatingProps = {
+	id: string;
+	rating: number;
+	review: string;
+	user_id: string;
 };
