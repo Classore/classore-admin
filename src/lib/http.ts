@@ -56,6 +56,7 @@ export const executeWithErrorHandling = async <T>(
 	}
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const IsHttpError = (error: any): error is HttpError => {
 	return error?.response?.data?.errorCode !== undefined;
 };

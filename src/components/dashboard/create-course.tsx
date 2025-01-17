@@ -50,7 +50,7 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 	const modules: ChapterModule[] = React.useMemo(() => {
 		if (data) {
 			return data?.data.data.map((chapter) => {
-				const module: ChapterModule = {
+				const module = {
 					attachments: [],
 					chapter: chapter.chapter_module_chapter,
 					content: chapter.chapter_module_content,

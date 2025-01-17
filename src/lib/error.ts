@@ -27,13 +27,13 @@ export const formikErrorHandler = <T extends object>(
 	const allErrors: string[] = [];
 
 	const processErrors = (
-		currentErrors: FormErrors<any>,
-		currentTouched: TouchedFields<any>,
+		currentErrors: FormErrors<T>,
+		currentTouched: TouchedFields<T>,
 		parentKey?: string
 	): void => {
 		for (const [key, value] of Object.entries(currentErrors)) {
 			const fullKey = parentKey ? `${parentKey}.${key}` : key;
-			const isTouched = currentTouched[key];
+			const isTouched = currentTouched[key as keyof TouchedFields<T>];
 
 			if (!isTouched) continue;
 
@@ -46,7 +46,11 @@ export const formikErrorHandler = <T extends object>(
 			} else if (Array.isArray(value)) {
 				allErrors.push(...value.filter(Boolean));
 			} else if (value && typeof value === "object") {
-				processErrors(value, currentTouched[key] as TouchedFields<any>, fullKey);
+				processErrors(
+					value,
+					currentTouched[key as keyof TouchedFields<T>] as TouchedFields<T>,
+					fullKey
+				);
 			}
 		}
 	};

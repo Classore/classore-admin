@@ -33,7 +33,7 @@ interface UseDragProps<T> {
  *   );
  * };
  */
-export const useDrag = <T extends any>({ items, onReorder }: UseDragProps<T>) => {
+export const useDrag = <T>({ items, onReorder }: UseDragProps<T>) => {
 	const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
 	const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
 

@@ -76,7 +76,7 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 				(exam) => exam.examination_id === bundle.examinationbundle_examination
 			);
 		}
-	}, [exams?.data]);
+	}, [bundle.examinationbundle_examination, exams?.data]);
 
 	if (!exams) return null;
 

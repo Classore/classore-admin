@@ -62,7 +62,7 @@ const Page = () => {
 			return all?.data.users.data.filter((user) => user.user_user_type === "PARENT").length;
 		}
 		return 0;
-	}, [all?.data.users.data]);
+	}, [all?.data.users]);
 
 	const numberOfInactiveUsers = React.useMemo(() => {
 		if (all?.data.users) {
