@@ -1,3 +1,6 @@
+export * from "./add-admin";
+export * from "./add-roles";
+export * from "./add-bundle";
 export * from "./add-course";
 export * from "./assign-teachers";
 export * from "./calendar-card";

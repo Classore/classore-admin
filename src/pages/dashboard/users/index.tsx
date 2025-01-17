@@ -51,25 +51,25 @@ const Page = () => {
 	});
 
 	const numberOfStudents = React.useMemo(() => {
-		if (all?.data.data) {
-			return all?.data.data.filter((user) => user.user_user_type === "STUDENT").length;
+		if (all?.data.users) {
+			return all?.data.users.data.filter((user) => user.user_user_type === "STUDENT").length;
 		}
 		return 0;
-	}, [all?.data.data]);
+	}, [all?.data.users]);
 
 	const numberOfParents = React.useMemo(() => {
-		if (all?.data.data) {
-			return all?.data.data.filter((user) => user.user_user_type === "PARENT").length;
+		if (all?.data.users) {
+			return all?.data.users.data.filter((user) => user.user_user_type === "PARENT").length;
 		}
 		return 0;
-	}, [all?.data.data]);
+	}, [all?.data.users.data]);
 
 	const numberOfInactiveUsers = React.useMemo(() => {
-		if (all?.data.data) {
-			return all?.data.data.filter((user) => user.user_isBlocked).length;
+		if (all?.data.users) {
+			return all?.data.users.data.filter((user) => user.user_isBlocked).length;
 		}
 		return 0;
-	}, [all?.data.data]);
+	}, [all?.data.users]);
 
 	return (
 		<>
@@ -91,7 +91,7 @@ const Page = () => {
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<UserCard
 								icon={RiTeamLine}
-								value={data?.data.meta.itemCount ?? 0}
+								value={data?.data.users.meta.itemCount ?? 0}
 								label="Total Users"
 								percentage={10}
 								variant="success"
@@ -151,8 +151,8 @@ const Page = () => {
 							<UserTable
 								onPageChange={setPage}
 								page={page}
-								total={data?.data.meta.itemCount ?? 0}
-								users={data?.data.data ?? []}
+								total={data?.data.users.meta.itemCount ?? 0}
+								users={data?.data.users.data ?? []}
 							/>
 						</div>
 					</div>

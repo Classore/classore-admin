@@ -37,6 +37,13 @@ export const UserTable = ({ onPageChange, page, total, users }: Props) => {
 						<TableHead className="max-w-[85px] text-neutral-400"></TableHead>
 					</TableRow>
 				</TableHeader>
+				{users.length === 0 && (
+					<TableRow>
+						<TableCell colSpan={6} className="py-10 text-center text-xs">
+							No users found.
+						</TableCell>
+					</TableRow>
+				)}
 				<TableBody>
 					{users.map((user) => (
 						<LineItem key={user.user_id} user={user} />
@@ -53,7 +60,7 @@ const LineItem = ({ user }: { user: CastedUserProps }) => {
 		<TableRow>
 			<TableCell className="flex items-center gap-x-2 text-xs">
 				<Avatar className="size-7 rounded-md">
-					<AvatarImage src={user.user_profile_image} className="rounded-md" />
+					<AvatarImage src={user.user_profile_image} className="rounded-md object-cover" />
 					<AvatarFallback className="rounded-md bg-blue-100 text-xs">
 						{user.user_first_name.charAt(0).toUpperCase()}
 						{user.user_last_name.charAt(0).toUpperCase()}

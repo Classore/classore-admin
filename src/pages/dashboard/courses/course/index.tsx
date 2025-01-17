@@ -38,7 +38,7 @@ const Page = () => {
 		},
 		{
 			label: "change directory",
-			href: "",
+			href: `/dashboard/courses/course?id=${id}`,
 			active: true,
 			variant: "warning",
 		},
@@ -95,7 +95,7 @@ const Page = () => {
 								<RiEyeLine size={16} /> Preview
 							</button>
 						</div>
-						<div className="h-full w-full">
+						<div className="h-full max-h-[calc(100vh-372px)] w-full">
 							<TabPanel selected={tab} value="course">
 								<CreateCourse existingChapters={course.data.chapters} subjectId={String(id)} />
 							</TabPanel>

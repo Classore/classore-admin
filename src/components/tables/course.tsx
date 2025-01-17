@@ -4,8 +4,9 @@ import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { CastedCourseProps } from "@/types/casted-types";
 import { Pagination } from "@/components/shared";
-import type { CourseProps } from "@/types";
+import { CourseActions } from "../actions";
 import { formatCurrency } from "@/lib";
 import {
 	Table,
@@ -17,16 +18,11 @@ import {
 } from "@/components/ui/table";
 
 interface Props {
-	courses: CourseProps[];
+	courses: CastedCourseProps[];
 	onPageChange: (page: number) => void;
 	page: number;
 	total: number;
 }
-
-const status: Record<CourseProps["status"], string> = {
-	PUBLISHED: "bg-green-100 text-green-500",
-	UNPUBLISHED: "bg-red-100 text-red-500",
-};
 
 export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
 	return (
@@ -47,8 +43,15 @@ export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{courses.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="py-10 text-center text-xs">
+								No courses found.
+							</TableCell>
+						</TableRow>
+					)}
 					{courses.map((course) => (
-						<LineItem key={course.id} course={course} />
+						<LineItem key={course.subject_id} course={course} />
 					))}
 				</TableBody>
 			</Table>
@@ -57,32 +60,32 @@ export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
 	);
 };
 
-const LineItem = ({ course }: { course: CourseProps }) => {
+const LineItem = ({ course }: { course: CastedCourseProps }) => {
 	return (
 		<TableRow>
-			<TableCell className="text-xs font-medium">{course.title}</TableCell>
-			<TableCell className="text-xs">{formatCurrency(course.amount)}</TableCell>
+			<TableCell className="text-xs font-medium capitalize">{course.subject_name}</TableCell>
+			<TableCell className="text-xs">{formatCurrency(0)}</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
-				{course.updatedOn
-					? format(new Date(course.updatedOn), "MMM dd,yyyy HH:mm a")
-					: format(course.createdOn, "MMM dd,yyyy HH:mm a")}
+				{course.subject_updatedOn
+					? format(new Date(course.subject_updatedOn), "MMM dd,yyyy HH:mm a")
+					: format(course.subject_createdOn, "MMM dd,yyyy HH:mm a")}
 			</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
 				<div className="flex items-center justify-center gap-x-3">
 					<div className="flex items-center gap-x-1">
 						<RiPlayCircleLine size={16} />
-						<span>{course.media.videos.length} Videos</span>
+						<span> Videos</span>
 					</div>
 					<div className="flex items-center gap-x-1">
 						<RiFileTextLine size={16} />
-						<span>{course.media.files.length} Files</span>
+						<span> Files</span>
 					</div>
 				</div>
 			</TableCell>
 			<TableCell className="text-center text-xs">
 				<div
-					className={`flex items-center justify-center rounded px-3 py-0.5 text-[10px] font-medium capitalize ${status[course.status]}`}>
-					{course.status}
+					className={`flex items-center justify-center rounded px-3 py-0.5 text-[10px] font-medium capitalize ${course.subject_isBlocked ? "bg-red-100 text-red-500" : "bg-green-100 text-green-500"}`}>
+					{course.subject_isBlocked ? "UNPUBLISHED" : "PUBLISHED"}
 				</div>
 			</TableCell>
 			<TableCell>
@@ -92,7 +95,9 @@ const LineItem = ({ course }: { course: CourseProps }) => {
 							<RiMore2Line size={18} />
 						</button>
 					</PopoverTrigger>
-					<PopoverContent className="w-40"></PopoverContent>
+					<PopoverContent className="w-40">
+						<CourseActions id={course.subject_id} />
+					</PopoverContent>
 				</Popover>
 			</TableCell>
 		</TableRow>

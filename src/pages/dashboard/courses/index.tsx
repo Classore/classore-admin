@@ -1,3 +1,4 @@
+import { useQueries } from "@tanstack/react-query";
 import React from "react";
 import {
 	RiAddLine,
@@ -7,11 +8,12 @@ import {
 	RiBookReadLine,
 } from "@remixicon/react";
 
-import { AddCourse, UserCard } from "@/components/dashboard";
+import { AddBundle, UserCard } from "@/components/dashboard";
 import { SearchInput, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { ExamTable } from "@/components/tables";
+import { GetBundles } from "@/queries";
 import { useDebounce } from "@/hooks";
 import {
 	Select,
@@ -20,8 +22,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-
-import { exam_bundles } from "@/mock/courses";
 
 const exams = ["all", "national", "international"] as const;
 const sort_options = ["NAME", "DATE_CREATED"] as const;
@@ -35,11 +35,29 @@ const Page = () => {
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
 
-	useDebounce(query, 500);
+	const search = useDebounce(query, 500);
+
+	const [{ data: bundles }] = useQueries({
+		queries: [
+			{
+				queryKey: ["bundles", { page, search }],
+				queryFn: () => GetBundles({ limit: 10, page, search }),
+			},
+		],
+	});
+
+	const courses = React.useMemo(() => {
+		if (bundles) {
+			return bundles.data.data.reduce((acc, cur) => {
+				return acc + cur.subject_count;
+			}, 0);
+		}
+		return 0;
+	}, [bundles]);
 
 	return (
 		<>
-			<AddCourse open={open} onOpenChange={setOpen} />
+			<AddBundle open={open} onOpenChange={setOpen} />
 			<Seo title="Courses" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
@@ -47,12 +65,16 @@ const Page = () => {
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
 							<Button className="w-fit" onClick={() => setOpen(true)} size="sm">
-								<RiAddLine /> Add New Course
+								<RiAddLine /> Add New Bundle
 							</Button>
 						</div>
 						<div className="grid w-full grid-cols-4 gap-x-4">
-							<UserCard icon={RiBookMarkedLine} value={0} label="Total Categories" />
-							<UserCard icon={RiBook2Line} value={0} label="all Courses" />
+							<UserCard
+								icon={RiBookMarkedLine}
+								value={bundles?.data.meta.itemCount ?? 0}
+								label="Total Categories"
+							/>
+							<UserCard icon={RiBook2Line} value={courses} label="All Courses" />
 							<UserCard icon={RiBookReadLine} value={0} label="Published Courses" />
 							<UserCard icon={RiBookOpenLine} value={0} label="Unpublished Courses" />
 						</div>
@@ -87,10 +109,10 @@ const Page = () => {
 						</div>
 						<div className="w-full">
 							<ExamTable
-								exams={exam_bundles}
+								bundles={bundles?.data.data ?? []}
 								onPageChange={setPage}
 								page={page}
-								total={exam_bundles.length}
+								total={bundles?.data.meta.itemCount ?? 0}
 							/>
 						</div>
 					</div>

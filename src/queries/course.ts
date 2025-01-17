@@ -1,84 +1,199 @@
-import type { CastedExamBundleProps, CastedExamTypeProps } from "@/types/casted-types";
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
-import type { HttpResponse, PaginatedResponse, PaginationProps } from "@/types";
-
-export interface CreateCourseDto {
-	examination_bundle: string;
-	categoryId: string;
-	description: string;
-	name: string;
-}
-
-export interface CreateBundleDto {
-	name: string;
-	amount: number;
-	start_date: Date;
-	end_date: Date;
-	examination: string;
-	max_subjects: number;
-}
-
-export interface CreateSubjectDto {
-	name: string;
-	examination_bundle: string;
-	class: string;
-}
+import type {
+	CastedChapterModuleProps,
+	CastedChapterProps,
+	CastedQuestionProps,
+} from "@/types/casted-types";
+import type {
+	ChapterModuleProps,
+	ChapterProps,
+	HttpResponse,
+	PaginatedResponse,
+	PaginationProps,
+} from "@/types";
 
 export interface CreateChapterDto {
 	content: string;
-	id: string;
 	images: File[];
-	lessons: CreateLessonDto[];
 	name: string;
 	sequence: number;
-	subjectId: string;
+	subject_id: string;
 	videos: File[];
 }
 
-export interface CreateLessonDto {
-	chapterId: string;
+export interface CreateChapterModuleDto {
+	attachments: File[];
 	content: string;
-	files: File[];
-	id: string;
-	name: string;
-	video: File | null;
+	images: File[];
+	sequence: number;
+	title: string;
+	videos: File[];
+	tutor: string;
 }
 
-const CreateBundle = async () => {};
+export interface CreateQuestionDto {
+	content: string;
+	images: File[];
+	options: CreateOptionsDto[];
+	question_type: string;
+	sequence: number;
+}
 
-const CreateCourse = async () => {};
+export interface CreateOptionsDto {
+	content: string;
+	images: File[];
+	is_correct: "YES" | "NO";
+	sequence_number: number;
+}
 
-const GetExaminaions = async (params?: PaginationProps & { search?: string }) => {
+const CreateChapter = async (payload: CreateChapterDto) => {
+	const formData = new FormData();
+	formData.append("content", payload.content);
+	for (const image of payload.images) formData.append("images", image);
+	formData.append("sequence", payload.sequence.toString());
+	formData.append("name", payload.name);
+	for (const video of payload.videos) formData.append("content", video);
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedExamTypeProps>>
-		>(endpoints().school.get_exams, { params })
+		.post<
+			HttpResponse<ChapterProps>
+		>(endpoints(payload.subject_id).school.create_chapter, formData)
 		.then((res) => res.data);
 };
 
-const GetBundles = async (
-	params?: PaginationProps & { examination?: string; search?: string }
+const CreateChapterModule = async (
+	chapter_id: string,
+	payload: CreateChapterModuleDto
 ) => {
+	const formData = new FormData();
+	formData.append("content", payload.content);
+	for (const image of payload.images) formData.append("images", image);
+	formData.append("sequence", payload.sequence.toString());
+	formData.append("title", payload.title);
+	for (const video of payload.videos) formData.append("content", video);
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedExamBundleProps>>
-		>(endpoints().school.get_exam_bundles, { params })
+		.post<
+			HttpResponse<ChapterModuleProps>
+		>(endpoints(chapter_id).school.create_chapter_module, formData)
 		.then((res) => res.data);
 };
 
-const GetBundle = async () => {};
+const CreateQuestions = async (module_id: string, payload: CreateQuestionDto[]) => {
+	return axios
+		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, payload)
+		.then((res) => res.data);
+};
 
-const GetCourses = async () => {};
+const GetChapters = async (params?: PaginationProps & {}) => {
+	if (params) {
+		for (const key in params) {
+			if (
+				!params[key as keyof typeof params] ||
+				params[key as keyof typeof params] === undefined
+			) {
+				delete params[key as keyof typeof params];
+			}
+		}
+	}
+	return axios
+		.get<
+			PaginatedResponse<CastedChapterProps[]>
+		>(endpoints().school.get_chapters, { params })
+		.then((res) => res.data);
+};
 
-const GetCourse = async () => {};
+const GetChapterModules = async (params?: PaginationProps & { chapter_id?: string }) => {
+	if (params) {
+		for (const key in params) {
+			if (
+				!params[key as keyof typeof params] ||
+				params[key as keyof typeof params] === undefined
+			) {
+				delete params[key as keyof typeof params];
+			}
+		}
+	}
+	return axios
+		.get<
+			HttpResponse<PaginatedResponse<CastedChapterModuleProps>>
+		>(endpoints().school.get_chapter_modules, { params })
+		.then((res) => res.data);
+};
+
+const GetQuestions = async (params?: PaginationProps & {}) => {
+	if (params) {
+		for (const key in params) {
+			if (
+				!params[key as keyof typeof params] ||
+				params[key as keyof typeof params] === undefined
+			) {
+				delete params[key as keyof typeof params];
+			}
+		}
+	}
+	return axios
+		.get<
+			PaginatedResponse<CastedQuestionProps[]>
+		>(endpoints().school.get_questions, { params })
+		.then((res) => res.data);
+};
+
+const GetChapter = async (id: string) => {
+	return id;
+};
+
+const GetChapterModule = async (id: string) => {
+	return id;
+};
+
+const GetQuestion = async (id: string) => {
+	return id;
+};
+
+const UpdateChapterModule = async (id: string, payload: Partial<CreateChapterDto>) => {
+	return axios
+		.put(endpoints(id).school.update_chapter_module, payload)
+		.then((res) => res.data);
+};
+
+const UpdateChapter = async (id: string, payload: Partial<CreateChapterModuleDto>) => {
+	return axios
+		.put(endpoints(id).school.update_chapter_module, payload)
+		.then((res) => res.data);
+};
+
+const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
+	return axios
+		.put(endpoints(id).school.update_chapter_module, payload)
+		.then((res) => res.data);
+};
+
+const DeleteChapter = async (id: string) => {
+	return id;
+};
+
+const DeleteChapterModule = async (id: string) => {
+	return id;
+};
+
+const DeleteQuestion = async (id: string) => {
+	return id;
+};
 
 export {
-	CreateBundle,
-	CreateCourse,
-	GetBundles,
-	GetBundle,
-	GetCourses,
-	GetCourse,
-	GetExaminaions,
+	CreateChapter,
+	CreateChapterModule,
+	CreateQuestions,
+	DeleteChapter,
+	DeleteChapterModule,
+	DeleteQuestion,
+	GetChapter,
+	GetChapterModule,
+	GetChapterModules,
+	GetChapters,
+	GetQuestion,
+	GetQuestions,
+	UpdateChapter,
+	UpdateChapterModule,
+	UpdateQuestion,
 };

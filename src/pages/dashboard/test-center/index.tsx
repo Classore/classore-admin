@@ -6,7 +6,7 @@ import { Seo } from "@/components/shared";
 const Page = () => {
 	return (
 		<>
-			<Seo title="Dashboard" />
+			<Seo title="Test Center" />
 			<DashboardLayout>
 				<div className="grid h-full w-full place-items-center">
 					<div className="flex flex-col items-center gap-y-2">

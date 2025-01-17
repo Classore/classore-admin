@@ -8,6 +8,10 @@ import type {
 	UserProps,
 } from "@/types";
 
+interface UsersResponse {
+	users: PaginatedResponse<CastedUserProps>;
+}
+
 const GetUsers = async (
 	params?: PaginationProps & { user_type?: string; sort_by?: string }
 ) => {
@@ -22,9 +26,7 @@ const GetUsers = async (
 		}
 	}
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedUserProps>>
-		>(endpoints().users.all, { params })
+		.get<HttpResponse<UsersResponse>>(endpoints().users.all, { params })
 		.then((res) => res.data);
 };
 

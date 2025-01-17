@@ -1,13 +1,15 @@
 import { RiMore2Line, RiStarFill, RiUser3Line } from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { aggregate, formatCurrency } from "@/lib";
+import type { CastedExamBundleProps } from "@/types/casted-types";
 import { Pagination } from "@/components/shared";
+import { GetExaminations } from "@/queries";
 import { ExamActions } from "../actions";
-import type { ExamProps } from "@/types";
+import { formatCurrency } from "@/lib";
 import {
 	Table,
 	TableBody,
@@ -18,13 +20,13 @@ import {
 } from "@/components/ui/table";
 
 interface Props {
-	exams: ExamProps[];
+	bundles: CastedExamBundleProps[];
 	onPageChange: (page: number) => void;
 	page: number;
 	total: number;
 }
 
-export const ExamTable = ({ exams, onPageChange, page, total }: Props) => {
+export const ExamTable = ({ bundles, onPageChange, page, total }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -45,8 +47,15 @@ export const ExamTable = ({ exams, onPageChange, page, total }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{exams.map((exam) => (
-						<LineItem key={exam.id} exam={exam} />
+					{bundles.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="py-10 text-center text-xs">
+								No examination bundles found.
+							</TableCell>
+						</TableRow>
+					)}
+					{bundles.map((bundle) => (
+						<LineItem key={bundle.examinationbundle_id} bundle={bundle} />
 					))}
 				</TableBody>
 			</Table>
@@ -55,31 +64,50 @@ export const ExamTable = ({ exams, onPageChange, page, total }: Props) => {
 	);
 };
 
-const LineItem = ({ exam }: { exam: ExamProps }) => {
+const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
+	const { data: exams } = useQuery({
+		queryKey: ["get-exams"],
+		queryFn: () => GetExaminations(),
+	});
+
+	const exam = React.useMemo(() => {
+		if (exams?.data) {
+			return exams.data.data.find(
+				(exam) => exam.examination_id === bundle.examinationbundle_examination
+			);
+		}
+	}, [exams?.data]);
+
+	if (!exams) return null;
+
 	return (
 		<TableRow>
-			<TableCell className="text-xs text-neutral-400">{exam.category}</TableCell>
-			<TableCell className="text-xs font-medium">{exam.subcategory}</TableCell>
-			<TableCell className="text-center text-xs text-neutral-400">
-				{exam.courses.length}
+			<TableCell className="text-xs capitalize text-neutral-400">
+				{exam?.examination_name}
+			</TableCell>
+			<TableCell className="text-xs font-medium uppercase">
+				{bundle.examinationbundle_name}
 			</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
-				{exam.updatedOn
-					? format(new Date(exam.updatedOn), "MMM dd,yyyy HH:mm a")
-					: format(exam.createdOn, "MMM dd,yyyy HH:mm a")}
+				{bundle.subject_count}
+			</TableCell>
+			<TableCell className="text-center text-xs text-neutral-400">
+				{bundle.examinationbundle_updatedon
+					? format(new Date(bundle.examinationbundle_updatedon), "MMM dd,yyyy HH:mm a")
+					: format(bundle.examinationbundle_createdon, "MMM dd,yyyy HH:mm a")}
 			</TableCell>
 			<TableCell className="text-center text-xs font-medium">
-				{formatCurrency(exam.amount)}
+				{formatCurrency(bundle.examinationbundle_amount)}
 			</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
 				<div className="flex items-center justify-center gap-x-1">
 					<RiStarFill className="size-4 text-amber-500" />
-					{aggregate(exam.rating)} ({exam.rating.length})
+					{/* {aggregate(bundle.rating)} ({bundle.rating.length}) */}
 				</div>
 			</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
 				<div className="flex items-center justify-center gap-x-2">
-					<RiUser3Line size={16} /> {exam.number_of_students}
+					<RiUser3Line size={16} />
 				</div>
 			</TableCell>
 			<TableCell>
@@ -90,7 +118,7 @@ const LineItem = ({ exam }: { exam: ExamProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<ExamActions id={exam.id} />
+						<ExamActions id={bundle.examinationbundle_id} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>

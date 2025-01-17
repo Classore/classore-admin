@@ -90,7 +90,7 @@ export type HttpError = {
 		data: {
 			error: string;
 			errorCode: string;
-			message: string;
+			message: string | string[];
 			status: string;
 			success: boolean;
 		};
@@ -199,27 +199,72 @@ export type UserProps = Node & {
 
 export type ExamProps = Node & {
 	__typename?: "Exam";
+	name: string;
+};
+
+export type ExamBundleProps = Node & {
 	amount: number;
-	category: string;
-	courses: CourseProps[];
-	number_of_students: number;
-	rating: RatingProps[];
-	subcategory: string;
+	end_date: Date;
+	examination: string;
+	id: string;
+	isBlocked: boolean;
+	isDeleted: boolean;
+	max_subjects: number;
+	name: string;
+	start_date: Date;
 };
 
 export type CourseProps = Node & {
 	__typename?: "Course";
-	amount: number;
+	class: Maybe<string>;
+	examination: string;
+	examination_bundle: string;
+	id: string;
+	isBlocked: boolean;
+	isDeleted: boolean;
 	media: {
 		files: string[];
 		videos: string[];
 	};
-	status: "PUBLISHED" | "UNPUBLISHED";
-	title: string;
+	name: string;
 };
 
 export type ChapterProps = Node & {
 	__typename?: "Chapter";
+	subject_id: string;
+	name: string;
+	sequence: number;
+	images: string[];
+	videos: string[];
+	content: string;
+};
+
+export type ChapterModuleProps = Node & {
+	__typename?: "Chapter Module";
+	attachments: string[];
+	chapter: string;
+	title: string;
+	sequence: number;
+	images: string[];
+	videos: string[];
+	content: string;
+	tutor: Maybe<AdminProps>;
+};
+
+export type QuestionProps = Node & {
+	__typename?: "Question";
+};
+
+export type Optionsprops = Node & {
+	__typename?: "Options";
+	sequence_number: number;
+	content: string;
+	images: string[];
+	videos: string[];
+	subject: string;
+	chapter: string;
+	question: string;
+	is_correct: boolean;
 };
 
 export type WaitlistUserProps = {

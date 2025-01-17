@@ -6,9 +6,12 @@ import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
 
-import { type CreateCourseDto, GetBundles, GetExaminaions } from "@/queries";
+import { CreateSubject, GetBundles, GetExaminations } from "@/queries";
+import { IsHttpError, httpErrorhandler } from "@/lib";
+import type { CreateSubjectDto } from "@/queries";
 import CustomRadio from "../shared/radio";
 import { Textarea } from "../ui/textarea";
+import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Input } from "../ui/input";
@@ -29,15 +32,16 @@ interface Props {
 interface InnerProps {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleChange: (e: React.ChangeEvent<any>) => void;
+	isPending: boolean;
 	onModeChange: (mode: Mode) => void;
 	onOpenChange: (open: boolean) => void;
 	onSubmit: () => void;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	setFieldValue: (field: string, value: any) => void;
-	values: CreateCourseDto;
+	values: CreateSubjectDto;
 }
 
-const initialValues: CreateCourseDto = {
+const initialValues: CreateSubjectDto = {
 	examination_bundle: "",
 	categoryId: "",
 	description: "",
@@ -48,14 +52,24 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 	const [mode, setMode] = React.useState<Mode>("initial");
 	const router = useRouter();
 
-	const {} = useMutation({
+	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-course"],
-		// mutationFn: () => {},
+		mutationFn: (payload: CreateSubjectDto) => CreateSubject(payload),
 		onSuccess: (data) => {
-			console.log(data);
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-bundle"] }).then(() => {
+				router.push(`/dashboard/courses/new?id=${data.data.id}`);
+			});
 		},
 		onError: (error) => {
-			console.error(error);
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
 		},
 	});
 
@@ -65,12 +79,8 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 
 	const { handleChange, handleSubmit, setFieldValue, values } = useFormik({
 		initialValues,
-		onSubmit: (values: CreateCourseDto) => {
-			console.log(values);
-			const query = Object.entries(values)
-				.map(([key, value]) => `${key}=${value}`)
-				.join("&");
-			router.push(`/dashboard/courses/new?${query}`);
+		onSubmit: (values) => {
+			mutate(values);
 		},
 	});
 
@@ -82,6 +92,7 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 					{mode === "initial" && (
 						<Initial
 							handleChange={handleChange}
+							isPending={isPending}
 							onSubmit={handleSubmit}
 							onModeChange={onModeChange}
 							onOpenChange={onOpenChange}
@@ -92,6 +103,7 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 					{mode === "select" && (
 						<Intermediate
 							handleChange={handleChange}
+							isPending={isPending}
 							onSubmit={handleSubmit}
 							onModeChange={onModeChange}
 							onOpenChange={onOpenChange}
@@ -102,6 +114,7 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 					{mode === "create" && (
 						<Complete
 							handleChange={handleChange}
+							isPending={isPending}
 							onSubmit={handleSubmit}
 							onModeChange={onModeChange}
 							onOpenChange={onOpenChange}
@@ -169,7 +182,7 @@ const Intermediate = (props: InnerProps) => {
 
 	const { data: exams } = useQuery({
 		queryKey: ["get-exams"],
-		queryFn: () => GetExaminaions(),
+		queryFn: () => GetExaminations(),
 	});
 
 	const handleSubmit = () => {
@@ -236,7 +249,7 @@ const Intermediate = (props: InnerProps) => {
 };
 
 const Complete = (props: InnerProps) => {
-	const { onModeChange, onSubmit, setFieldValue, values } = props;
+	const { isPending, onModeChange, onSubmit, setFieldValue, values } = props;
 
 	const { data: bundles } = useQuery({
 		queryKey: ["get-bundles"],
@@ -314,7 +327,7 @@ const Complete = (props: InnerProps) => {
 						Back
 					</Button>
 					<Button type="submit" onClick={handleSubmit} className="w-fit">
-						Next
+						{isPending ? <RiLoaderLine className="size-5 animate-spin" /> : "Next"}
 					</Button>
 				</div>
 			</div>
