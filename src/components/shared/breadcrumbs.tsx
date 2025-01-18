@@ -3,16 +3,25 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-interface BreadcrumbItem {
+export interface BreadcrumbItemProps {
 	label: string;
 	href: string;
 	active?: boolean;
+	variant?: "default" | "error" | "info" | "success" | "warning";
 }
 
 interface Props {
-	links: BreadcrumbItem[];
+	links: BreadcrumbItemProps[];
 	className?: string;
 }
+
+const variants = {
+	default: "text-neutral-400 hover:text-neutral-300",
+	error: "text-red-500 hover:text-red-400",
+	info: "text-blue-500 hover:text-blue-400",
+	success: "text-green-500 hover:text-green-400",
+	warning: "text-amber-500 hover:text-amber-400",
+};
 
 export const Breadcrumbs = ({ links, className }: Props) => {
 	return (
@@ -28,12 +37,14 @@ export const Breadcrumbs = ({ links, className }: Props) => {
 						{link.active ? (
 							<Link
 								href={link.href}
-								className="capitalize transition-colors hover:text-neutral-500"
+								className={`capitalize transition-colors ${variants[link.variant || "default"]}`}
 								aria-current="page">
 								{link.label}
 							</Link>
 						) : (
-							<span className="capitalize">{link.label}</span>
+							<span className={`capitalize ${variants[link.variant || "default"]}`}>
+								{link.label}
+							</span>
 						)}
 					</li>
 				))}

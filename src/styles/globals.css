@@ -152,3 +152,105 @@ input[type="search"]::-webkit-search-results-decoration {
 		width: 100%;
 	}
 }
+
+/* lexical */
+.editor {
+	color: var(--neutral-700);
+	transition: color 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	-moz-transition: color 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	-webkit-transition: color 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	padding: 2px;
+}
+
+.editor:focus {
+	outline: none;
+	border-color: var(--primary-400);
+}
+
+.editor .heading-1 {
+	font-size: 24px;
+	font-weight: 700;
+}
+
+.editor .heading-2 {
+	font-size: 22px;
+	font-weight: 700;
+}
+
+.editor .heading-3 {
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.editor .heading-4 {
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.editor .heading-5 {
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.editor .heading-6 {
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.editor .image {
+	max-width: 100%;
+}
+
+.editor .list-number {
+	list-style-type: decimal;
+	margin-left: 12px;
+}
+
+.editor .list-bullet {
+	list-style-type: disc;
+	margin-left: 12px;
+}
+
+.editor .list-bullet .listitem,
+.editor .list-number .listitem {
+	display: list-item;
+}
+
+.editor .text-bold {
+	font-weight: bold;
+}
+
+.editor .text-italic {
+	font-style: italic;
+}
+
+.editor .text-underline {
+	text-decoration: underline;
+}
+
+.editor .text-line-through {
+	text-decoration: line-through;
+}
+
+.editor .text-subscript {
+	vertical-align: sub;
+}
+
+.editor .text-superscript {
+	vertical-align: super;
+}
+
+.editor .text-highlight {
+	background-color: yellow;
+	color: var(--neutral-900);
+}
+
+.html-content {
+	line-height: 1.5;
+	font-size: 17px;
+}
+
+.html-content a {
+	font-weight: 600;
+	text-decoration: underline;
+}

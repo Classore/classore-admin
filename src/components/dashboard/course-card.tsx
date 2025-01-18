@@ -1,3 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
+import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -5,32 +7,34 @@ import {
 	RiArrowDownLine,
 	RiArrowUpLine,
 	RiDeleteBin6Line,
-	RiDraggable,
 	RiFileCopyLine,
-	RiFileUploadLine,
 	RiFolderVideoLine,
-	RiUploadCloud2Line,
+	RiLoaderLine,
 } from "@remixicon/react";
 
-import type { CreateChapterDto } from "@/queries";
+import { CreateChapter, DeleteChapter, type CreateChapterDto } from "@/queries";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { IsHttpError, httpErrorhandler } from "@/lib";
+import { ChapterModule } from "./chapter-module";
+import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
+import { useDrag } from "@/hooks";
+
+type Chapter = MakeOptional<ChapterProps, "createdOn">;
+type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
 interface CardProps {
-	chapter: CreateChapterDto;
+	addChapter: () => void;
+	chapter: Chapter;
+	existingModules: ChapterModule[];
 	index: number;
-	onDelete: (id: string) => void;
-	onDuplicate: (id: string) => void;
-	onMove: (id: string, direction: "up" | "down") => void;
-	onChapterChange: (id: string, field: "name" | "content", value: string) => void;
-	onAddLesson: (chapterId: string) => void;
-	onDeleteLesson: (chapterId: string, lessonId: string) => void;
-	onLessonChange: (
-		chapterId: string,
-		lessonId: string,
-		field: "title" | "content" | "video" | "files",
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		value: any
-	) => void;
+	isSelected: boolean;
+	onDelete: (chapter: Chapter) => void;
+	onDuplicate: (sequence: number) => void;
+	onMove: (sequence: number, direction: "up" | "down") => void;
+	onSelectChapter: (index: number) => void;
+	onSelectModule: (module: ChapterModule) => void;
+	subjectId: string;
 }
 
 const course_actions = [
@@ -40,187 +44,234 @@ const course_actions = [
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
-const lesson_actions = [
-	{
-		action: "upload-video",
-		label: "upload video",
-		icon: RiUploadCloud2Line,
-		type: "input",
-		accept: "video/*",
-		multiple: false,
-	},
-	{
-		action: "upload-file",
-		label: "upload attachment",
-		icon: RiFileUploadLine,
-		type: "input",
-		accept: "application/pdf",
-		multiple: true,
-	},
-	{
-		action: "add-quiz",
-		label: "add quiz",
-		icon: RiAddLine,
-		type: "button",
-	},
-];
-
 export const CourseCard = ({
+	addChapter,
 	chapter,
+	existingModules,
 	index,
+	isSelected,
 	onDelete,
 	onDuplicate,
 	onMove,
-	onChapterChange,
-	onAddLesson,
-	onDeleteLesson,
-	onLessonChange,
+	onSelectChapter,
+	onSelectModule,
+	subjectId,
 }: CardProps) => {
-	const fileInputRefs = React.useRef<Map<string, HTMLInputElement>>(new Map());
+	const [sequence, setSequence] = React.useState(() => {
+		return existingModules.length > 0 ? existingModules.length - 1 : 0;
+	});
+	const [modules, setModules] = React.useState<ChapterModule[]>(() => {
+		const initialModules = existingModules?.map((module) => ({
+			...module,
+			sequence: index,
+			chapter: chapter.id,
+		}));
+
+		initialModules?.push({
+			attachments: [],
+			chapter: chapter.id,
+			id: "",
+			content: "",
+			images: [],
+			sequence: initialModules.length,
+			title: "",
+			tutor: null,
+			videos: [],
+		});
+
+		return initialModules;
+	});
+
+	const { getDragProps } = useDrag({
+		items: modules,
+		onReorder: setModules,
+	});
+
+	const initialValues: CreateChapterDto = {
+		content: "",
+		images: [],
+		name: "",
+		sequence: 0,
+		subject_id: subjectId,
+		videos: [],
+	};
+
+	const addNewModule = () => {
+		setModules((prev) => {
+			const newModule: ChapterModule = {
+				attachments: [],
+				chapter: chapter.id,
+				content: "",
+				id: "",
+				images: [],
+				sequence: prev.length,
+				title: "",
+				tutor: null,
+				videos: [],
+			};
+			return [...prev, newModule];
+		});
+	};
+
+	const deleteModule = (module: ChapterModule) => {
+		if (modules.length === 1) {
+			toast.error("Cannot delete the last module");
+			return;
+		}
+
+		setModules((prev) => {
+			const newModules = prev
+				.filter((md) => md.sequence !== module.sequence)
+				.map((md, idx) => ({
+					...md,
+					sequence: idx,
+				}));
+			return newModules;
+		});
+
+		if (sequence >= modules.length - 1) {
+			setSequence(Math.max(0, sequence - 1));
+		}
+	};
+
+	const { isPending: isCreating, mutate: create } = useMutation({
+		mutationFn: (payload: CreateChapterDto) => CreateChapter(payload),
+		mutationKey: ["create-chapter"],
+		onSuccess: () => {
+			toast.success("Chapter created successfully");
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] }).then(() => addChapter());
+		},
+		onError: (error) => {
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
+		},
+	});
+
+	const { isPending: isDeleting } = useMutation({
+		mutationFn: (id: string) => DeleteChapter(id),
+		mutationKey: ["delete-chapter"],
+		onSuccess: () => {
+			toast.success("Chapter deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+		},
+		onError: (error) => {
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
+		},
+	});
 
 	const handleCourseAction = (label: string) => {
 		switch (label) {
 			case "up":
-				onMove(chapter.id, "up");
+				onMove(chapter.sequence, "up");
 				break;
 			case "down":
-				onMove(chapter.id, "down");
+				onMove(chapter.sequence, "down");
 				break;
 			case "duplicate":
-				onDuplicate(chapter.id);
+				onDuplicate(chapter.sequence);
 				break;
 			case "delete":
-				onDelete(chapter.id);
+				onDelete(chapter);
 				break;
 		}
 	};
 
-	const handleLessonAction = (action: string, lessonId: string) => {
-		const inputRef = fileInputRefs.current.get(`${action}-${lessonId}`);
-		if (inputRef && (action === "upload-video" || action === "upload-file")) {
-			inputRef.click();
-		}
-	};
-
-	const handleFileChange = (
-		event: React.ChangeEvent<HTMLInputElement>,
-		action: string,
-		lessonId: string
-	) => {
-		const files = event.target.files;
-		if (!files) return;
-
-		if (action === "upload-video" && files[0]) {
-			onLessonChange(chapter.id, lessonId, "video", files[0]);
-			toast.success("Video uploaded successfully");
-		} else if (action === "upload-file") {
-			const fileList = Array.from(files);
-			onLessonChange(chapter.id, lessonId, "files", fileList);
-			toast.success(`${fileList.length} file(s) uploaded successfully`);
-		}
-		event.target.value = "";
-	};
+	const { handleChange, handleSubmit, values } = useFormik({
+		initialValues,
+		onSubmit: (values) => {
+			if (!values.subject_id) {
+				toast.error("Cannot find Subject ID");
+				return;
+			}
+			if (!values.name || !values.content) {
+				toast.error("Please fill all fields");
+				return;
+			}
+			create(values);
+		},
+	});
 
 	return (
-		<div className="w-full rounded-lg bg-white">
+		<div
+			onClick={() => onSelectChapter(index)}
+			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
 			<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
-				<p className="text-xs font-medium text-neutral-400">CHAPTER {index}</p>
+				<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
 				<div className="flex items-center">
 					{course_actions.map(({ icon: Icon, label }, i) => (
 						<button
 							key={i}
 							onClick={() => handleCourseAction(label)}
-							className="grid size-7 place-items-center border first:rounded-l-md last:rounded-r-md hover:bg-neutral-50">
-							<Icon size={16} className="text-neutral-400" />
+							disabled={isCreating || isDeleting}
+							className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+							<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 						</button>
 					))}
 				</div>
 			</div>
 			<div className="flex w-full flex-col items-center space-y-3 px-4 py-5">
-				<div className="w-full rounded-lg border">
-					<div className="flex h-10 w-full items-center gap-x-1.5 px-3 py-2.5">
-						<RiFolderVideoLine className="size-5 text-neutral-400" />
-						<input
-							type="text"
-							value={chapter.name}
-							onChange={(e) => onChapterChange(chapter.id, "name", e.target.value)}
-							className="h-full w-full border-0 p-0 text-sm outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
-							placeholder="Input title 'e.g. Introduction to Algebra'"
-						/>
-					</div>
-					<hr />
-					<div className="flex h-20 w-full items-center px-3 py-2.5">
-						<textarea
-							value={chapter.content}
-							onChange={(e) => onChapterChange(chapter.id, "content", e.target.value)}
-							className="h-full w-full resize-none border-0 p-0 text-sm outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
-							placeholder="Chapter Summary"
-						/>
-					</div>
-				</div>
-				<div className="w-full space-y-1.5">
-					{chapter.lessons.map((lesson) => (
-						<div key={lesson.id} className="w-full space-y-3 rounded-lg border p-3">
-							<div className="flex h-6 w-full items-center justify-between gap-x-1">
-								<div className="flex items-center gap-x-1">
-									<button>
-										<RiDraggable size={16} className="text-neutral-400" />
-									</button>
-									<input
-										type="text"
-										value={lesson.name}
-										onChange={(e) => onLessonChange(chapter.id, lesson.id, "title", e.target.value)}
-										className="h-full border-0 p-0 text-xs outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
-										placeholder="Lesson title"
-									/>
-								</div>
-								<button
-									onClick={() => onDeleteLesson(chapter.id, lesson.id)}
-									className="grid size-7 place-items-center rounded-md border hover:bg-neutral-50">
-									<RiDeleteBin6Line size={16} className="text-neutral-400" />
-								</button>
-							</div>
-							<div className="flex w-full items-center gap-x-1">
-								{lesson_actions.map(
-									({ accept, action, icon: Icon, label, multiple, type }, i) => {
-										if (type === "input") {
-											return (
-												<label key={i} htmlFor={action}>
-													<button
-														onClick={() => handleLessonAction(action, lesson.id)}
-														className="flex items-center gap-x-1 rounded bg-neutral-200 px-2 py-1 text-xs capitalize text-neutral-400 hover:bg-neutral-300">
-														<Icon size={14} /> {label}
-													</button>
-													<input
-														ref={(el) => {
-															if (el) fileInputRefs.current.set(`${action}-${lesson.id}`, el);
-														}}
-														type="file"
-														className="sr-only"
-														accept={accept}
-														multiple={multiple}
-														onChange={(e) => handleFileChange(e, action, lesson.id)}
-													/>
-												</label>
-											);
-										} else {
-											return (
-												<button
-													key={i}
-													onClick={() => handleLessonAction(action, lesson.id)}
-													className="flex items-center gap-x-1 rounded bg-neutral-200 px-2 py-1 text-xs capitalize text-neutral-400">
-													<Icon size={14} /> {label}
-												</button>
-											);
-										}
-									}
-								)}
-							</div>
+				<form onSubmit={handleSubmit} className="w-full space-y-2">
+					<div className="w-full rounded-lg border">
+						<div className="flex h-10 w-full items-center gap-x-1.5 px-3 py-2.5">
+							<RiFolderVideoLine className="size-5 text-neutral-400" />
+							<input
+								type="text"
+								name="name"
+								defaultValue={chapter.name}
+								onChange={handleChange}
+								className="h-full w-full border-0 p-0 text-sm outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
+								placeholder="Input title 'e.g. Introduction to Algebra'"
+							/>
 						</div>
+						<hr />
+						<div className="flex h-32 w-full items-center px-3 py-2.5">
+							<textarea
+								name="content"
+								defaultValue={chapter.content}
+								onChange={handleChange}
+								className="h-full w-full resize-none border-0 p-0 text-xs outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
+								placeholder="Chapter Summary"
+							/>
+						</div>
+					</div>
+					{values.name && values.content && (
+						<button
+							type="submit"
+							disabled={isCreating}
+							className="rounded-lg bg-primary-400 px-3 py-1.5 text-sm text-white">
+							{isCreating ? <RiLoaderLine className="size-4 animate-spin" /> : "Add Chapter"}
+						</button>
+					)}
+				</form>
+				<div className="w-full space-y-1.5">
+					{modules.map((module, index) => (
+						<ChapterModule
+							{...getDragProps(index)}
+							key={module.sequence}
+							chapter_id={chapter.id}
+							index={index}
+							isSelectedChapter={isSelected}
+							module={module}
+							onDelete={deleteModule}
+							onSelectModule={onSelectModule}
+						/>
 					))}
 				</div>
 				<Button
-					onClick={() => onAddLesson(chapter.id)}
+					onClick={addNewModule}
 					className="max-w-[250px]"
 					size="sm"
 					variant="invert-outline">

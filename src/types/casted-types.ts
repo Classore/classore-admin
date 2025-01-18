@@ -1,4 +1,4 @@
-import type { Maybe } from ".";
+import type { AdminProps, Maybe, Optionsprops } from ".";
 
 export type CastedExamTypeProps = {
 	examination_id: string;
@@ -27,6 +27,77 @@ export type CastedExamBundleProps = {
 	examinationbundle_max_subjects: number;
 	examination_name: string;
 	subject_count: number;
+	enrolled: number;
+};
+
+export type CastedCourseProps = {
+	subject_class: string;
+	subject_createdOn: Date;
+	subject_deletedBy: Maybe<string>;
+	subject_deletedOn: Maybe<Date>;
+	subject_examination: string;
+	subject_examination_bundle: string;
+	subject_id: string;
+	subject_isBlocked: boolean;
+	subject_isDeleted: boolean;
+	subject_name: string;
+	subject_updatedBy: Maybe<string>;
+	subject_updatedOn: Date;
+};
+
+export type CastedChapterProps = {
+	chapter_id: string;
+	chapter_createdOn: Date;
+	chapter_updatedOn: Maybe<Date>;
+	chapter_updatedBy: Maybe<string>;
+	chapter_deletedOn: Maybe<Date>;
+	chapter_deletedBy: Maybe<string>;
+	chapter_isDeleted: boolean;
+	chapter_isBlocked: boolean;
+	chapter_subject_id: string;
+	chapter_name: string;
+	chapter_sequence: number;
+	chapter_images: string[];
+	chapter_videos: string[];
+	chapter_content: string;
+};
+
+export type CastedChapterModuleProps = {
+	chapter_module_id: string;
+	chapter_module_createdOn: Date;
+	chapter_module_updatedOn: Maybe<Date>;
+	chapter_module_updatedBy: Maybe<string>;
+	chapter_module_deletedOn: Maybe<Date>;
+	chapter_module_deletedBy: Maybe<string>;
+	chapter_module_isDeleted: boolean;
+	chapter_module_isBlocked: boolean;
+	chapter_module_chapter: string;
+	chapter_module_title: string;
+	chapter_module_sequence: number;
+	chapter_module_images: string[];
+	chapter_module_videos: string[];
+	chapter_module_content: string;
+	chapter_module_tutor: Maybe<AdminProps>;
+};
+
+export type CastedQuestionProps = {
+	question_id: string;
+	question_createdOn: Date;
+	question_updatedOn: Maybe<Date>;
+	question_updatedBy: Maybe<string>;
+	question_deletedOn: Maybe<Date>;
+	question_deletedBy: Maybe<string>;
+	question_isDeleted: boolean;
+	question_isBlocked: boolean;
+	question_sequence: number;
+	question_content: string;
+	question_question_type: " MULTICHOICE";
+	question_images: string[];
+	question_videos: string[];
+	question_subject: string;
+	question_chapter: string;
+	question_score: string;
+	options: Optionsprops[];
 };
 
 export type CastedUserProps = {

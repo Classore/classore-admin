@@ -2,6 +2,7 @@ import { RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { IsHttpError, httpErrorhandler } from "@/lib";
 import { DeleteWaitlistUser } from "@/queries";
 import { queryClient } from "@/providers";
 
@@ -18,8 +19,14 @@ export const DeleteAction = ({ id }: Props) => {
 			queryClient.invalidateQueries({ queryKey: ["get-waitlist"] });
 		},
 		onError: (error) => {
-			console.error(error);
-			toast.error("Something went wrong");
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
 		},
 	});
 

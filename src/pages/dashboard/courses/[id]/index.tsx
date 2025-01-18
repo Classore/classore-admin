@@ -1,11 +1,14 @@
 import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
+import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
+import { Breadcrumbs, Loading, SearchInput, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
+import { AddCourse } from "@/components/dashboard";
 import { CourseTable } from "@/components/tables";
 import { Button } from "@/components/ui/button";
+import { GetBundle } from "@/queries";
 import { useDebounce } from "@/hooks";
 import {
 	Select,
@@ -15,8 +18,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import { exam_bundles } from "@/mock/courses";
-
 const course_status = ["all", "published", "unpublished"] as const;
 const sort_options = ["recent", "oldest"] as const;
 type Status = (typeof course_status)[number];
@@ -24,35 +25,38 @@ type Status = (typeof course_status)[number];
 const Page = () => {
 	const [status, setStatus] = React.useState<Status>("all");
 	const [sort_by, setSortBy] = React.useState("");
+	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
 	const router = useRouter();
 	const { id } = router.query;
 
-	const search = useDebounce(query, 500);
+	useDebounce(query, 500);
 
-	const bundle = exam_bundles.find((bundle) => bundle.id === String(id));
-
-	const courses = React.useMemo(() => {
-		if (search) {
-			return bundle?.courses.filter((course) => {
-				course.title.toLowerCase().includes(search.toLowerCase());
-			});
-		}
-		return bundle?.courses;
-	}, [bundle?.courses, search]);
+	const [{ data: bundle }] = useQueries({
+		queries: [
+			{
+				queryKey: ["get-bundle", id],
+				queryFn: () => GetBundle(String(id)),
+				enabled: !!id,
+			},
+		],
+	});
 
 	const breadcrumbs = [
 		{ label: "Manage Courses", href: "/dashboard/courses" },
 		{
-			label: `${bundle?.subcategory}`,
+			label: `${bundle?.data.examBundle.name?.toUpperCase()}`,
 			href: `/dashboard/courses/${id}`,
 			active: true,
 		},
 	];
 
+	if (!bundle) return <Loading />;
+
 	return (
 		<>
+			<AddCourse open={open} onOpenChange={setOpen} />
 			<Seo title="Course" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
@@ -66,11 +70,11 @@ const Page = () => {
 									variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
-								<h3 className="text-lg font-medium">{bundle?.subcategory}</h3>
+								<h3 className="text-lg font-medium uppercase">{bundle.data.examBundle.name}</h3>
 							</div>
 							<Breadcrumbs links={breadcrumbs} />
 						</div>
-						<Button className="w-fit" size="sm">
+						<Button onClick={() => setOpen(true)} className="w-fit" size="sm">
 							<RiAddLine /> Add New Course
 						</Button>
 					</div>
@@ -104,10 +108,10 @@ const Page = () => {
 						</div>
 						<div className="w-full">
 							<CourseTable
-								courses={courses || []}
+								courses={bundle.data.subjects.data || []}
 								onPageChange={setPage}
 								page={page}
-								total={courses?.length || 0}
+								total={bundle.data.subjects.meta.itemCount || 0}
 							/>
 						</div>
 					</div>

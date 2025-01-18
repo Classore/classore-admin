@@ -54,6 +54,13 @@ export const PaymentTable = ({ onPageChange, page, total, subscriptions }: Props
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{subscriptions.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="py-10 text-center text-xs">
+								No subscriptions found.
+							</TableCell>
+						</TableRow>
+					)}
 					{subscriptions.map((subscription) => (
 						<LineItem key={subscription.id} subscription={subscription} />
 					))}

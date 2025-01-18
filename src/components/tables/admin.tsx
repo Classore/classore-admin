@@ -38,6 +38,13 @@ export const AdminTable = ({ onPageChange, page, total, admins }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{admins.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="py-10 text-center text-xs">
+								No admins found.
+							</TableCell>
+						</TableRow>
+					)}
 					{admins.map((admin) => (
 						<LineItem key={admin.id} admin={admin} />
 					))}

@@ -3,6 +3,9 @@ import {
 	RiBarChart2Line,
 	RiBookLine,
 	RiCalendar2Line,
+	RiFlaskLine,
+	RiHourglassLine,
+	RiLogoutBoxRLine,
 	RiMessage3Line,
 	RiMoneyDollarCircleLine,
 	RiSettingsLine,
@@ -60,8 +63,16 @@ export const dashboard_links = {
 		{
 			id: "3",
 			links: [
+				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
 				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
 				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },
+			],
+		},
+		{
+			id: "4",
+			links: [
+				{ name: "waitlist", href: "/dashboard/waitlist", icon: RiHourglassLine },
+				{ name: "log out", href: "", icon: RiLogoutBoxRLine },
 			],
 		},
 	],
