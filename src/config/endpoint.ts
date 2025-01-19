@@ -13,8 +13,8 @@ export const endpoints = (id?: string) => {
 			delete_entity: `/auth/delete-entity`,
 		},
 		calendar: {
-			create: "",
-			all: "",
+			create: "/admin/calendar/events/new",
+			all: "/admin/calendar/events/get-all",
 			one: `${id}`,
 			update: `${id}`,
 			delete: `${id}`,
@@ -44,7 +44,7 @@ export const endpoints = (id?: string) => {
 			update_class: `${id}`,
 			update_subject: `${id}`,
 			update_chapter: `${id}`,
-			update_chapter_module: `${id}`,
+			update_chapter_module: `admin/learning/chapter-module/update-one/${id}`,
 			update_question: `${id}`,
 		},
 		users: {

@@ -99,10 +99,10 @@ const Page = () => {
 							<TabPanel selected={tab} value="course">
 								<CreateCourse existingChapters={course.data.chapters} subjectId={String(id)} />
 							</TabPanel>
-							<TabPanel selected={tab} value="settings">
+							<TabPanel selected={tab} value="quiz">
 								<QuizSettings />
 							</TabPanel>
-							<TabPanel selected={tab} value="teachers">
+							<TabPanel selected={tab} value="teacher">
 								<AssignTeachers />
 							</TabPanel>
 						</div>

@@ -1,5 +1,5 @@
 import React from "react";
 
 export const QuizSettings = () => {
-	return <div>QuizSettings</div>;
+	return <div className="w-full">QuizSettings</div>;
 };

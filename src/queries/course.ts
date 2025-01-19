@@ -1,5 +1,5 @@
+import { axios, createFormDataFromObject } from "@/lib";
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -9,6 +9,7 @@ import type {
 	ChapterModuleProps,
 	ChapterProps,
 	HttpResponse,
+	MakeOptional,
 	PaginatedResponse,
 	PaginationProps,
 } from "@/types";
@@ -36,7 +37,12 @@ export interface CreateQuestionDto {
 	content: string;
 	images: File[];
 	options: CreateOptionsDto[];
-	question_type: string;
+	question_type:
+		| "MULTICHOICE"
+		| "SINGLECHOICE"
+		| "SHORTANSWER"
+		| "TRUORFALSE"
+		| (string & {});
 	sequence: number;
 }
 
@@ -47,13 +53,13 @@ export interface CreateOptionsDto {
 	sequence_number: number;
 }
 
+export type UpdateChapterModuleDto = MakeOptional<
+	CreateChapterModuleDto,
+	"attachments" | "content" | "images" | "title" | "tutor" | "videos"
+>;
+
 const CreateChapter = async (payload: CreateChapterDto) => {
-	const formData = new FormData();
-	formData.append("content", payload.content);
-	for (const image of payload.images) formData.append("images", image);
-	formData.append("sequence", payload.sequence.toString());
-	formData.append("name", payload.name);
-	for (const video of payload.videos) formData.append("content", video);
+	const formData = createFormDataFromObject(payload);
 	return axios
 		.post<
 			HttpResponse<ChapterProps>
@@ -65,12 +71,7 @@ const CreateChapterModule = async (
 	chapter_id: string,
 	payload: CreateChapterModuleDto
 ) => {
-	const formData = new FormData();
-	formData.append("content", payload.content);
-	for (const image of payload.images) formData.append("images", image);
-	formData.append("sequence", payload.sequence.toString());
-	formData.append("title", payload.title);
-	for (const video of payload.videos) formData.append("content", video);
+	const formData = createFormDataFromObject(payload);
 	return axios
 		.post<
 			HttpResponse<ChapterModuleProps>
@@ -150,15 +151,17 @@ const GetQuestion = async (id: string) => {
 	return id;
 };
 
-const UpdateChapterModule = async (id: string, payload: Partial<CreateChapterDto>) => {
+const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
+	const formData = createFormDataFromObject(payload);
 	return axios
-		.put(endpoints(id).school.update_chapter_module, payload)
+		.put(endpoints(id).school.update_chapter_module, formData)
 		.then((res) => res.data);
 };
 
-const UpdateChapter = async (id: string, payload: Partial<CreateChapterModuleDto>) => {
+const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
+	const formData = createFormDataFromObject(payload);
 	return axios
-		.put(endpoints(id).school.update_chapter_module, payload)
+		.put(endpoints(id).school.update_chapter_module, formData)
 		.then((res) => res.data);
 };
 

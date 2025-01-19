@@ -10,6 +10,7 @@ import {
 	RiH3,
 	RiH4,
 	RiH5,
+	RiH6,
 	RiItalic,
 	RiListOrdered,
 	RiListUnordered,
@@ -35,6 +36,7 @@ export const heading_types = [
 	{ label: "h3", icon: RiH3 },
 	{ label: "h4", icon: RiH4 },
 	{ label: "h5", icon: RiH5 },
+	{ label: "h6", icon: RiH6 },
 ];
 
 export const list_types = [

@@ -73,6 +73,7 @@ export type CastedChapterModuleProps = {
 	chapter_module_isBlocked: boolean;
 	chapter_module_chapter: string;
 	chapter_module_title: string;
+	chapter_module_attachments: string[];
 	chapter_module_sequence: number;
 	chapter_module_images: string[];
 	chapter_module_videos: string[];

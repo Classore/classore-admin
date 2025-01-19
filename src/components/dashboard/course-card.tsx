@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
@@ -12,13 +12,18 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 
-import { CreateChapter, DeleteChapter, type CreateChapterDto } from "@/queries";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IsHttpError, httpErrorhandler } from "@/lib";
 import { ChapterModule } from "./chapter-module";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { useDrag } from "@/hooks";
+import {
+	CreateChapter,
+	DeleteChapter,
+	GetChapterModules,
+	type CreateChapterDto,
+} from "@/queries";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
@@ -26,14 +31,15 @@ type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 interface CardProps {
 	addChapter: () => void;
 	chapter: Chapter;
-	existingModules: ChapterModule[];
 	index: number;
 	isSelected: boolean;
+	lesson: ChapterModule | null;
 	onDelete: (chapter: Chapter) => void;
 	onDuplicate: (sequence: number) => void;
 	onMove: (sequence: number, direction: "up" | "down") => void;
 	onSelectChapter: (index: number) => void;
 	onSelectModule: (module: ChapterModule) => void;
+	setTab: (tab: string) => void;
 	subjectId: string;
 }
 
@@ -47,44 +53,102 @@ const course_actions = [
 export const CourseCard = ({
 	addChapter,
 	chapter,
-	existingModules,
 	index,
 	isSelected,
+	lesson,
 	onDelete,
 	onDuplicate,
 	onMove,
 	onSelectChapter,
 	onSelectModule,
+	setTab,
 	subjectId,
 }: CardProps) => {
-	const [sequence, setSequence] = React.useState(() => {
-		return existingModules.length > 0 ? existingModules.length - 1 : 0;
+	const { data } = useQuery({
+		queryKey: ["get-modules", chapter.id],
+		queryFn: () => GetChapterModules({ chapter_id: chapter.id }),
+		enabled: !!chapter.id,
 	});
-	const [modules, setModules] = React.useState<ChapterModule[]>(() => {
-		const initialModules = existingModules?.map((module) => ({
-			...module,
-			sequence: index,
-			chapter: chapter.id,
+
+	const existingModules: ChapterModule[] = React.useMemo(() => {
+		if (data) {
+			return data?.data.data.map((chapter) => {
+				const mod = {
+					attachments: chapter.chapter_module_attachments,
+					chapter: chapter.chapter_module_chapter,
+					content: chapter.chapter_module_content,
+					id: chapter.chapter_module_id,
+					images: chapter.chapter_module_images,
+					sequence: chapter.chapter_module_sequence,
+					title: chapter.chapter_module_title,
+					tutor: chapter.chapter_module_tutor,
+					videos: chapter.chapter_module_videos,
+				};
+
+				return mod;
+			});
+		}
+		return [];
+	}, [data]);
+
+	const [modules, setModules] = React.useState<ChapterModule[]>([]);
+	const [sequence, setSequence] = React.useState(0);
+
+	const resequenceModules = (mods: ChapterModule[]): ChapterModule[] => {
+		return mods.map((mod, idx) => ({
+			...mod,
+			sequence: idx,
 		}));
+	};
 
-		initialModules?.push({
-			attachments: [],
-			chapter: chapter.id,
-			id: "",
-			content: "",
-			images: [],
-			sequence: initialModules.length,
-			title: "",
-			tutor: null,
-			videos: [],
-		});
+	React.useEffect(() => {
+		if (existingModules.length > 0) {
+			setSequence(existingModules.length - 1);
+			const updatedModules = [
+				...existingModules.map((module) => ({
+					...module,
+					sequence: index,
+					chapter: chapter.id,
+				})),
+				{
+					attachments: [],
+					chapter: chapter.id,
+					id: "",
+					content: "",
+					images: [],
+					sequence: existingModules.length,
+					title: "",
+					tutor: null,
+					videos: [],
+				},
+			];
 
-		return initialModules;
-	});
+			setModules(resequenceModules(updatedModules));
+			setSequence(existingModules.length);
+		} else {
+			// Initialize with an empty module if no existing modules
+			setSequence(0);
+			setModules([
+				{
+					attachments: [],
+					chapter: chapter.id,
+					id: "",
+					content: "",
+					images: [],
+					sequence: 0,
+					title: "",
+					tutor: null,
+					videos: [],
+				},
+			]);
+		}
+	}, [existingModules, chapter.id, index]);
 
 	const { getDragProps } = useDrag({
 		items: modules,
-		onReorder: setModules,
+		onReorder: (reorderedModules) => {
+			setModules(resequenceModules(reorderedModules));
+		},
 	});
 
 	const initialValues: CreateChapterDto = {
@@ -109,7 +173,9 @@ export const CourseCard = ({
 				tutor: null,
 				videos: [],
 			};
-			return [...prev, newModule];
+
+			const newModules = [...prev, newModule];
+			return resequenceModules(newModules);
 		});
 	};
 
@@ -120,13 +186,8 @@ export const CourseCard = ({
 		}
 
 		setModules((prev) => {
-			const newModules = prev
-				.filter((md) => md.sequence !== module.sequence)
-				.map((md, idx) => ({
-					...md,
-					sequence: idx,
-				}));
-			return newModules;
+			const newModules = prev.filter((md) => md.sequence !== module.sequence);
+			return resequenceModules(newModules);
 		});
 
 		if (sequence >= modules.length - 1) {
@@ -260,13 +321,15 @@ export const CourseCard = ({
 					{modules.map((module, index) => (
 						<ChapterModule
 							{...getDragProps(index)}
-							key={module.sequence}
+							key={`${chapter.id}-module-${index}`}
 							chapter_id={chapter.id}
 							index={index}
+							isSelected={index === lesson?.sequence}
 							isSelectedChapter={isSelected}
 							module={module}
 							onDelete={deleteModule}
 							onSelectModule={onSelectModule}
+							setTab={setTab}
 						/>
 					))}
 				</div>

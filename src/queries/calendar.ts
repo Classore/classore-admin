@@ -3,20 +3,19 @@ import { axios } from "@/lib";
 import type {
 	EventProps,
 	HttpResponse,
-	Maybe,
 	PaginatedResponse,
 	PaginationProps,
 } from "@/types";
 
 export interface CreateEventDto {
-	categoryId: string;
-	endTime: string;
-	frequency: "once" | "daily" | "weekly" | "biweekly" | "monthly" | (string & {});
-	startDate: Maybe<Date>;
-	startTime: string;
-	subcategoryId: string;
+	category_id: string;
+	sub_category: string;
 	subject: string;
-	title: string;
+	event_day: number;
+	frequency: string;
+	date: Date;
+	start_hour: number;
+	end_hour: number;
 }
 
 const CreateCalendarEvent = async (payload: CreateEventDto) => {
@@ -37,7 +36,7 @@ const GetCalendarEvent = async (id: string) => {
 		.then((res) => res.data);
 };
 
-const UpdateCalendarEvent = async (id: string, payload: CreateEventDto) => {
+const UpdateCalendarEvent = async (id: string, payload: Partial<CreateEventDto>) => {
 	return axios
 		.put<HttpResponse<EventProps>>(endpoints(id).calendar.update, payload)
 		.then((res) => res.data);
