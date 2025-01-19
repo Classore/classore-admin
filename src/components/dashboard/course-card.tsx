@@ -89,7 +89,7 @@ export const CourseCard = ({
 			});
 		}
 		return [];
-	}, [data?.data.data]);
+	}, [data]);
 
 	const [modules, setModules] = React.useState<ChapterModule[]>([]);
 	const [sequence, setSequence] = React.useState(0);

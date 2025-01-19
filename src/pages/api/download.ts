@@ -21,6 +21,7 @@ export default async function handler(request: NextRequest) {
 		response.headers.set("Content-Length", document.fileSize.toString());
 
 		return response;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		return NextResponse.json({ error: error.message }, { status: 500 });
 	}

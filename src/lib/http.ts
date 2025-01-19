@@ -61,6 +61,7 @@ export const IsHttpError = (error: any): error is HttpError => {
 	return error?.response?.data?.errorCode !== undefined;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createFormDataFromObject = <T extends Record<string, any>>(
 	payload: T
 ): FormData => {

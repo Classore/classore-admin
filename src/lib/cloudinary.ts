@@ -60,6 +60,7 @@ export class DocumentDownloader {
 				content: Buffer.from(response.data),
 				contentType,
 			};
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
 			throw new Error(`Failed to download document: ${error?.message}`);
 		}

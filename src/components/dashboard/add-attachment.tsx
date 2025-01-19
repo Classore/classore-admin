@@ -20,6 +20,7 @@ import { format } from "date-fns";
 interface Props {
 	id: string;
 	sequence: number;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	setFieldValue: (field: string, value: any) => void;
 	setOpen: (open: boolean) => void;
 	values: CreateChapterModuleDto;
