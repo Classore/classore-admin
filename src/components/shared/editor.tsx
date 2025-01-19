@@ -246,8 +246,8 @@ interface HtmlPluginProps {
 }
 
 const HtmlPlugin = ({ initialHtml, onHtmlChanged }: HtmlPluginProps) => {
-	const [editor] = useLexicalComposerContext();
 	const [isFirstRender, setIsFirstRender] = React.useState(true);
+	const [editor] = useLexicalComposerContext();
 
 	React.useEffect(() => {
 		if (!initialHtml || isFirstRender) return;

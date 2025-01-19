@@ -61,3 +61,11 @@ export const exportToXLSX = <T>(data: ExportData<T>, options: ExportOptions): vo
 	link.click();
 	document.body.removeChild(link);
 };
+
+export const getFileSize = (file: File, unit: "mb" | "kb" = "mb"): string => {
+	const sizeInBytes = file.size;
+	const sizeInMB = sizeInBytes / (1024 * 1024);
+	const sizeInKB = sizeInBytes / 1024;
+	const size = unit === "mb" ? sizeInMB : sizeInKB;
+	return size.toFixed(2);
+};

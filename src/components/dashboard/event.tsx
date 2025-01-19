@@ -28,14 +28,14 @@ interface Props {
 const event_frequency = ["once", "daily", "weekly", "biweekly", "monthly"];
 
 const initialValues: CreateEventDto = {
-	categoryId: "",
-	endTime: "",
+	category_id: "",
+	date: new Date(),
+	end_hour: 0,
+	event_day: 0,
 	frequency: "",
-	startDate: null,
-	startTime: "",
-	subcategoryId: "",
+	start_hour: 0,
+	sub_category: "",
 	subject: "",
-	title: "",
 };
 
 export const Event = ({ onClose }: Props) => {
@@ -54,18 +54,13 @@ export const Event = ({ onClose }: Props) => {
 		},
 	});
 
-	const date = React.useMemo(
-		() => (values.startDate ? dayjs(values.startDate) : null),
-		[values.startDate]
-	);
-
 	const endTimes = React.useMemo(() => {
-		if (values.startTime) {
-			const startIndex = times.indexOf(values.startTime);
+		if (values.start_hour) {
+			const startIndex = times.indexOf(values.start_hour.toString());
 			return times.slice(startIndex + 1);
 		}
 		return [];
-	}, [values.startTime]);
+	}, [values.start_hour]);
 
 	return (
 		<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
@@ -82,7 +77,7 @@ export const Event = ({ onClose }: Props) => {
 				</div>
 				<div className="grid w-full grid-cols-2 gap-3">
 					<div className="flex flex-col space-y-1">
-						<label htmlFor="categoryId" className="text-xs text-neutral-400">
+						<label htmlFor="category_id" className="text-xs text-neutral-400">
 							Select Category
 						</label>
 						<Select>
@@ -93,7 +88,7 @@ export const Event = ({ onClose }: Props) => {
 						</Select>
 					</div>
 					<div className="flex flex-col space-y-1">
-						<label htmlFor="subcategoryId" className="text-xs text-neutral-400">
+						<label htmlFor="sub_category" className="text-xs text-neutral-400">
 							Select Subcategory
 						</label>
 						<Select>
@@ -140,17 +135,17 @@ export const Event = ({ onClose }: Props) => {
 					</label>
 					<div className="rounded-md border">
 						<DatePicker
-							value={date}
-							onChange={(date) => setFieldValue("startDate", date ? date.toDate() : null)}
+							value={dayjs(values.date)}
+							onChange={(date) => setFieldValue("date", date ? new Date(date.toString()) : null)}
 							className="h-11 w-full border-0 font-body font-medium"
 							format="DD/MM/YYYY"
 							minDate={dayjs(new Date()).add(1, "day")}
 						/>
 						<div className="grid w-full grid-cols-2 border-t">
 							<Select
-								name="startTime"
-								onValueChange={(value) => setFieldValue("startTime", value)}
-								disabled={!values.startDate}>
+								name="start_hour"
+								onValueChange={(value) => setFieldValue("start_hour", value)}
+								disabled={!values.date || values.date.getTime() < new Date().getTime()}>
 								<SelectTrigger className="rounded-none border-0 border-r focus:border-neutral-300">
 									<SelectValue placeholder="Start Time" />
 								</SelectTrigger>
@@ -163,9 +158,9 @@ export const Event = ({ onClose }: Props) => {
 								</SelectContent>
 							</Select>
 							<Select
-								name="endTime"
-								onValueChange={(value) => setFieldValue("endTime", value)}
-								disabled={!values.startDate || !values.startTime}>
+								name="end_hour"
+								onValueChange={(value) => setFieldValue("end_hour", value)}
+								disabled={!values.start_hour}>
 								<SelectTrigger className="border-0">
 									<SelectValue placeholder="End Time" />
 								</SelectTrigger>

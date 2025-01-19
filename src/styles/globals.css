@@ -168,32 +168,32 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 
 .editor .heading-1 {
-	font-size: 24px;
-	font-weight: 700;
-}
-
-.editor .heading-2 {
 	font-size: 22px;
 	font-weight: 700;
 }
 
-.editor .heading-3 {
+.editor .heading-2 {
 	font-size: 20px;
-	font-weight: 600;
+	font-weight: 700;
 }
 
-.editor .heading-4 {
+.editor .heading-3 {
 	font-size: 18px;
 	font-weight: 600;
 }
 
-.editor .heading-5 {
+.editor .heading-4 {
 	font-size: 16px;
+	font-weight: 600;
+}
+
+.editor .heading-5 {
+	font-size: 14px;
 	font-weight: 500;
 }
 
 .editor .heading-6 {
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 500;
 }
 

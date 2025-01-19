@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { RiAddLine } from "@remixicon/react";
 import { toast } from "sonner";
 import React from "react";
 
 import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
-import { GetChapterModules } from "@/queries";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
+import { QuizCard } from "./quiz-card";
+import { TabPanel } from "../shared";
 
 interface Props {
 	existingChapters: Chapter[];
@@ -21,6 +21,7 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 		return existingChapters.length > 0 ? existingChapters.length - 1 : 0;
 	});
 	const [module, setModule] = React.useState<ChapterModule | null>(null);
+	const [tab, setTab] = React.useState("video");
 	const [chapters, setChapters] = React.useState<Chapter[]>(() => {
 		const initialChapters = existingChapters.map((chapter, idx) => ({
 			...chapter,
@@ -40,33 +41,6 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 
 		return initialChapters;
 	});
-
-	const { data } = useQuery({
-		queryKey: ["get-modules", chapters[sequence].id],
-		queryFn: () => GetChapterModules({ chapter_id: chapters[sequence].id }),
-		enabled: !!chapters[sequence].id,
-	});
-
-	const modules: ChapterModule[] = React.useMemo(() => {
-		if (data) {
-			return data?.data.data.map((chapter) => {
-				const mod = {
-					attachments: [],
-					chapter: chapter.chapter_module_chapter,
-					content: chapter.chapter_module_content,
-					id: chapter.chapter_module_id,
-					images: chapter.chapter_module_images,
-					sequence: chapter.chapter_module_sequence,
-					title: chapter.chapter_module_title,
-					tutor: chapter.chapter_module_tutor,
-					videos: chapter.chapter_module_videos,
-				};
-
-				return mod;
-			});
-		}
-		return [];
-	}, [data]);
 
 	const addChapter = () => {
 		setChapters((prev) => {
@@ -174,21 +148,27 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 							key={`${chapter.id}-${index}`}
 							addChapter={addChapter}
 							chapter={chapter}
-							existingModules={modules}
 							index={index}
-							isSelected={sequence === index}
+							isSelected={index === sequence}
+							lesson={module}
 							onDelete={deleteChapter}
 							onDuplicate={duplicateChapter}
 							onMove={moveChapter}
 							onSelectChapter={setSequence}
 							onSelectModule={setModule}
+							setTab={setTab}
 							subjectId={subjectId}
 						/>
 					))}
 				</div>
 			</div>
 			<div className="h-full w-full flex-1 space-y-3 rounded-lg bg-neutral-100 p-3">
-				<ModuleCard chapter={chapters[sequence]} index={sequence} module={module} />
+				<TabPanel selected={tab} value="video" innerClassName="overflow-y-auto">
+					<ModuleCard chapter={chapters[sequence]} index={sequence} module={module} />
+				</TabPanel>
+				<TabPanel selected={tab} value="quiz" innerClassName="overflow-y-auto">
+					<QuizCard chapter={chapters[sequence]} index={sequence} module={module} />
+				</TabPanel>
 			</div>
 		</div>
 	);
