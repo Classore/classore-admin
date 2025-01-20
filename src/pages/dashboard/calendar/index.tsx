@@ -12,9 +12,12 @@ import {
 
 import { CalendarCard, Event } from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
+import type { DayProps, EventProps } from "@/types";
+import { dayUtils, getEventStatus } from "@/lib";
 import { Button } from "@/components/ui/button";
+import type { EventsResponse } from "@/queries";
+import { GetCalendarEvents } from "@/queries";
 import { Seo } from "@/components/shared";
-import type { DayProps } from "@/types";
 import {
 	Dialog,
 	DialogContent,
@@ -40,57 +43,76 @@ const daysOfWeek = [
 	"Saturday",
 ];
 
-const getDaysInMonth = (year: number, month: number) => {
-	return new Date(year, month + 1, 0).getDate();
-};
-
-const getFirstDayOfMonth = (year: number, month: number) => {
-	return new Date(year, month, 1).getDay();
+const calendarUtils = {
+	getDaysInMonth: (year: number, month: number) => new Date(year, month + 1, 0).getDate(),
+	getFirstDayOfMonth: (year: number, month: number) => new Date(year, month, 1).getDay(),
+	isToday: (day: number | null, currentDate: Date) =>
+		day === new Date().getDate() &&
+		currentDate.getMonth() === new Date().getMonth() &&
+		currentDate.getFullYear() === new Date().getFullYear(),
 };
 
 const Page = () => {
 	const [currentDate, setCurrentDate] = React.useState(new Date());
 	const [open, setOpen] = React.useState(false);
 
+	const [{ data }] = useQueries({
+		queries: [
+			{
+				queryKey: ["get-events"],
+				queryFn: () => GetCalendarEvents(),
+				select: (data: unknown) => (data as EventsResponse).data,
+			},
+		],
+	});
+
+	const processedEvents = React.useMemo(() => {
+		const monthEvents: Record<string, EventProps[]> = {};
+		data?.events.forEach((event) => {
+			const eventDate = new Date(event.date);
+			if (
+				eventDate.getFullYear() === currentDate.getFullYear() &&
+				eventDate.getMonth() === currentDate.getMonth()
+			) {
+				const dateKey = eventDate.getDate().toString();
+				if (!monthEvents[dateKey]) {
+					monthEvents[dateKey] = [];
+				}
+				monthEvents[dateKey].push(event);
+			}
+		});
+		return monthEvents;
+	}, [currentDate, data]);
+
 	const daysOfMonth = React.useMemo(() => {
 		const month = currentDate.getMonth();
 		const year = currentDate.getFullYear();
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
-		const days = [];
-		for (let i = 1; i <= daysInMonth; i++) {
-			days.push(new Date(year, month, i).toString());
-		}
-		return days;
+		return Array.from({ length: daysInMonth }, (_, i) =>
+			new Date(year, month, i + 1).toString()
+		);
 	}, [currentDate]);
-
-	const goToPreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
-
-	const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
 	const calendarDays = React.useMemo(() => {
 		const year = currentDate.getFullYear();
 		const month = currentDate.getMonth();
-		const daysInMonth = getDaysInMonth(year, month);
-		const firstDay = getFirstDayOfMonth(year, month);
-		const days: DayProps[] = [];
-
-		for (let i = 0; i < firstDay; i++) {
-			days.push({ day: null, events: [] });
-		}
+		const daysInMonth = calendarUtils.getDaysInMonth(year, month);
+		const firstDay = calendarUtils.getFirstDayOfMonth(year, month);
+		const days: DayProps[] = Array(firstDay).fill({ day: null, events: [] });
 
 		for (let day = 1; day <= daysInMonth; day++) {
 			days.push({
 				day,
-				events: [],
+				events: processedEvents[day.toString()] || [],
 			});
 		}
 
 		return days;
-	}, [currentDate]);
+	}, [currentDate, processedEvents]);
 
-	const [] = useQueries({
-		queries: [],
-	});
+	const goToPreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
+
+	const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
 	return (
 		<>
@@ -114,10 +136,26 @@ const Page = () => {
 							</Dialog>
 						</div>
 						<div className="grid w-full grid-cols-4 gap-x-4">
-							<CalendarCard icon={RiCalendar2Line} value={0} label="Total No of Events" />
-							<CalendarCard icon={RiCalendarTodoLine} value={0} label="Upcoming" />
-							<CalendarCard icon={RiCalendarEventLine} value={0} label="Live" />
-							<CalendarCard icon={RiCalendarCheckLine} value={0} label="Ended" />
+							<CalendarCard
+								icon={RiCalendar2Line}
+								value={data?.calendar.total_events ?? 0}
+								label="Total No of Events"
+							/>
+							<CalendarCard
+								icon={RiCalendarTodoLine}
+								value={data?.calendar.upcoming ?? 0}
+								label="Upcoming"
+							/>
+							<CalendarCard
+								icon={RiCalendarEventLine}
+								value={data?.calendar.live ?? 0}
+								label="Live"
+							/>
+							<CalendarCard
+								icon={RiCalendarCheckLine}
+								value={data?.calendar.ended ?? 0}
+								label="Ended"
+							/>
 						</div>
 					</div>
 					<div className="flex w-full flex-col gap-y-2 rounded-lg bg-white p-5">
@@ -161,17 +199,41 @@ const Page = () => {
 								))}
 							</div>
 							<div className="grid w-full grid-cols-7">
-								{calendarDays.map(({ day }, index) => {
-									const isToday =
-										day === new Date().getDate() &&
-										currentDate.getMonth() === new Date().getMonth() &&
-										currentDate.getFullYear() === new Date().getFullYear();
+								{calendarDays.map(({ day, events }, index) => {
+									const isToday = calendarUtils.isToday(day, currentDate);
 									return (
 										<div
 											key={index}
-											className={`flex aspect-square w-full flex-col border-b p-3 ${index % 7 === 6 ? "" : "border-r"} ${isToday ? "bg-primary-50 font-semibold text-primary-400" : "text-neutral-400"}`}>
-											<div className="flex w-full items-center justify-end">
+											className={`flex aspect-[1.08/1] w-full flex-col overflow-hidden border-b ${index % 7 === 6 ? "" : "border-r"} ${isToday ? "bg-neutral-100 font-semibold" : "text-neutral-500"}`}>
+											<div className="flex w-full items-center justify-end px-3 pt-3">
 												<span className="text-xs">{day}</span>
+											</div>
+											<div className="mt-1 flex flex-col gap-y-1 overflow-y-auto">
+												{events.map((event, index) => {
+													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } =
+														dayUtils(event);
+													return (
+														<div
+															key={index}
+															className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(event.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
+															<div className="flex w-full cursor-pointer items-center">
+																{isFirstDay && (
+																	<div className="flex items-start justify-center">
+																		<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
+																		<div className="absolute left-7 z-50 flex flex-1 flex-col pl-1">
+																			<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
+																				Title goes here
+																			</span>
+																			<span className="text-[10px] text-neutral-500">
+																				{format(startDate, "EEEE")} - {format(endDate, "EEEE")}
+																			</span>
+																		</div>
+																	</div>
+																)}
+															</div>
+														</div>
+													);
+												})}
 											</div>
 										</div>
 									);

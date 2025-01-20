@@ -1,11 +1,6 @@
+import type { EventProps, HttpResponse, PaginationProps } from "@/types";
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
-import type {
-	EventProps,
-	HttpResponse,
-	PaginatedResponse,
-	PaginationProps,
-} from "@/types";
 
 export interface CreateEventDto {
 	category_id: string;
@@ -18,6 +13,18 @@ export interface CreateEventDto {
 	end_hour: number;
 }
 
+export interface GetEventsResponse {
+	calendar: {
+		ended: number;
+		live: number;
+		total_events: number;
+		upcoming: number;
+	};
+	events: EventProps[];
+}
+
+export type EventsResponse = HttpResponse<GetEventsResponse>;
+
 const CreateCalendarEvent = async (payload: CreateEventDto) => {
 	return axios
 		.post<HttpResponse<EventProps>>(endpoints().calendar.create, payload)
@@ -26,7 +33,7 @@ const CreateCalendarEvent = async (payload: CreateEventDto) => {
 
 const GetCalendarEvents = async (params?: PaginationProps) => {
 	return axios
-		.get<HttpResponse<PaginatedResponse<EventProps>>>(endpoints().calendar.all, { params })
+		.get<HttpResponse<GetEventsResponse>>(endpoints().calendar.all, { params })
 		.then((res) => res.data);
 };
 
