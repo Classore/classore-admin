@@ -4,11 +4,14 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { Breadcrumbs, Loading, SearchInput, Seo } from "@/components/shared";
+import type { HttpResponse, PaginatedResponse } from "@/types";
+import type { CastedCourseProps } from "@/types/casted-types";
 import { DashboardLayout } from "@/components/layout";
+import type { ExamBundleResponse } from "@/queries";
 import { AddCourse } from "@/components/dashboard";
+import { GetBundle, GetSubjects } from "@/queries";
 import { CourseTable } from "@/components/tables";
 import { Button } from "@/components/ui/button";
-import { GetBundle } from "@/queries";
 import { useDebounce } from "@/hooks";
 import {
 	Select,
@@ -22,8 +25,12 @@ const course_status = ["all", "published", "unpublished"] as const;
 const sort_options = ["recent", "oldest"] as const;
 type Status = (typeof course_status)[number];
 
+type CoursesResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
+type BundleResponse = HttpResponse<ExamBundleResponse>;
+
 const Page = () => {
 	const [status, setStatus] = React.useState<Status>("all");
+	const [bundleId, setBundleId] = React.useState("");
 	const [sort_by, setSortBy] = React.useState("");
 	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState("");
@@ -33,12 +40,26 @@ const Page = () => {
 
 	useDebounce(query, 500);
 
-	const [{ data: bundle }] = useQueries({
+	const [{ data: bundle }, {}] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-bundle", id],
-				queryFn: () => GetBundle(String(id)),
+				queryKey: ["get-bundle", id, page],
+				queryFn: () => GetBundle(String(id), { limit: 10, page }),
 				enabled: !!id,
+				select: (data: unknown) => (data as BundleResponse).data,
+			},
+			{
+				queryKey: ["get-subjects", bundleId, id, page],
+				queryFn: () =>
+					GetSubjects({
+						examination: String(id),
+						examination_bundle: bundleId,
+						limit: 10,
+						page,
+					}),
+				// enabled: !!(id && bundleId),
+				enabled: false,
+				select: (data: unknown) => (data as CoursesResponse).data,
 			},
 		],
 	});
@@ -46,11 +67,15 @@ const Page = () => {
 	const breadcrumbs = [
 		{ label: "Manage Courses", href: "/dashboard/courses" },
 		{
-			label: `${bundle?.data.examBundle.name?.toUpperCase()}`,
+			label: `${bundle?.examBundle.name?.toUpperCase()}`,
 			href: `/dashboard/courses/${id}`,
 			active: true,
 		},
 	];
+
+	React.useEffect(() => {
+		if (bundle) [setBundleId(bundle.examBundle.id)];
+	}, [bundle]);
 
 	if (!bundle) return <Loading />;
 
@@ -70,7 +95,7 @@ const Page = () => {
 									variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
-								<h3 className="text-lg font-medium uppercase">{bundle.data.examBundle.name}</h3>
+								<h3 className="text-lg font-medium uppercase">{bundle.examBundle.name}</h3>
 							</div>
 							<Breadcrumbs links={breadcrumbs} />
 						</div>
@@ -108,10 +133,10 @@ const Page = () => {
 						</div>
 						<div className="w-full">
 							<CourseTable
-								courses={bundle.data.subjects.data || []}
+								courses={bundle.subjects.data || []}
 								onPageChange={setPage}
 								page={page}
-								total={bundle.data.subjects.meta.itemCount || 0}
+								total={bundle.subjects.meta.itemCount || 0}
 							/>
 						</div>
 					</div>
