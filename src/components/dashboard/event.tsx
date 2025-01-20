@@ -1,14 +1,22 @@
-import { useMutation } from "@tanstack/react-query";
-import { RiCalendar2Line } from "@remixicon/react";
+import { useMutation, useQueries } from "@tanstack/react-query";
+import { RiCalendar2Line, RiLoaderLine } from "@remixicon/react";
 import { useFormik } from "formik";
 import { DatePicker } from "antd";
+import * as Yup from "yup";
 import React from "react";
 import dayjs from "dayjs";
 
 import { type CreateEventDto, CreateCalendarEvent } from "@/queries/calendar";
+import { GetBundles, GetExaminations, GetSubjects } from "@/queries";
 import { Button } from "@/components/ui/button";
 import { IconLabel } from "@/components/shared";
+import { queryClient } from "@/providers";
 import { times } from "@/config";
+import type {
+	CourseResponse,
+	ExaminationBundleResponse,
+	ExaminationResponse,
+} from "@/queries";
 import {
 	Select,
 	SelectContent,
@@ -31,7 +39,7 @@ const initialValues: CreateEventDto = {
 	category_id: "",
 	date: new Date(),
 	end_hour: 0,
-	event_day: 0,
+	event_day: 1,
 	frequency: "",
 	start_hour: 0,
 	sub_category: "",
@@ -39,24 +47,80 @@ const initialValues: CreateEventDto = {
 };
 
 export const Event = ({ onClose }: Props) => {
-	const {} = useMutation({
+	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: CreateEventDto) => CreateCalendarEvent(payload),
 		mutationKey: ["create-event"],
 		onSuccess: (data) => {
 			console.log(data);
+			queryClient.invalidateQueries({ queryKey: ["get-events"] }).then(() => {});
 		},
 	});
 
-	const { handleChange, handleSubmit, setFieldValue, values } = useFormik({
-		initialValues,
-		onSubmit: (values) => {
-			console.log(values);
-		},
+	const { errors, handleChange, handleSubmit, setFieldValue, values, touched } = useFormik(
+		{
+			initialValues,
+			validationSchema: Yup.object().shape({
+				category_id: Yup.string().required("Examination type is required"),
+				date: Yup.date()
+					.min(new Date(), "Event date cannot be today")
+					.required("Event date is required"),
+				end_hour: Yup.number().required("End time is required"),
+				event_day: Yup.number()
+					.min(1, "Event requires minimum of one day")
+					.required("number of event days is required"),
+				frequency: Yup.string().required("Frequency is required"),
+				start_hour: Yup.number().required("Start time is required"),
+				sub_category: Yup.string().required("Examination bundle is required"),
+				subject: Yup.string().required("Subject is required"),
+			}),
+			onSubmit: (values) => {
+				mutate(values);
+			},
+		}
+	);
+
+	const [{ data: examinations }, { data: bundles }, { data: subjects }] = useQueries({
+		queries: [
+			{
+				queryKey: ["examinations"],
+				queryFn: () => GetExaminations(),
+				select: (data: unknown) => (data as ExaminationResponse).data.data,
+			},
+			{
+				queryKey: ["bundles", values.category_id],
+				queryFn: () => GetBundles({ examination: values.category_id }),
+				enabled: !!values.category_id,
+				select: (data: unknown) => (data as ExaminationBundleResponse).data.data,
+			},
+			{
+				queryKey: ["subjects", values.category_id, values.sub_category],
+				queryFn: () =>
+					GetSubjects({
+						examination: values.category_id,
+						examination_bundle: values.sub_category,
+						limit: 50,
+					}),
+				enabled: !!(values.category_id && values.sub_category),
+				select: (data: unknown) => (data as CourseResponse).data.data,
+			},
+		],
 	});
+
+	const errorMessage = (key: keyof CreateEventDto) => {
+		if (errors[key] && touched[key]) {
+			if (key === "date") {
+				return errors[key] && touched[key] ? (errors[key] as string) : "";
+			}
+			return errors[key];
+		}
+		return "";
+	};
 
 	const endTimes = React.useMemo(() => {
 		if (values.start_hour) {
-			const startIndex = times.indexOf(values.start_hour.toString());
+			const startIndex = times.findIndex(
+				(time) => time.value.toString() === values.start_hour.toString()
+			);
 			return times.slice(startIndex + 1);
 		}
 		return [];
@@ -80,23 +144,47 @@ export const Event = ({ onClose }: Props) => {
 						<label htmlFor="category_id" className="text-xs text-neutral-400">
 							Select Category
 						</label>
-						<Select>
-							<SelectTrigger className="h-11 border">
+						<Select
+							value={values.category_id}
+							onValueChange={(value) => setFieldValue("category_id", value)}>
+							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Category" />
 							</SelectTrigger>
-							<SelectContent></SelectContent>
+							<SelectContent className="capitalize">
+								{examinations?.map((examination) => (
+									<SelectItem key={examination.examination_id} value={examination.examination_id}>
+										{examination.examination_name}
+									</SelectItem>
+								))}
+							</SelectContent>
 						</Select>
+						{errorMessage("category_id") && (
+							<p className="text-xs text-red-500">{errorMessage("category_id")}</p>
+						)}
 					</div>
 					<div className="flex flex-col space-y-1">
 						<label htmlFor="sub_category" className="text-xs text-neutral-400">
 							Select Subcategory
 						</label>
-						<Select>
-							<SelectTrigger className="h-11 border">
+						<Select
+							value={values.sub_category}
+							onValueChange={(value) => setFieldValue("sub_category", value)}>
+							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Subcategory" />
 							</SelectTrigger>
-							<SelectContent></SelectContent>
+							<SelectContent>
+								{bundles?.map((bundle) => (
+									<SelectItem
+										key={bundle.examinationbundle_id}
+										value={bundle.examinationbundle_id}>
+										{bundle.examinationbundle_name.toUpperCase()}
+									</SelectItem>
+								))}
+							</SelectContent>
 						</Select>
+						{errorMessage("sub_category") && (
+							<p className="text-xs text-red-500">{errorMessage("sub_category")}</p>
+						)}
 					</div>
 				</div>
 				<div className="grid w-full grid-cols-2 gap-3">
@@ -104,18 +192,31 @@ export const Event = ({ onClose }: Props) => {
 						<label htmlFor="subject" className="text-xs text-neutral-400">
 							Select Subject
 						</label>
-						<Select>
-							<SelectTrigger className="h-11 border">
+						<Select
+							value={values.subject}
+							onValueChange={(value) => setFieldValue("subject", value)}>
+							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Subject" />
 							</SelectTrigger>
-							<SelectContent></SelectContent>
+							<SelectContent className="capitalize">
+								{subjects?.map((subject) => (
+									<SelectItem key={subject.subject_id} value={subject.subject_id}>
+										{subject.subject_name}
+									</SelectItem>
+								))}
+							</SelectContent>
 						</Select>
+						{errorMessage("subject") && (
+							<p className="text-xs text-red-500">{errorMessage("subject")}</p>
+						)}
 					</div>
 					<div className="flex flex-col space-y-1">
 						<label htmlFor="frequency" className="text-xs text-neutral-400">
 							Frequency
 						</label>
-						<Select>
+						<Select
+							value={values.frequency}
+							onValueChange={(value) => setFieldValue("frequency", value)}>
 							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Frequency" />
 							</SelectTrigger>
@@ -127,6 +228,9 @@ export const Event = ({ onClose }: Props) => {
 								))}
 							</SelectContent>
 						</Select>
+						{errorMessage("frequency") && (
+							<p className="text-xs text-red-500">{errorMessage("frequency")}</p>
+						)}
 					</div>
 				</div>
 				<div className="flex flex-col space-y-1">
@@ -151,8 +255,8 @@ export const Event = ({ onClose }: Props) => {
 								</SelectTrigger>
 								<SelectContent>
 									{times.map((time) => (
-										<SelectItem key={time} value={time}>
-											{time}
+										<SelectItem key={time.value} value={time.value.toString()}>
+											{time.label}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -166,8 +270,8 @@ export const Event = ({ onClose }: Props) => {
 								</SelectTrigger>
 								<SelectContent>
 									{endTimes.map((time) => (
-										<SelectItem key={time} value={time}>
-											{time}
+										<SelectItem key={time.value} value={time.value.toString()}>
+											{time.label}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -177,11 +281,16 @@ export const Event = ({ onClose }: Props) => {
 				</div>
 				<hr />
 				<div className="flex w-full items-center justify-end gap-x-4">
-					<Button className="w-fit" type="button" onClick={onClose} variant="outline">
+					<Button
+						className="w-fit"
+						type="button"
+						disabled={isPending}
+						onClick={onClose}
+						variant="outline">
 						Cancel
 					</Button>
-					<Button className="w-fit" type="submit">
-						Create Event
+					<Button className="w-fit" type="submit" disabled={isPending}>
+						{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Event"}
 					</Button>
 				</div>
 			</form>

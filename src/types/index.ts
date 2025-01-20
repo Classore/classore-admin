@@ -282,8 +282,10 @@ export type WaitlistUserProps = {
 	waitlists_waitlist_type: string;
 };
 
-export type EventProps = Node & {
+export type EventProps = {
 	__typename: "Event";
+	date: Date;
+	day: number;
 };
 
 export type DayProps = {

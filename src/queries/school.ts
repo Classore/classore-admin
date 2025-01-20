@@ -43,6 +43,12 @@ export interface SubjectResponse {
 	name: string;
 }
 
+export type ExaminationResponse = HttpResponse<PaginatedResponse<CastedExamTypeProps>>;
+export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
+export type ExaminationBundleResponse = HttpResponse<
+	PaginatedResponse<CastedExamBundleProps>
+>;
+
 const CreateBundle = async (payload: CreateBundleDto) => {
 	return axios
 		.post<HttpResponse<ExamBundleProps>>(endpoints().school.create_exam_bundle, payload)
