@@ -1,4 +1,5 @@
 import { RiAddLine } from "@remixicon/react";
+import { toast } from "sonner";
 import React from "react";
 
 import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
@@ -17,17 +18,21 @@ interface QuizProps {
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const [questions, setQuestions] = React.useState<CreateQuestionDto[]>([
-		{ content: "", images: [], options: [], question_type: "", sequence: 0 },
+		{ content: "", images: [], options: [], question_type: "MULTICHOICE", sequence: 0 },
 	]);
 
 	const handleAddQuestion = () => {
 		setQuestions((prev) => [
 			...prev,
-			{ content: "", images: [], options: [], question_type: "", sequence: 0 },
+			{ content: "", images: [], options: [], question_type: "MULTICHOICE", sequence: 0 },
 		]);
 	};
 
 	const handleDeleteQuestion = (index: number) => {
+		if (questions.length === 1) {
+			toast.error("At least one question is required");
+			return;
+		}
 		setQuestions((prev) => prev.filter((_, i) => i !== index));
 	};
 
@@ -96,11 +101,11 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 				{questions.map((question, index) => (
 					<QuestionCard
 						key={index}
+						initialQuestion={question}
 						onDelete={handleDeleteQuestion}
 						onDuplicate={handleDuplicateQuestion}
 						onReorder={handleReorder}
 						onUpdateQuestions={handleUpdatequestions}
-						question={question}
 					/>
 				))}
 			</div>

@@ -4,14 +4,13 @@ import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
 	CastedQuestionProps,
-} from "@/types/casted-types";
-import type {
 	ChapterModuleProps,
 	ChapterProps,
 	HttpResponse,
 	MakeOptional,
 	PaginatedResponse,
 	PaginationProps,
+	QuestionTypeProps,
 } from "@/types";
 
 export interface CreateChapterDto {
@@ -37,20 +36,15 @@ export interface CreateQuestionDto {
 	content: string;
 	images: File[];
 	options: CreateOptionsDto[];
-	question_type:
-		| "MULTICHOICE"
-		| "SINGLECHOICE"
-		| "SHORTANSWER"
-		| "TRUORFALSE"
-		| (string & {});
+	question_type: QuestionTypeProps;
 	sequence: number;
 }
 
 export interface CreateOptionsDto {
 	content: string;
-	images: File[];
 	is_correct: "YES" | "NO";
 	sequence_number: number;
+	images?: File[];
 }
 
 export type UpdateChapterModuleDto = MakeOptional<

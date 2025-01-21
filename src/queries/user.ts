@@ -1,7 +1,7 @@
-import type { CastedUserProps } from "@/types/casted-types";
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
 import type {
+	CastedUserProps,
 	HttpResponse,
 	PaginatedResponse,
 	PaginationProps,

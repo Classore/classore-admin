@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 				<div className="min-h-24 w-full px-6 py-9">
 					<div className="relative h-8 w-[140px]">
 						<Image
-							src="/assets/images/classore.png"
+							src="/assets/images/classore.webp"
 							alt="classore"
 							fill
 							sizes="100%"

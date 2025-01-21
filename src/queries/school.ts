@@ -4,8 +4,6 @@ import type {
 	CastedCourseProps,
 	CastedExamBundleProps,
 	CastedExamTypeProps,
-} from "@/types/casted-types";
-import type {
 	ChapterProps,
 	CourseProps,
 	ExamProps,

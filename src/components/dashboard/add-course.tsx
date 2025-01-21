@@ -1,7 +1,6 @@
 import { RiAddLine, RiBookLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
-import { useRouter } from "next/router";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
@@ -50,16 +49,17 @@ const initialValues: CreateSubjectDto = {
 
 export const AddCourse = ({ onOpenChange, open }: Props) => {
 	const [mode, setMode] = React.useState<Mode>("initial");
-	const router = useRouter();
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-course"],
 		mutationFn: (payload: CreateSubjectDto) => CreateSubject(payload),
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-bundle"] }).then(() => {
-				router.push(`/dashboard/courses/new?id=${data.data.id}`);
-			});
+			queryClient
+				.invalidateQueries({ queryKey: ["get-bundle", "get-subjects"] })
+				.then(() => {
+					onOpenChange(false);
+				});
 		},
 		onError: (error) => {
 			const isHttpError = IsHttpError(error);
