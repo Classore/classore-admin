@@ -4,13 +4,14 @@ import { axios } from "@/lib";
 
 export interface CreateEventDto {
 	category_id: string;
-	sub_category: string;
-	subject: string;
+	date: Date | string;
+	end_hour: number;
 	event_day: number;
 	frequency: string;
-	date: Date;
 	start_hour: number;
-	end_hour: number;
+	sub_category: string;
+	subject: string;
+	title: string;
 }
 
 export interface GetEventsResponse {
@@ -31,7 +32,7 @@ const CreateCalendarEvent = async (payload: CreateEventDto) => {
 		.then((res) => res.data);
 };
 
-const GetCalendarEvents = async (params?: PaginationProps) => {
+const GetCalendarEvents = async (params?: PaginationProps & { month: number }) => {
 	return axios
 		.get<HttpResponse<GetEventsResponse>>(endpoints().calendar.all, { params })
 		.then((res) => res.data);

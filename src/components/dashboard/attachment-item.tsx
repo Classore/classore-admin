@@ -11,6 +11,7 @@ import {
 } from "@remixicon/react";
 
 import { getFileExtension, shortenFileName } from "@/lib";
+// import { CloudinaryFileItem } from "../dynamic";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import {
@@ -77,6 +78,7 @@ export const AttachmentItem = ({
 								className: "text-neutral-400 size-5",
 							})}
 						</div>
+						{/* <CloudinaryFileItem url={attachment} /> */}
 						<p className="text-sm text-neutral-400">{shortenFileName(attachment, 40)}</p>
 					</div>
 				</div>

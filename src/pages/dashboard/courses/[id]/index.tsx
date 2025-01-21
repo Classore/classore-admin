@@ -74,7 +74,9 @@ const Page = () => {
 	];
 
 	React.useEffect(() => {
-		if (bundle) [setBundleId(bundle.examBundle.id)];
+		if (bundle) {
+			setBundleId(bundle.examBundle.id);
+		}
 	}, [bundle]);
 
 	if (!bundle) return <Loading />;

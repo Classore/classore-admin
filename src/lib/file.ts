@@ -69,3 +69,16 @@ export const getFileSize = (file: File, unit: "mb" | "kb" = "mb"): string => {
 	const size = unit === "mb" ? sizeInMB : sizeInKB;
 	return size.toFixed(2);
 };
+
+export const createDownload = async (url: string) => {
+	const file = await fetch(url).then((response) => response.blob());
+	const fileName = url.split("/").pop() || "file";
+	const fileType = file.type;
+	const blob = new Blob([file], { type: fileType });
+	const link = document.createElement("a");
+	link.href = URL.createObjectURL(blob);
+	link.download = fileName;
+	link.click();
+	URL.revokeObjectURL(link.href);
+	link.remove();
+};
