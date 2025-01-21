@@ -18,6 +18,7 @@ import { AddAttachment } from "./add-attachment";
 import { UpdateChapterModule } from "@/queries";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
+import { embedUrl } from "@/lib";
 import {
 	Dialog,
 	DialogContent,
@@ -119,7 +120,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			</div>
 			{module?.videos.length ? (
 				<div className="w-full space-y-4">
-					<VideoPlayer src={module.videos[0]} />
+					<VideoPlayer src={embedUrl(module.videos[0])} />
 					<div className="w-full space-y-3 bg-white px-3">
 						<div className="flex h-[52px] w-full items-center justify-between">
 							<p className="text-sm font-medium">File Attachments</p>

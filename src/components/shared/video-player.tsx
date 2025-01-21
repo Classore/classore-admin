@@ -1,16 +1,16 @@
+import React from "react";
 import {
 	RiFullscreenExitLine,
 	RiFullscreenLine,
+	RiLoaderLine,
 	RiPauseLargeFill,
 	RiPictureInPictureLine,
 	RiPlayLargeFill,
 	RiVolumeMuteLine,
 	RiVolumeUpLine,
 } from "@remixicon/react";
-import { LoaderCircle } from "lucide-react";
-import React from "react";
 
-import { formatTime } from "@/lib";
+import { getGoogleDriveId, isGoogleDriveUrl } from "@/lib";
 
 interface Props {
 	src: string;
@@ -21,15 +21,47 @@ export const VideoPlayer = ({ src }: Props) => {
 	const video = React.useRef<HTMLVideoElement>(null)!;
 	const scrub = React.useRef<HTMLDivElement>(null)!;
 
+	const [bufferProgress, setBufferProgress] = React.useState(0);
 	const [showControls, setShowControls] = React.useState(false);
 	const [isFullscreen, setIsFullscreen] = React.useState(false);
 	const [isPlaying, setIsPlaying] = React.useState(false);
 	const [currentTime, setCurrentTime] = React.useState(0);
 	const [isLoading, setIsLoading] = React.useState(true);
 	const [isMuted, setIsMuted] = React.useState(false);
+	const [videoUrl, setVideoUrl] = React.useState("");
 	const [progress, setProgress] = React.useState(0);
 	const [duration, setDuration] = React.useState(0);
 	const [isPip, setIsPip] = React.useState(false);
+
+	React.useEffect(() => {
+		if (isGoogleDriveUrl(src)) {
+			const fileId = getGoogleDriveId(src);
+			fetch(`/api/google-drive?fileId=${fileId}`)
+				.then((response) => {
+					if (!response.ok) {
+						throw new Error("Video access denied. Please check file permissions.");
+					}
+					return response.blob();
+				})
+				.then((blob) => {
+					const url = URL.createObjectURL(blob);
+					setVideoUrl(url);
+					setIsLoading(false);
+				})
+				.catch((error) => {
+					console.error(error);
+					setIsLoading(false);
+				});
+		} else {
+			setVideoUrl(src);
+		}
+	}, [src]);
+
+	const formatTime = (time: number) => {
+		const minutes = Math.floor(time / 60);
+		const seconds = Math.floor(time % 60);
+		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+	};
 
 	const togglePlay = () => {
 		if (video.current) {
@@ -41,6 +73,23 @@ export const VideoPlayer = ({ src }: Props) => {
 			setIsPlaying(!isPlaying);
 		}
 	};
+
+	const handleProgress = () => {
+		if (video.current) {
+			const buffered = video.current.buffered;
+			if (buffered.length > 0) {
+				const bufferedEnd = buffered.end(buffered.length - 1);
+				const duration = video.current.duration;
+				setBufferProgress((bufferedEnd / duration) * 100);
+			}
+		}
+	};
+
+	React.useEffect(() => {
+		if (video.current) {
+			video.current.preload = "metadata";
+		}
+	}, [video]);
 
 	const toggleMute = () => {
 		if (video.current) {
@@ -71,26 +120,22 @@ export const VideoPlayer = ({ src }: Props) => {
 
 	const toggleFullscreen = () => {
 		if (!video.current) return;
-
 		const doc = document as Document & {
 			mozCancelFullScreen?: () => Promise<void>;
 			webkitExitFullscreen?: () => Promise<void>;
 			msExitFullscreen?: () => Promise<void>;
 		};
-
 		const elem = video.current as HTMLVideoElement & {
 			mozRequestFullScreen?: () => Promise<void>;
 			webkitRequestFullscreen?: () => Promise<void>;
 			msRequestFullscreen?: () => Promise<void>;
 		};
-
 		if (!isFullscreen) {
 			const requestFS =
 				elem.requestFullscreen ||
 				elem.mozRequestFullScreen ||
 				elem.webkitRequestFullscreen ||
 				elem.msRequestFullscreen;
-
 			requestFS?.call(elem);
 		} else {
 			const exitFS =
@@ -98,10 +143,8 @@ export const VideoPlayer = ({ src }: Props) => {
 				doc.mozCancelFullScreen ||
 				doc.webkitExitFullscreen ||
 				doc.msExitFullscreen;
-
 			exitFS?.call(doc);
 		}
-
 		setIsFullscreen(!isFullscreen);
 	};
 
@@ -129,10 +172,7 @@ export const VideoPlayer = ({ src }: Props) => {
 		}
 	};
 
-	const preventContextMenu = (e: React.MouseEvent) => {
-		e.preventDefault();
-		return false;
-	};
+	const controlsTimeoutRef = React.useRef<NodeJS.Timeout>();
 
 	const handleMouseMove = () => {
 		setShowControls(true);
@@ -145,49 +185,27 @@ export const VideoPlayer = ({ src }: Props) => {
 		}, 3000);
 	};
 
-	const controlsTimeoutRef = React.useRef<NodeJS.Timeout>();
-
-	React.useEffect(() => {
-		const videoElement = video.current;
-
-		const preventDownload = (e: Event) => {
-			e.preventDefault();
-			return false;
-		};
-
-		if (videoElement) {
-			videoElement.addEventListener("contextmenu", preventDownload);
-			videoElement.addEventListener("dragstart", preventDownload);
-		}
-
-		return () => {
-			if (videoElement) {
-				videoElement.removeEventListener("contextmenu", preventDownload);
-				videoElement.removeEventListener("dragstart", preventDownload);
-			}
-		};
-	}, [video]);
-
 	return (
 		<div
 			ref={container}
 			onMouseMove={handleMouseMove}
-			// onMouseOver={() => console.log("hi")}
 			onMouseLeave={() => setShowControls(false)}
 			className="relative grid size-full place-items-center rounded-lg bg-black">
-			<div onContextMenu={preventContextMenu} className="relative size-full rounded-lg">
+			<div className="relative size-full rounded-lg">
 				<video
 					ref={video}
-					src={src}
+					src={videoUrl}
 					className="size-full rounded-lg"
 					onTimeUpdate={handleTimeUpdate}
 					onLoadedMetadata={handleLoadedMetadata}
+					onProgress={handleProgress}
 					onWaiting={() => setIsLoading(true)}
 					onCanPlay={() => setIsLoading(false)}
+					playsInline
 				/>
 				{isLoading && (
 					<div className="absolute inset-0 flex items-center justify-center">
-						<LoaderCircle className="animate-spin text-white" size={64} />
+						<RiLoaderLine className="animate-spin text-white" size={64} />
 					</div>
 				)}
 				{!isLoading && !isPlaying && (
@@ -214,11 +232,14 @@ export const VideoPlayer = ({ src }: Props) => {
 						onClick={handleProgressClick}
 						className="relative flex h-1 w-full cursor-pointer items-center rounded-2xl bg-neutral-200/75">
 						<div
-							style={{ left: `${progress}%` }}
-							className="absolute top-1/2 size-4 -translate-y-1/2 rounded-full bg-white"></div>
+							style={{ width: `${bufferProgress}%` }}
+							className="absolute h-full rounded-2xl bg-white/30"
+						/>
 						<div
 							style={{ width: `${progress}%` }}
-							className="h-full rounded-2xl bg-white"></div>
+							className="relative h-full rounded-2xl bg-white">
+							<div className="absolute right-0 top-1/2 size-4 -translate-y-1/2 rounded-full bg-white" />
+						</div>
 					</div>
 					<div className="flex w-full items-center justify-between">
 						<div className="text-xs text-white">
@@ -226,12 +247,11 @@ export const VideoPlayer = ({ src }: Props) => {
 						</div>
 						<div className="flex items-center gap-3 text-white">
 							<button onClick={toggleMute} className="transition-all duration-500">
-								{isMuted ? <RiVolumeUpLine size={20} /> : <RiVolumeMuteLine size={20} />}
+								{isMuted ? <RiVolumeMuteLine size={20} /> : <RiVolumeUpLine size={20} />}
 							</button>
 							<button onClick={togglePictureInPicture} className="transition-all duration-500">
 								<RiPictureInPictureLine size={20} />
 							</button>
-
 							<button onClick={toggleFullscreen} className="transition-all duration-500">
 								{isFullscreen ? (
 									<RiFullscreenExitLine size={20} />

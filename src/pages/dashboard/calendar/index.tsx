@@ -55,12 +55,13 @@ const calendarUtils = {
 const Page = () => {
 	const [currentDate, setCurrentDate] = React.useState(new Date());
 	const [open, setOpen] = React.useState(false);
+	const month = currentDate.getMonth();
 
 	const [{ data }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-events"],
-				queryFn: () => GetCalendarEvents(),
+				queryKey: ["get-events", month],
+				queryFn: () => GetCalendarEvents({ month }),
 				select: (data: unknown) => (data as EventsResponse).data,
 			},
 		],
@@ -212,25 +213,28 @@ const Page = () => {
 												{events.map((event, index) => {
 													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } =
 														dayUtils(event);
+
 													return (
-														<div
-															key={index}
-															className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(event.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
-															<div className="flex w-full cursor-pointer items-center">
-																{isFirstDay && (
-																	<div className="flex items-start justify-center">
-																		<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
-																		<div className="absolute left-7 z-50 flex flex-1 flex-col pl-1">
-																			<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
-																				Title goes here
-																			</span>
-																			<span className="text-[10px] text-neutral-500">
-																				{format(startDate, "EEEE")} - {format(endDate, "EEEE")}
-																			</span>
+														<div key={index} className="space-y-1">
+															{event.events.map((ev, idx) => (
+																<div
+																	key={idx}
+																	className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(event.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
+																	<div className="flex w-full cursor-pointer items-center">
+																		<div className="flex items-start justify-center">
+																			<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
+																			<div className="absolute left-7 z-50 flex flex-1 flex-col pl-1">
+																				<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
+																					{ev.title}
+																				</span>
+																				<span className="text-[10px] text-neutral-500">
+																					{format(startDate, "EEEE")} - {format(endDate, "EEEE")}
+																				</span>
+																			</div>
 																		</div>
 																	</div>
-																)}
-															</div>
+																</div>
+															))}
 														</div>
 													);
 												})}

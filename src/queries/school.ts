@@ -89,9 +89,26 @@ const GetBundles = async (
 		.then((res) => res.data);
 };
 
-const GetBundle = async (id: string) => {
+const GetBundle = async (
+	id: string,
+	params?: PaginationProps & {
+		examination?: string;
+		examination_bundle?: string;
+		search?: string;
+	}
+) => {
+	if (params) {
+		for (const key in params) {
+			if (
+				!params[key as keyof typeof params] ||
+				params[key as keyof typeof params] === undefined
+			) {
+				delete params[key as keyof typeof params];
+			}
+		}
+	}
 	return axios
-		.get<HttpResponse<ExamBundleResponse>>(endpoints(id).school.get_exam_bundle)
+		.get<HttpResponse<ExamBundleResponse>>(endpoints(id).school.get_exam_bundle, { params })
 		.then((res) => res.data);
 };
 

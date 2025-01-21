@@ -91,7 +91,7 @@ export const AddAttachment = ({
 		},
 		validationRules: {
 			maxFiles: 10,
-			maxSize: 1024 * 1024 * 5, // 5MB
+			maxSize: 1024 * 1024 * 10, // 10MB
 			minFiles: 1,
 		},
 	});

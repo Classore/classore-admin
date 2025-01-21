@@ -1,6 +1,7 @@
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { RiCalendar2Line, RiLoaderLine } from "@remixicon/react";
 import { useFormik } from "formik";
+import { format } from "date-fns";
 import { DatePicker } from "antd";
 import * as Yup from "yup";
 import React from "react";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/select";
 
 import "dayjs/locale/en-gb";
+import { toast } from "sonner";
 dayjs.locale("en-gb");
 
 interface Props {
@@ -44,6 +46,7 @@ const initialValues: CreateEventDto = {
 	start_hour: 0,
 	sub_category: "",
 	subject: "",
+	title: "",
 };
 
 export const Event = ({ onClose }: Props) => {
@@ -51,13 +54,16 @@ export const Event = ({ onClose }: Props) => {
 		mutationFn: (payload: CreateEventDto) => CreateCalendarEvent(payload),
 		mutationKey: ["create-event"],
 		onSuccess: (data) => {
-			console.log(data);
-			queryClient.invalidateQueries({ queryKey: ["get-events"] }).then(() => {});
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-events"] }).then(() => {
+				resetForm();
+				onClose();
+			});
 		},
 	});
 
-	const { errors, handleChange, handleSubmit, setFieldValue, values, touched } = useFormik(
-		{
+	const { errors, handleChange, handleSubmit, resetForm, setFieldValue, values, touched } =
+		useFormik({
 			initialValues,
 			validationSchema: Yup.object().shape({
 				category_id: Yup.string().required("Examination type is required"),
@@ -72,12 +78,18 @@ export const Event = ({ onClose }: Props) => {
 				start_hour: Yup.number().required("Start time is required"),
 				sub_category: Yup.string().required("Examination bundle is required"),
 				subject: Yup.string().required("Subject is required"),
+				title: Yup.string().required("Event title is required"),
 			}),
 			onSubmit: (values) => {
-				mutate(values);
+				const payload = {
+					...values,
+					start_hour: Number(values.start_hour),
+					end_hour: Number(values.end_hour),
+					date: format(values.date, "MM/dd/yyyy"),
+				};
+				mutate(payload);
 			},
-		}
-	);
+		});
 
 	const [{ data: examinations }, { data: bundles }, { data: subjects }] = useQueries({
 		queries: [
@@ -130,14 +142,19 @@ export const Event = ({ onClose }: Props) => {
 		<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 			<IconLabel icon={RiCalendar2Line} />
 			<form onSubmit={handleSubmit} className="my-4 w-full space-y-5">
-				<div className="w-full border-b border-b-neutral-400 transition-all duration-500 focus-within:border-b-primary-600">
-					<input
-						type="text"
-						name="title"
-						onChange={handleChange}
-						className="w-full appearance-none border-0 border-none bg-transparent text-2xl font-semibold outline-none placeholder:text-neutral-200 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-						placeholder="Event title here"
-					/>
+				<div className="space-y-0.5">
+					<div className="w-full border-b border-b-neutral-400 transition-all duration-500 focus-within:border-b-primary-600">
+						<input
+							type="text"
+							name="title"
+							onChange={handleChange}
+							className="w-full appearance-none border-0 border-none bg-transparent text-2xl font-semibold outline-none placeholder:text-neutral-200 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+							placeholder="Event title here"
+						/>
+					</div>
+					{errorMessage("title") && (
+						<p className="text-xs text-red-500">{errorMessage("title")}</p>
+					)}
 				</div>
 				<div className="grid w-full grid-cols-2 gap-3">
 					<div className="flex flex-col space-y-1">
@@ -249,7 +266,7 @@ export const Event = ({ onClose }: Props) => {
 							<Select
 								name="start_hour"
 								onValueChange={(value) => setFieldValue("start_hour", value)}
-								disabled={!values.date || values.date.getTime() < new Date().getTime()}>
+								disabled={!values.date || new Date(values.date).getTime() < new Date().getTime()}>
 								<SelectTrigger className="rounded-none border-0 border-r focus:border-neutral-300">
 									<SelectValue placeholder="Start Time" />
 								</SelectTrigger>

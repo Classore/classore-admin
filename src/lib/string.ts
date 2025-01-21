@@ -214,3 +214,42 @@ export const getFileExtension = (name: string) => {
 	const lastIndex = splitParts.length - 1;
 	return splitParts[lastIndex];
 };
+
+export const isGoogleDriveUrl = (url: string) => {
+	return url.startsWith("https://drive.google.com/file/d");
+};
+
+export const isCloudinaryUrl = (url: string) => {
+	return url.startsWith("https://res.cloudinary.com/");
+};
+
+export const getGoogleDriveId = (url: string) => {
+	if (!url) return "";
+
+	const patterns = [
+		/\/file\/d\/([^/]+)/, // Format: /file/d/{fileId}
+		/id=([^&]+)/, // Format: ?id={fileId}
+	];
+
+	for (const pattern of patterns) {
+		const match = url.match(pattern);
+		if (match) return match[1];
+	}
+
+	return url;
+};
+
+export const embedUrl = (url: string) => {
+	if (!url) return "";
+
+	if (isGoogleDriveUrl(url)) {
+		const videoId = getGoogleDriveId(url);
+		return `https://drive.google.com/file/d/${videoId}/view`;
+	}
+
+	if (isCloudinaryUrl(url)) {
+		return url;
+	}
+
+	return url;
+};

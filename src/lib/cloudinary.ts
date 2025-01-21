@@ -36,7 +36,7 @@ export class DocumentDownloader {
 	 *   contentType: string
 	 * }>}
 	 */
-	async downloadDocument(cloudinaryUrl: string) {
+	async download(cloudinaryUrl: string) {
 		try {
 			if (!this.isValidCloudinaryUrl(cloudinaryUrl)) {
 				throw new Error("Invalid Cloudinary URL");
@@ -71,7 +71,7 @@ export class DocumentDownloader {
 	 * @param {string} url
 	 * @returns {boolean}
 	 */
-	isValidCloudinaryUrl(url: string) {
+	private isValidCloudinaryUrl(url: string) {
 		return (
 			url.includes("cloudinary.com") &&
 			(url.includes("/image/upload/") || url.includes("/raw/upload/"))
@@ -83,7 +83,7 @@ export class DocumentDownloader {
 	 * @param {string} url
 	 * @returns {string}
 	 */
-	extractFileName(url: string) {
+	private extractFileName(url: string) {
 		const urlParts = url.split("/");
 		const fileName = urlParts[urlParts.length - 1];
 		return fileName.split("?")[0];
@@ -94,7 +94,7 @@ export class DocumentDownloader {
 	 * @param {string} fileName
 	 * @returns {string}
 	 */
-	getFileType(fileName: string) {
+	private getFileType(fileName: string) {
 		const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
 		const fileTypes: { [key: string]: string } = {
 			pdf: "RiFilePdf2Line",

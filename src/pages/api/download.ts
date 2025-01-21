@@ -1,28 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { DocumentDownloader } from "@/lib/";
+import type { NextApiResponse, NextApiRequest } from "next";
+import { DocumentDownloader } from "@/lib";
 
-export default async function handler(request: NextRequest) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const url = request.nextUrl.searchParams.get("url");
-
+		const url = req.query.url as string;
 		if (!url) {
-			return NextResponse.json({ error: "URL is required" }, { status: 400 });
+			return res.status(400).json({ error: "URL is required" });
 		}
-
 		const downloader = new DocumentDownloader();
-		const document = await downloader.downloadDocument(url);
-
-		const response = new NextResponse(document.content);
-		response.headers.set("Content-Type", document.contentType);
-		response.headers.set(
-			"Content-Disposition",
-			`attachment; filename="${document.fileName}"`
-		);
-		response.headers.set("Content-Length", document.fileSize.toString());
-
-		return response;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	} catch (error: any) {
-		return NextResponse.json({ error: error.message }, { status: 500 });
+		const document = await downloader.download(url);
+		res.setHeader("Content-Type", document.contentType);
+		res.setHeader("Content-Length", document.fileSize.toString());
+		res.setHeader("Content-Disposition", `attachment; filename="${document.fileName}"`);
+		return res.status(200).json({ document });
+	} catch (error: unknown) {
+		return res.status(500).json({ error, message: "Internal server error" });
 	}
 }
