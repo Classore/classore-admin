@@ -1,4 +1,4 @@
-import type { AdminProps, Maybe, Optionsprops } from ".";
+import type { AdminProps, Maybe, OptionsProps, QuestionTypeProps } from ".";
 
 export type CastedExamTypeProps = {
 	examination_id: string;
@@ -92,13 +92,13 @@ export type CastedQuestionProps = {
 	question_isBlocked: boolean;
 	question_sequence: number;
 	question_content: string;
-	question_question_type: " MULTICHOICE";
+	question_question_type: QuestionTypeProps;
 	question_images: string[];
 	question_videos: string[];
 	question_subject: string;
 	question_chapter: string;
 	question_score: string;
-	options: Optionsprops[];
+	options: OptionsProps[];
 };
 
 export type CastedUserProps = {

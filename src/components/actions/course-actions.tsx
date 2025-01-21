@@ -22,7 +22,7 @@ export const CourseActions = ({ id }: Props) => {
 	return (
 		<div className="flex w-full flex-col gap-y-1">
 			<Link
-				href={`/dashboard/courses/course?id=${id}`}
+				href={`/dashboard/courses/course?courseId=${id}`}
 				className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 				<RiInformationLine size={18} /> View Details
 			</Link>

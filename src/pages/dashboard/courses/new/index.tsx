@@ -14,14 +14,14 @@ import { GetSubject } from "@/queries";
 const Page = () => {
 	const [tab, setTab] = React.useState("course");
 	const router = useRouter();
-	const { id } = router.query;
+	const courseId = router.query.courseId as string;
 
 	const [{ data: course }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-subject", id],
-				queryFn: () => GetSubject(String(id)),
-				enabled: !!id,
+				queryKey: ["get-subject", courseId],
+				queryFn: () => GetSubject(courseId),
+				enabled: !!courseId,
 			},
 		],
 	});
@@ -97,7 +97,7 @@ const Page = () => {
 						</div>
 						<div className="h-full w-full">
 							<TabPanel selected={tab} value="course">
-								<CreateCourse existingChapters={course.data.chapters} subjectId={String(id)} />
+								<CreateCourse existingChapters={course.data.chapters} subjectId={courseId} />
 							</TabPanel>
 							<TabPanel selected={tab} value="settings">
 								<QuizSettings />

@@ -78,6 +78,8 @@ export type NonEmptyArray<T> = [T, ...T[]];
  */
 export type MustInclude<T, U extends T[]> = [T] extends [ValueOf<U>] ? U : never;
 
+export type OptionalString<T> = T | (string & {});
+
 export interface HttpResponse<T> {
 	error: string;
 	data: T;
@@ -253,19 +255,30 @@ export type ChapterModuleProps = Node & {
 
 export type QuestionProps = Node & {
 	__typename?: "Question";
+	content: string;
+	images: File[];
+	options: OptionsProps[];
+	question_type: QuestionTypeProps;
+	sequence: number;
 };
 
-export type Optionsprops = Node & {
+export type OptionsProps = Node & {
 	__typename?: "Options";
-	sequence_number: number;
+	chapter: string;
 	content: string;
 	images: string[];
-	videos: string[];
-	subject: string;
-	chapter: string;
+	is_correct: "YES" | "NO";
 	question: string;
-	is_correct: boolean;
+	sequence_number: number;
+	subject: string;
+	videos: string[];
 };
+
+export type QuestionTypeProps =
+	| "BOOLEAN"
+	| "MULTICHOICE"
+	| "SINGLECHOICE"
+	| "SHORTANSWER";
 
 export type WaitlistUserProps = {
 	waitlists_createdOn: Date | string;
