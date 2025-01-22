@@ -1,4 +1,4 @@
-// import { toast } from "sonner";
+import { toast } from "sonner";
 import React from "react";
 import {
 	RiAddLine,
@@ -6,11 +6,12 @@ import {
 	RiArrowDownLine,
 	RiArrowUpLine,
 	RiCheckboxMultipleLine,
-	RiCheckboxCircleLine,
+	RiCheckboxCircleFill,
 	RiContrastLine,
 	RiDeleteBin6Line,
 	RiDraggable,
 	RiFileCopyLine,
+	RiImageLine,
 	RiQuestionLine,
 } from "@remixicon/react";
 
@@ -20,20 +21,12 @@ import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
 import {
-	Dialog,
-	DialogContent,
-	// DialogDescription,
-	// DialogTitle,
-	DialogTrigger,
-} from "../ui/dialog";
-import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
-import { toast } from "sonner";
 
 interface Props {
 	initialQuestion: CreateQuestionDto;
@@ -46,8 +39,9 @@ interface Props {
 const question_types = [
 	{ label: "Multiple Choice", value: "MULTICHOICE", icon: RiCheckboxMultipleLine },
 	{ label: "Short Answer", value: "SHORTANSWER", icon: RiAlignLeft },
-	{ label: "Yes/No", value: "TRUEORFALSE", icon: RiContrastLine },
+	{ label: "Yes/No", value: "BOOLEAN", icon: RiContrastLine },
 	{ label: "Single Choice", value: "SINGLECHOICE", icon: RiCheckboxMultipleLine },
+	{ label: "Media", value: "MEDIA", icon: RiImageLine },
 ];
 
 const question_actions = [
@@ -70,19 +64,19 @@ export const QuestionCard = ({
 		let options: CreateOptionsDto[] = [];
 		switch (question_type) {
 			case "MULTICHOICE":
-				options = [{ content: "", is_correct: "NO", sequence_number: 0 }];
+				options = [{ content: "", is_correct: "NO", sequence_number: 1 }];
 				break;
 			case "BOOLEAN":
 				options = [
-					{ content: "True", is_correct: "YES", sequence_number: 0 },
-					{ content: "False", is_correct: "NO", sequence_number: 1 },
+					{ content: "True", is_correct: "YES", sequence_number: 1 },
+					{ content: "False", is_correct: "NO", sequence_number: 2 },
 				];
 				break;
 			case "SHORTANSWER":
-				options = [{ content: "", is_correct: "YES", sequence_number: 0 }];
+				options = [{ content: "", is_correct: "YES", sequence_number: 1 }];
 				break;
 			case "SINGLECHOICE":
-				options = [{ content: "", is_correct: "YES", sequence_number: 0 }];
+				options = [{ content: "", is_correct: "YES", sequence_number: 1 }];
 				break;
 			default:
 				options = [];
@@ -97,23 +91,31 @@ export const QuestionCard = ({
 	};
 
 	const addOption = () => {
-		if (question.options.length < 4 && question.question_type === "MULTICHOICE") {
-			const options: CreateOptionsDto = {
-				content: "",
-				is_correct: "NO",
-				sequence_number: question.options.length,
-			};
-			const updatedQuestion = {
-				...question,
-				options: [...question.options, options],
-			};
-			setQuestion(updatedQuestion);
-			onUpdateQuestions(updatedQuestion);
+		const currentOptionsCount = question.options.length;
+		if (currentOptionsCount >= 4) {
+			toast.error("Maximum options limit reached");
+			return;
 		}
+		if (question.question_type !== "MULTICHOICE") {
+			toast.error("Options can only be added to multiple choice questions");
+			return;
+		}
+		const option: CreateOptionsDto = {
+			content: "",
+			is_correct: "NO",
+			sequence_number: currentOptionsCount + 1,
+		};
+		const updatedOptions = [...question.options, option];
+		const updatedQuestion = {
+			...question,
+			options: updatedOptions,
+		};
+		setQuestion(updatedQuestion);
+		onUpdateQuestions(updatedQuestion);
 	};
 
 	const removeOption = (index: number) => {
-		if (question.question_type === "MULTICHOICE" && question.options.length > 1) {
+		if (question.question_type === "MULTICHOICE") {
 			if (question.options.length === 1) {
 				toast.error("At least one option is required");
 				return;
@@ -141,9 +143,19 @@ export const QuestionCard = ({
 	};
 
 	const setCorrectOption = (index: number) => {
-		const updatedOptions: CreateOptionsDto[] = question.options.map((option, i) =>
-			i === index ? { ...option, is_correct: "YES" } : { ...option, is_correct: "NO" }
-		);
+		const updatedOptions: CreateOptionsDto[] = question.options.map((option, i) => {
+			if (i === index) {
+				return {
+					...option,
+					is_correct: option.is_correct === "YES" ? "NO" : "YES",
+				};
+			} else {
+				return option.is_correct === "YES" && question.options[index].is_correct !== "YES"
+					? { ...option, is_correct: "NO" }
+					: option;
+			}
+		});
+
 		const updatedQuestion = {
 			...question,
 			options: updatedOptions,
@@ -221,7 +233,7 @@ export const QuestionCard = ({
 			{question.question_type === "MULTICHOICE" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
-					<div className="w-full">
+					<div className="w-full space-y-2">
 						{question.options.map((option, index) => (
 							<OptionItem
 								key={index}
@@ -233,15 +245,15 @@ export const QuestionCard = ({
 							/>
 						))}
 					</div>
-					<Button className="w-fit" size="xs" variant="dotted">
-						<RiAddLine onClick={addOption} className="size-4" /> Add Option
+					<Button onClick={addOption} className="w-fit" size="xs" variant="dotted">
+						<RiAddLine className="size-4" /> Add Option
 					</Button>
 				</div>
 			)}
 			{question.question_type === "BOOLEAN" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
-					<div className="w-full">
+					<div className="w-full space-y-2">
 						{question.options.map((option, index) => (
 							<OptionItem
 								key={index}
@@ -250,12 +262,19 @@ export const QuestionCard = ({
 								onUpdateOptions={updateOption}
 								option={option}
 								setCorrectOption={setCorrectOption}
+								allowDeletion={false}
+								readOnly
 							/>
 						))}
 					</div>
 				</div>
 			)}
-			{question.question_type === "SINGLECHOICE" && <div className=""></div>}
+			{question.question_type === "SINGLECHOICE" && (
+				<div className="space-y-3">
+					<p className="text-sm text-neutral-400">Options</p>
+					<div className="w-full space-y-2"></div>
+				</div>
+			)}
 			{question.question_type === "SHORTANSWER" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
@@ -268,6 +287,7 @@ export const QuestionCard = ({
 								onUpdateOptions={updateOption}
 								option={option}
 								setCorrectOption={setCorrectOption}
+								allowDeletion={false}
 							/>
 						))}
 					</div>
@@ -280,59 +300,60 @@ export const QuestionCard = ({
 const OptionItem = ({
 	index,
 	onUpdateOptions,
-	// onDeleteOption,
+	onDeleteOption,
 	option,
 	setCorrectOption,
+	allowDeletion,
+	readOnly,
 }: {
 	index: number;
 	option: CreateOptionsDto;
 	onDeleteOption: (index: number) => void;
 	onUpdateOptions: (index: number, content: string) => void;
 	setCorrectOption: (index: number) => void;
+	allowDeletion?: boolean;
+	readOnly?: boolean;
 }) => {
 	const [isGrabbing, setIsGrabbing] = React.useState(false);
-	const [open, setOpen] = React.useState(false);
 
 	return (
-		<div className="flex h-10 w-full items-center gap-x-4 rounded-lg border border-neutral-400">
+		<div className="flex h-10 w-full items-center gap-x-4 rounded-lg border border-neutral-400 px-3">
 			<div className="flex flex-1 items-center gap-x-2">
 				<button
 					onMouseDown={() => setIsGrabbing(true)}
 					onMouseUp={() => setIsGrabbing(false)}
 					onMouseLeave={() => setIsGrabbing(false)}
 					type="button"
-					className={`size-6 p-1 ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}>
+					className={`grid size-6 place-items-center p-1 ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}>
 					<RiDraggable className="size-full text-neutral-400" />
 				</button>
 				<input
 					type="text"
 					value={option.content}
 					onChange={(e) => onUpdateOptions(option.sequence_number, e.target.value)}
-					className="flex-1 border-0 bg-transparent p-2 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
+					className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
+					readOnly={readOnly}
 				/>
 				<div className="flex w-fit items-center gap-x-2">
-					{option.is_correct && (
+					{option.is_correct === "YES" && (
 						<div className="rounded-md bg-primary-100 px-2 py-1 text-xs font-medium text-primary-400">
 							Correct Answer
 						</div>
 					)}
-					<button
-						onClick={() => setCorrectOption(index)}
-						className="grid size-6 place-items-center rounded-md border bg-green-500">
-						<RiCheckboxCircleLine
-							className={`size-3.5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
+					<button onClick={() => setCorrectOption(index)}>
+						<RiCheckboxCircleFill
+							className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
 						/>
 					</button>
 				</div>
 			</div>
-			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTrigger asChild>
-					<button className="grid size-6 place-items-center rounded-md border">
-						<RiDeleteBin6Line className="size-4 text-neutral-400" />
-					</button>
-				</DialogTrigger>
-				<DialogContent className="w-[400px] p-1"></DialogContent>
-			</Dialog>
+			{allowDeletion !== false && (
+				<button
+					onClick={() => onDeleteOption(index)}
+					className="grid size-6 place-items-center rounded-md border">
+					<RiDeleteBin6Line className="size-4 text-neutral-400" />
+				</button>
+			)}
 		</div>
 	);
 };
