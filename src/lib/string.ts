@@ -253,3 +253,11 @@ export const embedUrl = (url: string) => {
 
 	return url;
 };
+
+export const toKebabCase = (value: string) => {
+	return value.toLowerCase().replace(/\s+/g, "-");
+};
+
+export const fromKebabCase = (value: string) => {
+	return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+};

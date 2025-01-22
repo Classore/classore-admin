@@ -18,13 +18,13 @@ interface QuizProps {
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const [questions, setQuestions] = React.useState<CreateQuestionDto[]>([
-		{ content: "", images: [], options: [], question_type: "MULTICHOICE", sequence: 0 },
+		{ content: "", images: [], options: [], question_type: "", sequence: 0 },
 	]);
 
 	const handleAddQuestion = () => {
 		setQuestions((prev) => [
 			...prev,
-			{ content: "", images: [], options: [], question_type: "MULTICHOICE", sequence: 0 },
+			{ content: "", images: [], options: [], question_type: "", sequence: 0 },
 		]);
 	};
 

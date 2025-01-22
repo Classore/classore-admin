@@ -274,11 +274,9 @@ export type OptionsProps = Node & {
 	videos: string[];
 };
 
-export type QuestionTypeProps =
-	| "BOOLEAN"
-	| "MULTICHOICE"
-	| "SINGLECHOICE"
-	| "SHORTANSWER";
+export type QuestionTypeProps = OptionalString<
+	"BOOLEAN" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORTANSWER"
+>;
 
 export type WaitlistUserProps = {
 	waitlists_createdOn: Date | string;

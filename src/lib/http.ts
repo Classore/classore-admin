@@ -1,20 +1,16 @@
 import type { HttpError } from "@/types";
 
-// Define environment type for better type safety
 type Environment = "development" | "production" | "test";
 
-// Get current environment
 const getEnvironment = (): Environment => {
 	const env = process.env.NODE_ENV || "development";
 	return env as Environment;
 };
 
-// Main error handler function
 export const httpErrorhandler = (error: HttpError) => {
 	const environment = getEnvironment();
 	const errorData = error.response.data;
 
-	// Only log in development/test environments
 	if (environment !== "production") {
 		console.error("=== Error Details ===");
 		console.error("Status:", errorData.status);
@@ -24,12 +20,10 @@ export const httpErrorhandler = (error: HttpError) => {
 		console.error("==================");
 	}
 
-	// Format the error message
 	const formattedMessage = Array.isArray(errorData.message)
 		? errorData.message.join(". ")
 		: errorData.message;
 
-	// Return a standardized error response
 	return {
 		message: formattedMessage,
 		code: errorData.errorCode,
@@ -77,12 +71,8 @@ export const createFormDataFromObject = <T extends Record<string, any>>(
 		}
 
 		if (Array.isArray(value)) {
-			if (value.length === 0) {
-				return;
-			}
 			value.forEach((item) => {
 				if (item !== null && item !== undefined) {
-					// Handle different types of array items
 					if (item instanceof File) {
 						formData.append(key, item);
 					} else if (typeof item === "object") {
