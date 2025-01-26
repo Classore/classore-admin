@@ -36,7 +36,7 @@ const Page = () => {
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
 	const router = useRouter();
-	const { id } = router.query;
+	const id = router.query.id as string;
 
 	useDebounce(query, 500);
 
@@ -44,7 +44,7 @@ const Page = () => {
 		queries: [
 			{
 				queryKey: ["get-bundle", id, page],
-				queryFn: () => GetBundle(String(id), { limit: 10, page }),
+				queryFn: () => GetBundle(id, { limit: 10, page }),
 				enabled: !!id,
 				select: (data: unknown) => (data as BundleResponse).data,
 			},
@@ -52,7 +52,7 @@ const Page = () => {
 				queryKey: ["get-subjects", bundleId, id, page],
 				queryFn: () =>
 					GetSubjects({
-						examination: String(id),
+						examination: id,
 						examination_bundle: bundleId,
 						limit: 10,
 						page,
@@ -97,7 +97,7 @@ const Page = () => {
 								</Button>
 								<h3 className="text-lg font-medium uppercase">{bundle?.examBundle.name}</h3>
 							</div>
-							<Breadcrumbs links={breadcrumbs} />
+							<Breadcrumbs courseId={id} links={breadcrumbs} />
 						</div>
 						<Button onClick={() => setOpen(true)} className="w-fit" size="sm">
 							<RiAddLine /> Add New Course

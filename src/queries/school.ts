@@ -29,6 +29,7 @@ export interface CreateBundleDto {
 	allow_extra_subjects: "YES" | "NO";
 	amount: number;
 	amount_per_subject: number;
+	cover_image: File | null;
 	end_date: Date;
 	examination: string;
 	extra_charge: number;
@@ -51,6 +52,8 @@ export interface SubjectResponse {
 
 export type ExaminationResponse = HttpResponse<PaginatedResponse<CastedExamTypeProps>>;
 export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
+export type BundlesResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;
+export type BundleResponse = HttpResponse<ExamBundleResponse>;
 export type ExaminationBundleResponse = HttpResponse<
 	PaginatedResponse<CastedExamBundleProps>
 >;

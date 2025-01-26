@@ -65,7 +65,7 @@ const Page = () => {
 									<h3 className="text-lg font-medium capitalize">{course.data.name}</h3>
 								</div>
 							</div>
-							<Breadcrumbs links={breadcrumbs} />
+							<Breadcrumbs courseId={courseId} links={breadcrumbs} />
 						</div>
 						<div className="flex items-center gap-x-2">
 							<Button className="w-fit" size="sm" variant="destructive-outline">
