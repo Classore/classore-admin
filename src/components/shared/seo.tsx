@@ -17,12 +17,12 @@ interface SeoProps {
 
 export function Seo({
 	title = "",
-	description = "Discover and book unique accommodations in Nigeria on Spaceet. From cozy apartments to luxurious villas, find the perfect stay for your next adventure. Experience hospitality and create unforgettable memories.",
+	description = "",
 	siteName = "Classore Admin",
 	canonical = APP_URL,
 	ogImage = DEFAULT_OG_IMAGE,
 	ogType = "website",
-	twitterHandle = "SpaceetHq",
+	twitterHandle = "Classore",
 	noIndex = false,
 }: SeoProps) {
 	const router = useRouter();
@@ -35,7 +35,7 @@ export function Seo({
 				<meta name="description" content={description} />
 				<meta name="keywords" content="" />
 				<meta name="author" content="Classore" />
-				<link rel="canonical" href="https://classore.com" />
+				<link rel="canonical" href="https://admin.classore.com" />
 
 				<meta key="og_type" property="og:type" content={ogType} />
 				<meta key="og_title" property="og:title" content={title} />
@@ -88,17 +88,17 @@ export function Seo({
 																	"@context": "http://schema.org",
 																	"@type": "WebApplication",
 																	name: "Classore",
-																	url: "https://classore.com",
+																	url: "https://admin.classore.com",
 																	applicationCategory: "BusinessApplication",
 																	operatingSystem: "Any",
 																	description,
 																	features: "",
 																	keywords: "",
-																	screenshot: "https://www.classore.com/meta/screenshot.png",
+																	screenshot: "https://www.admin.classore.com/meta/screenshot.png",
 																	creator: {
 																		"@type": "Organization",
 																		name: "Classore",
-																		url: "https://classore.com",
+																		url: "https://admin.classore.com",
 																	},
 																})}
                 `,

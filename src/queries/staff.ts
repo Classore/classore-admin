@@ -15,7 +15,11 @@ interface AdminResponse {
 	view_only: number;
 }
 
-const GetStaffs = async (params: PaginationProps & { search?: string }) => {
+export type GetStaffsResponse = HttpResponse<AdminResponse>;
+
+const GetStaffs = async (
+	params: PaginationProps & { admin_role?: string; search?: string }
+) => {
 	if (params) {
 		for (const key in params) {
 			if (

@@ -13,6 +13,10 @@ import type {
 	PaginationProps,
 } from "@/types";
 
+export interface CreateExaminationDto {
+	name: string;
+}
+
 export interface CreateSubjectDto {
 	examination_bundle: string;
 	categoryId: string;
@@ -21,12 +25,16 @@ export interface CreateSubjectDto {
 }
 
 export interface CreateBundleDto {
-	name: string;
+	allowed_subjects: number;
+	allow_extra_subjects: "YES" | "NO";
 	amount: number;
-	start_date: Date;
+	amount_per_subject: number;
 	end_date: Date;
 	examination: string;
+	extra_charge: number;
 	max_subjects: number;
+	name: string;
+	start_date: Date;
 }
 
 export interface ExamBundleResponse {
@@ -46,6 +54,12 @@ export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
 export type ExaminationBundleResponse = HttpResponse<
 	PaginatedResponse<CastedExamBundleProps>
 >;
+
+const CreateExamination = async (payload: CreateExaminationDto) => {
+	return axios
+		.post<HttpResponse<ExamProps>>(endpoints().school.create_exam, payload)
+		.then((res) => res.data);
+};
 
 const CreateBundle = async (payload: CreateBundleDto) => {
 	return axios
@@ -142,10 +156,11 @@ const GetSubject = async (id: string) => {
 
 export {
 	CreateBundle,
+	CreateExamination,
 	CreateSubject,
 	GetBundles,
 	GetBundle,
+	GetExaminations,
 	GetSubjects,
 	GetSubject,
-	GetExaminations,
 };

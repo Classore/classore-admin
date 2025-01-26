@@ -1,13 +1,34 @@
-import { RiBookMarkedLine } from "@remixicon/react";
+import { RiAddLine, RiBookMarkedLine, RiLoaderLine } from "@remixicon/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useFormik } from "formik";
+import { addDays } from "date-fns";
+import { DatePicker } from "antd";
+import * as Yup from "yup";
+import dayjs from "dayjs";
 import React from "react";
 
+import { CreateBundle, GetExaminations } from "@/queries";
+import type { CreateBundleDto } from "@/queries";
+import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
+import { Input } from "../ui/input";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogTitle,
+	DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "../ui/select";
+
+import "dayjs/locale/en-gb";
+dayjs.locale("en-gb");
 
 interface Props {
 	onOpenChange: (open: boolean) => void;
@@ -15,14 +36,236 @@ interface Props {
 }
 
 export const AddBundle = ({ onOpenChange, open }: Props) => {
+	const { isPending, mutate } = useMutation({
+		mutationFn: (data: CreateBundleDto) => CreateBundle(data),
+		onSuccess: () => {
+			console.log("Examination bundle created successfully");
+			onOpenChange(false);
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+	});
+
+	const { data } = useQuery({
+		queryKey: ["get-exams"],
+		queryFn: () => GetExaminations({ limit: 10 }),
+		select: (data) => ({
+			examinations: data.data.data,
+			meta: {
+				itemCount: data.data.meta.itemCount,
+				page: data.data.meta.page,
+				pageCount: data.data.meta.pageCount,
+				take: data.data.meta.take,
+			},
+		}),
+	});
+
+	const initialValues: CreateBundleDto = {
+		allow_extra_subjects: "NO",
+		allowed_subjects: 0,
+		amount: 0,
+		amount_per_subject: 0,
+		end_date: addDays(new Date(), 1),
+		examination: "",
+		extra_charge: 0,
+		max_subjects: 0,
+		name: "",
+		start_date: new Date(),
+	};
+
+	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik(
+		{
+			initialValues,
+			validateOnChange: true,
+			validationSchema: Yup.object({
+				allow_extra_subjects: Yup.string()
+					.required("Allow Extra Subjects is required")
+					.oneOf(["YES", "NO"], "Please select an option"),
+				allowed_subjects: Yup.number()
+					.required("Allowed Subjects is required")
+					.min(1, "Allowed Subjects must be at least 1"),
+				amount: Yup.number()
+					.required("Amount is required")
+					.min(1, "Amount must be at least 1"),
+				amount_per_subject: Yup.number()
+					.required("Amount Per Subject is required")
+					.min(1, "Amount Per Subject must be at least 1"),
+				end_date: Yup.string().required("End Date is required"),
+				examination: Yup.string().required("Examination is required"),
+				extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
+					return value === "YES"
+						? Yup.number()
+								.required("Extra Charge is required")
+								.min(1, "Extra Charge must be at least 1")
+						: Yup.number().notRequired();
+				}),
+				max_subjects: Yup.number()
+					.required("Max Subjects is required")
+					.min(1, "Max Subjects must be at least 1"),
+				name: Yup.string().required("Name is required"),
+			}),
+			onSubmit: (values) => {
+				mutate(values);
+			},
+		}
+	);
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[400px] p-1">
+			<DialogTrigger asChild>
+				<Button className="w-fit" onClick={() => onOpenChange(true)} size="sm">
+					<RiAddLine /> Add New Bundle
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="w-[500px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
-					<IconLabel icon={RiBookMarkedLine} />
-					<div className="my-4">
+					<div className="space-y-5">
+						<IconLabel icon={RiBookMarkedLine} />
 						<DialogTitle>Add New Bundle</DialogTitle>
 						<DialogDescription hidden>Add New Bundle</DialogDescription>
+						<form onSubmit={handleSubmit} className="w-full space-y-4">
+							<Input
+								label="Bundle Name"
+								placeholder="IELTS"
+								className="col-span-full"
+								name="name"
+								onChange={handleChange}
+								error={touched.name && errors.name ? errors.name : ""}
+							/>
+							<Input
+								label="Amount"
+								type="number"
+								name="amount"
+								onChange={handleChange}
+								error={errors.amount && touched.amount ? errors.amount : ""}
+							/>
+							<div className="grid w-full grid-cols-2 gap-x-4">
+								<Input
+									label="Amount per Subject"
+									type="number"
+									name="amount_per_subject"
+									onChange={handleChange}
+									error={
+										errors.amount_per_subject && touched.amount_per_subject
+											? errors.amount_per_subject
+											: ""
+									}
+								/>
+								<Input
+									label="Extra Charge"
+									type="number"
+									name="extra_charge"
+									onChange={handleChange}
+									error={errors.extra_charge && touched.extra_charge ? errors.extra_charge : ""}
+								/>
+							</div>
+							<div className="grid w-full grid-cols-2 gap-x-4">
+								<div>
+									<label
+										className="text-xs text-neutral-400 dark:text-neutral-50"
+										htmlFor="examination">
+										Select Examination
+									</label>
+									<Select
+										value={values.examination}
+										onValueChange={(value) => setFieldValue("examination", value)}>
+										<SelectTrigger className="capitalize">
+											<SelectValue placeholder="Select Examination" />
+										</SelectTrigger>
+										<SelectContent className="capitalize">
+											{data?.examinations.map((exam) => (
+												<SelectItem key={exam.examination_id} value={exam.examination_id}>
+													{exam.examination_name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									{errors.examination && touched.examination && (
+										<p className="text-xs text-red-500">{errors.examination}</p>
+									)}
+								</div>
+								<div>
+									<label
+										className="text-xs text-neutral-400 dark:text-neutral-50"
+										htmlFor="allow_extra_subjects">
+										Allow Extra Subject
+									</label>
+									<Select
+										value={values.allow_extra_subjects}
+										onValueChange={(value) => setFieldValue("allow_extra_subjects", value)}>
+										<SelectTrigger className="capitalize">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent className="capitalize">
+											<SelectItem value="YES">YES</SelectItem>
+											<SelectItem value="NO">NO</SelectItem>
+										</SelectContent>
+									</Select>
+									{errors.allow_extra_subjects && touched.allow_extra_subjects && (
+										<p className="text-xs text-red-500">{errors.allow_extra_subjects}</p>
+									)}
+								</div>
+							</div>
+							<div className="grid w-full grid-cols-2 gap-x-4">
+								<div>
+									<label
+										className="text-xs text-neutral-400 dark:text-neutral-50"
+										htmlFor="start_date">
+										Start Date
+									</label>
+									<DatePicker
+										value={dayjs(values.start_date)}
+										onChange={(date) =>
+											setFieldValue("start_date", date ? new Date(date.toDate()) : new Date())
+										}
+										className="h-10 w-full font-body font-medium focus-within:border-primary-400 hover:border-primary-400"
+										format="DD/MM/YYYY"
+									/>
+								</div>
+								<div>
+									<label
+										className="text-xs text-neutral-400 dark:text-neutral-50"
+										htmlFor="end_date">
+										End Date
+									</label>
+									<DatePicker
+										value={dayjs(values.end_date)}
+										onChange={(date) =>
+											setFieldValue(
+												"end_date",
+												date ? new Date(date.toDate()) : addDays(new Date(), 1)
+											)
+										}
+										className="h-10 w-full font-body font-medium focus-within:border-primary-400 hover:border-primary-400"
+										format="DD/MM/YYYY"
+										minDate={dayjs(new Date(values.start_date)).add(1, "day")}
+									/>
+								</div>
+							</div>
+							<div className="grid w-full grid-cols-2 gap-x-4">
+								<Input
+									type="number"
+									name="allowed_subjects"
+									label="Allowed Subjects"
+									onChange={handleChange}
+									error={
+										errors.allowed_subjects && touched.allowed_subjects
+											? errors.allowed_subjects
+											: ""
+									}
+								/>
+								<Input
+									type="number"
+									name="max_subjects"
+									label="Maximum Number of Subjects"
+									onChange={handleChange}
+									error={errors.max_subjects && touched.max_subjects ? errors.max_subjects : ""}
+								/>
+							</div>
+							<Button type="submit" className="w-full" disabled={isPending}>
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Examination"}
+							</Button>
+						</form>
 					</div>
 				</div>
 			</DialogContent>

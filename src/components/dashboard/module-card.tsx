@@ -100,6 +100,8 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		},
 	});
 
+	const hasVideo = Boolean(module?.videos.length && module.videos.length > 0);
+
 	return (
 		<div className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
@@ -112,7 +114,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 						{chapter.name}: {module?.title || "Input title 'e.g. Introduction to Algebra'"}
 					</h5>
 				</div>
-				{module?.videos.length && (
+				{hasVideo && (
 					<button className="flex items-center gap-x-2 rounded-md bg-white px-2 py-1.5 text-sm font-medium">
 						Change Video
 					</button>
@@ -144,12 +146,15 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 										setOpen={(attachment) => setOpen({ ...open, attachment })}
 										values={{
 											attachments: [],
+											attachment_urls: [],
 											content: "",
 											images: [],
+											image_urls: [],
 											sequence: 0,
 											title: "",
 											tutor: "",
 											videos: [],
+											video_urls: [],
 										}}
 									/>
 								</DialogContent>
@@ -210,6 +215,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 								{isPending && <RiLoaderLine className="animate-spin" />}
 							</Button>
 							<PasteLink
+								module={module}
 								open={open.paste}
 								setOpen={(paste) => setOpen({ ...open, paste })}
 								disabled={isPending}
@@ -223,15 +229,33 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 };
 
 const PasteLink = ({
+	module,
 	open,
 	setOpen,
 	disabled,
 }: {
+	module: ChapterModule | null;
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	disabled?: boolean;
 }) => {
 	const [link, setLink] = React.useState("");
+
+	const { isPending, mutate } = useMutation({
+		mutationFn: ({ module_id, module }: UseMutationProps) =>
+			UpdateChapterModule(module_id, module),
+		mutationKey: ["update-chapter-module"],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] }).then(() => {
+				setOpen(false);
+			});
+		},
+		onError: (error) => {
+			console.log(error);
+			toast.error("Failed to update module");
+		},
+	});
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -239,8 +263,31 @@ const PasteLink = ({
 			toast.error("Please enter a link");
 			return;
 		}
-		console.log(link);
+		let validUrl = "";
+		if (!module?.id) {
+			toast.error("Please select a valid module");
+			return;
+		}
+		if (link.startsWith("https://")) {
+			validUrl = link;
+		} else {
+			validUrl = `https://${link}`;
+		}
+		const video_urls: string[] = [];
+		video_urls.push(validUrl);
+		video_urls.push(validUrl);
+		mutate({
+			module_id: String(module?.id),
+			module: { sequence: Number(module?.sequence), video_urls },
+		});
 	};
+
+	React.useEffect(() => {
+		if (open) {
+			setLink("");
+			queryClient.removeQueries({ queryKey: ["update-chapter-module"] });
+		}
+	}, [open]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -252,7 +299,7 @@ const PasteLink = ({
 			<DialogContent className="w-[400px] p-1">
 				<form
 					onSubmit={handleSubmit}
-					className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
+					className="w-full space-y-4 rounded-lg border px-4 pb-4 pt-[59px]">
 					<IconLabel icon={RiLink} />
 					<div className="my-4 flex flex-col gap-y-4">
 						<DialogTitle>Paste Video Link</DialogTitle>
@@ -281,14 +328,15 @@ const PasteLink = ({
 					<div className="flex w-full items-center justify-end gap-x-4">
 						<Button
 							type="button"
+							disabled={isPending}
 							onClick={() => setOpen(false)}
 							className="w-fit"
 							size="sm"
 							variant="outline">
 							Cancel
 						</Button>
-						<Button type="submit" className="w-fit" size="sm">
-							Import Video Link
+						<Button type="submit" disabled={isPending} className="w-fit" size="sm">
+							{isPending ? <RiLoaderLine className="animate-spin" /> : "Import Video Link"}
 						</Button>
 					</div>
 				</form>

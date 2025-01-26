@@ -16,13 +16,19 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { RiLoaderLine } from "@remixicon/react";
 
 interface Props<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	isLoading?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>) {
+export function DataTable<TData, TValue>({
+	columns,
+	data,
+	isLoading,
+}: Props<TData, TValue>) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [rowSelection, setRowSelection] = React.useState({});
@@ -62,6 +68,13 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 					))}
 				</TableHeader>
 				<TableBody>
+					{isLoading ? (
+						<TableRow>
+							<TableCell colSpan={columns.length} className="h-[500px] text-center">
+								<RiLoaderLine className="size-8 text-primary-400" />
+							</TableCell>
+						</TableRow>
+					) : null}
 					{table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
@@ -74,7 +87,7 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-24 text-center">
+							<TableCell colSpan={columns.length} className="h-[500px] text-center">
 								No results.
 							</TableCell>
 						</TableRow>

@@ -3,7 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { Breadcrumbs, Loading, SearchInput, Seo } from "@/components/shared";
+import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
 import type { HttpResponse, PaginatedResponse } from "@/types";
 import type { CastedCourseProps } from "@/types/casted-types";
 import { DashboardLayout } from "@/components/layout";
@@ -79,8 +79,6 @@ const Page = () => {
 		}
 	}, [bundle]);
 
-	if (!bundle) return <Loading />;
-
 	return (
 		<>
 			<AddCourse open={open} onOpenChange={setOpen} />
@@ -97,7 +95,7 @@ const Page = () => {
 									variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
-								<h3 className="text-lg font-medium uppercase">{bundle.examBundle.name}</h3>
+								<h3 className="text-lg font-medium uppercase">{bundle?.examBundle.name}</h3>
 							</div>
 							<Breadcrumbs links={breadcrumbs} />
 						</div>
@@ -135,10 +133,10 @@ const Page = () => {
 						</div>
 						<div className="w-full">
 							<CourseTable
-								courses={bundle.subjects.data || []}
+								courses={bundle?.subjects.data || []}
 								onPageChange={setPage}
 								page={page}
-								total={bundle.subjects.meta.itemCount || 0}
+								total={bundle?.subjects.meta.itemCount || 0}
 							/>
 						</div>
 					</div>

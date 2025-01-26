@@ -14,13 +14,13 @@ import {
 
 import { CreateChapterModule, type CreateChapterModuleDto } from "@/queries";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { convertHTmlToMd, convertMdToHtml, sanitize } from "@/lib";
 import type { ChapterModuleProps, MakeOptional } from "@/types";
 import { AddAttachment } from "./add-attachment";
 import { DeleteLesson } from "./delete-lesson";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { Editor } from "../shared";
-import { sanitize } from "@/lib";
 import {
 	Sheet,
 	SheetContent,
@@ -72,11 +72,14 @@ export const ChapterModule = ({
 
 	const initialValues: CreateChapterModuleDto = {
 		attachments: [],
+		attachment_urls: [],
 		content: module.content || "",
 		images: [],
+		image_urls: [],
 		sequence: module.sequence || index,
 		title: module.title || "",
 		videos: [],
+		video_urls: [],
 		tutor: "",
 	};
 
@@ -108,7 +111,7 @@ export const ChapterModule = ({
 			}
 			const payload = {
 				...values,
-				content: sanitize(values.content),
+				content: sanitize(convertHTmlToMd(values.content)),
 			};
 			mutate({ chapter_id, module: payload });
 		},
@@ -186,7 +189,7 @@ export const ChapterModule = ({
 							<div className="space-y-4">
 								<Editor
 									onValueChange={(value) => setFieldValue("content", value)}
-									defaultValue={values.content}
+									defaultValue={convertMdToHtml(values.content)}
 									size="md"
 									className="h-[75vh] w-full"
 								/>

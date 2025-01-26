@@ -191,6 +191,18 @@ export type AdminProps = Node & {
 	role: string;
 };
 
+export type AdminOneProps = Node & {
+	__typename?: "User";
+	access_token: string;
+	email: string;
+	first_name: string;
+	is_blocked: boolean;
+	is_deleted: boolean;
+	last_name: string;
+	phone_number: string;
+	role: RoleProps;
+};
+
 export type UserProps = Node & {
 	__typename?: "User";
 	email: string;
@@ -247,6 +259,7 @@ export type ChapterModuleProps = Node & {
 	chapter: string;
 	title: string;
 	sequence: number;
+	sequence_number: number;
 	images: string[];
 	videos: string[];
 	content: string;
@@ -275,7 +288,7 @@ export type OptionsProps = Node & {
 };
 
 export type QuestionTypeProps = OptionalString<
-	"BOOLEAN" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORTANSWER"
+	"BOOLEAN" | "LONGTEXT" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORTANSWER"
 >;
 
 export type WaitlistUserProps = {

@@ -34,15 +34,13 @@ export const UserCard = ({
 					<h6 className="text-xl font-semibold">{value.toLocaleString()}</h6>
 					<p className="text-xs text-neutral-400">{label}</p>
 				</div>
-				{percentage && (
-					<div
-						className={cn(
-							"flex items-center gap-x-1 rounded-md px-1 py-0.5 text-xs font-semibold",
-							variants[variant]
-						)}>
-						<TrendingUp size={12} /> <span>{percentage}%</span>
-					</div>
-				)}
+				<div
+					className={cn(
+						"flex items-center gap-x-1 rounded-md px-1 py-0.5 text-xs font-semibold",
+						variants[variant]
+					)}>
+					<TrendingUp size={12} /> <span>{percentage}%</span>
+				</div>
 			</div>
 		</div>
 	);

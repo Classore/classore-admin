@@ -8,9 +8,11 @@ import {
 	RiUserUnfollowLine,
 } from "@remixicon/react";
 
-import { DashboardLayout } from "@/components/layout";
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { UserCard } from "@/components/dashboard";
+import { hasPermission } from "@/lib/permission";
 import { UserTable } from "@/components/tables";
+import { useUserStore } from "@/store/z-store";
 import { Seo } from "@/components/shared";
 import { GetUsers } from "@/queries/user";
 import {
@@ -30,8 +32,9 @@ const Page = () => {
 	const [user_type, setUserType] = React.useState<User_Type>("all");
 	const [sort_by, setSortBy] = React.useState<Sort_By>("NAME");
 	const [page, setPage] = React.useState(1);
+	const admin = useUserStore().user;
 
-	const [{ data }, { data: all }] = useQueries({
+	const [{ data, isLoading }, { data: all }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-users", page, sort_by, user_type],
@@ -70,6 +73,10 @@ const Page = () => {
 		}
 		return 0;
 	}, [all?.data.users]);
+
+	if (!hasPermission(admin, ["student_read"])) {
+		return <Unauthorized />;
+	}
 
 	return (
 		<>
@@ -153,6 +160,7 @@ const Page = () => {
 								page={page}
 								total={data?.data.users.meta.itemCount ?? 0}
 								users={data?.data.users.data ?? []}
+								isLoading={isLoading}
 							/>
 						</div>
 					</div>

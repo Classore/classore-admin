@@ -1,14 +1,22 @@
-import { RiAddLine } from "@remixicon/react";
+import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import React from "react";
 
 import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
 import type { CreateQuestionDto } from "@/queries";
 import { QuestionCard } from "./question-card";
+import { CreateQuestions } from "@/queries";
+import { Button } from "../ui/button";
 import { capitalize } from "@/lib";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
+
+type UseMutationProps = {
+	module_id: string;
+	payload: CreateQuestionDto[];
+};
 
 interface QuizProps {
 	chapter: Chapter;
@@ -18,13 +26,83 @@ interface QuizProps {
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const [questions, setQuestions] = React.useState<CreateQuestionDto[]>([
-		{ content: "", images: [], options: [], question_type: "", sequence: 0 },
+		{
+			content: "",
+			images: [],
+			options: [],
+			question_type: "",
+			sequence: 0,
+			sequence_number: Number(module?.sequence),
+		},
 	]);
+
+	const {} = useMutation({
+		mutationFn: ({ module_id, payload }: UseMutationProps) =>
+			CreateQuestions(module_id, payload),
+		onSuccess: () => {
+			toast.success("Questions created successfully");
+		},
+		onError: (error) => {
+			toast.error("Failed to create questions");
+			console.error(error);
+		},
+	});
+
+	const handleSubmit = () => {
+		if (questions.length === 0) {
+			toast.error("At least one question is required");
+			return;
+		}
+		if (questions.some((question) => question.content === "")) {
+			toast.error("All questions must have content");
+			return;
+		}
+		if (
+			questions.some(
+				(question) =>
+					question.question_type === "MULTICHOICE" && question.options.length !== 4
+			)
+		) {
+			toast.error("Multiple options questions must have 4 options");
+			return;
+		}
+		if (
+			questions.some((question) => question.options.some((option) => option.content === ""))
+		) {
+			toast.error("All options must have content");
+			return;
+		}
+		if (
+			questions.some(
+				(question) =>
+					(question.question_type === "MULTICHOICE" || question.question_type === "BOOLEAN") &&
+					question.options.every((option) => option.is_correct !== "YES")
+			)
+		) {
+			toast.error("Multiple choice and boolean questions must have a correct answer");
+			return;
+		}
+		const payload: UseMutationProps = {
+			module_id: String(module?.id),
+			payload: questions.map((question, index) => ({
+				...question,
+				sequence: index,
+			})),
+		};
+		console.log(payload);
+	};
 
 	const handleAddQuestion = () => {
 		setQuestions((prev) => [
 			...prev,
-			{ content: "", images: [], options: [], question_type: "", sequence: 0 },
+			{
+				content: "",
+				images: [],
+				options: [],
+				question_type: "",
+				sequence: 0,
+				sequence_number: Number(module?.sequence),
+			},
 		]);
 	};
 
@@ -69,6 +147,14 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		}
 	};
 
+	const hasValidQuestions = React.useMemo(() => {
+		return !!questions.some((question) => question.content !== "");
+	}, [questions]);
+
+	React.useEffect(() => {
+		console.log(questions);
+	}, [questions]);
+
 	return (
 		<div className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
@@ -84,8 +170,12 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					</h5>
 				</div>
 				<div className="flex items-center gap-x-2">
-					<button className="grid size-7 place-items-center rounded border bg-white"></button>
-					<button className="grid size-7 place-items-center rounded border bg-white"></button>
+					<button className="grid size-7 place-items-center rounded border bg-white">
+						<RiArrowLeftSLine className="size-4" />
+					</button>
+					<button className="grid size-7 place-items-center rounded border bg-white">
+						<RiArrowLeftSLine className="size-4 rotate-180" />
+					</button>
 				</div>
 			</div>
 			<div className="flex w-full items-center justify-between rounded-lg bg-white p-3">
@@ -97,7 +187,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					Add New Question
 				</button>
 			</div>
-			<div className="flex w-full flex-col gap-y-2">
+			<div className="w-full space-y-2">
 				{questions.map((question, index) => (
 					<QuestionCard
 						key={index}
@@ -109,6 +199,11 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					/>
 				))}
 			</div>
+			{hasValidQuestions && (
+				<Button className="w-fit" size="sm" onClick={handleSubmit}>
+					Save Quiz
+				</Button>
+			)}
 		</div>
 	);
 };

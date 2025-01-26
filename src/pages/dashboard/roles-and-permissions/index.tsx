@@ -8,14 +8,16 @@ import {
 	RiUserUnfollowLine,
 } from "@remixicon/react";
 
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { AddAdmin, AddRoles, UserCard } from "@/components/dashboard";
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { SearchInput, Seo } from "@/components/shared";
-import { DashboardLayout } from "@/components/layout";
 import { AdminTable } from "@/components/tables";
+import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/z-store";
 import { useDebounce } from "@/hooks";
 import { GetStaffs } from "@/queries";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
 	Select,
 	SelectContent,
@@ -34,10 +36,11 @@ const Page = () => {
 	const [sort_by, setSortBy] = React.useState("");
 	const [name, setName] = React.useState("");
 	const [page, setPage] = React.useState(1);
+	const { user } = useUserStore();
 
 	const search = useDebounce(name, 500);
 
-	const [{ data }] = useQueries({
+	const [{ data, isLoading }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-staffs", page, search],
@@ -45,6 +48,10 @@ const Page = () => {
 			},
 		],
 	});
+
+	if (!hasPermission(user, ["admin_read"])) {
+		return <Unauthorized />;
+	}
 
 	return (
 		<>
@@ -155,6 +162,7 @@ const Page = () => {
 							onPageChange={setPage}
 							page={page}
 							total={data?.data.admins.meta.itemCount ?? 0}
+							isLoading={isLoading}
 						/>
 					</div>
 				</div>

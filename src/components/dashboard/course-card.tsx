@@ -80,11 +80,11 @@ export const CourseCard = ({
 					id: chapter.chapter_module_id,
 					images: chapter.chapter_module_images,
 					sequence: chapter.chapter_module_sequence,
+					sequence_number: chapter.chapter_module_sequence,
 					title: chapter.chapter_module_title,
 					tutor: chapter.chapter_module_tutor,
 					videos: chapter.chapter_module_videos,
 				};
-
 				return mod;
 			});
 		}
@@ -117,16 +117,15 @@ export const CourseCard = ({
 					content: "",
 					images: [],
 					sequence: existingModules.length,
+					sequence_number: existingModules.length,
 					title: "",
 					tutor: null,
 					videos: [],
 				},
 			];
-
 			setModules(resequenceModules(updatedModules));
 			setSequence(existingModules.length);
 		} else {
-			// Initialize with an empty module if no existing modules
 			setSequence(0);
 			setModules([
 				{
@@ -136,6 +135,7 @@ export const CourseCard = ({
 					content: "",
 					images: [],
 					sequence: 0,
+					sequence_number: 0,
 					title: "",
 					tutor: null,
 					videos: [],
@@ -169,11 +169,11 @@ export const CourseCard = ({
 				id: "",
 				images: [],
 				sequence: prev.length,
+				sequence_number: prev.length,
 				title: "",
 				tutor: null,
 				videos: [],
 			};
-
 			const newModules = [...prev, newModule];
 			return resequenceModules(newModules);
 		});
@@ -184,12 +184,10 @@ export const CourseCard = ({
 			toast.error("Cannot delete the last module");
 			return;
 		}
-
 		setModules((prev) => {
 			const newModules = prev.filter((md) => md.sequence !== module.sequence);
 			return resequenceModules(newModules);
 		});
-
 		if (sequence >= modules.length - 1) {
 			setSequence(Math.max(0, sequence - 1));
 		}

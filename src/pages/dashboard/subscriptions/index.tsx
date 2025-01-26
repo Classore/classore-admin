@@ -1,4 +1,4 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import {
 	RiArrowLeftSLine,
@@ -8,10 +8,12 @@ import {
 	RiUserUnfollowLine,
 } from "@remixicon/react";
 
-import { DashboardLayout } from "@/components/layout";
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { formatCurrency, fromSnakeCase } from "@/lib";
 import { PaymentTable } from "@/components/tables";
 import { UserCard } from "@/components/dashboard";
+import { hasPermission } from "@/lib/permission";
+import { useUserStore } from "@/store/z-store";
 import { GetSubscriptions } from "@/queries";
 import { Seo } from "@/components/shared";
 import {
@@ -22,7 +24,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import { subscriptions } from "@/mock/subscriptions";
+// import { subscriptions } from "@/mock/subscriptions";
 
 const payment_status = ["all", "successful", "pending", "failed", "reversal"] as const;
 type PaymentStatus = (typeof payment_status)[number];
@@ -32,21 +34,35 @@ const Page = () => {
 	const [status, setStatus] = React.useState<PaymentStatus>("all");
 	const [sort_by, setSortBy] = React.useState("");
 	const [page, setPage] = React.useState(1);
+	const { user } = useUserStore();
 
-	const [{}] = useQueries({
-		queries: [
-			{
-				queryKey: ["subscriptions", page, status, sort_by],
-				queryFn: () =>
-					GetSubscriptions({
-						limit: 10,
-						page,
-						sort_by: sort_by === "all" ? undefined : sort_by,
-						txn_status: status === "all" ? undefined : status,
-					}),
+	const { data, isLoading } = useQuery({
+		queryKey: ["subscriptions", page, status, sort_by],
+		queryFn: () =>
+			GetSubscriptions({
+				limit: 10,
+				page,
+				sort_by: sort_by === "all" ? undefined : sort_by,
+				txn_status: status === "all" ? undefined : status,
+			}),
+		select: (data) => ({
+			cancelled: data.data.data.cancelled,
+			international_exams: data.data.data.international_exams,
+			national_exams: data.data.data.national_exams,
+			meta: {
+				itemCount: data.data.data.logs.meta.itemCount,
+				page: data.data.data.logs.meta.page,
+				pageCount: data.data.data.logs.meta.pageCount,
+				take: data.data.data.logs.meta.take,
 			},
-		],
+			subscriptions: data.data.data.logs.data,
+			total_earnings: data.data.data.total_earnings,
+		}),
 	});
+
+	if (!hasPermission(user, ["transactions_read"])) {
+		return <Unauthorized />;
+	}
 
 	return (
 		<>
@@ -68,31 +84,31 @@ const Page = () => {
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<UserCard
 								icon={RiTeamLine}
-								value={formatCurrency(0)}
+								value={formatCurrency(data?.total_earnings || 0)}
 								label="Total Earnings"
-								percentage={10}
+								percentage={0}
 								variant="success"
 							/>
 							<UserCard
 								icon={RiUser5Line}
-								value={formatCurrency(0)}
+								value={formatCurrency(data?.national_exams || 0)}
 								label="National Exams"
-								percentage={10}
+								percentage={0}
 								variant="success"
 							/>
 							<UserCard
 								icon={RiUser2Line}
-								value={formatCurrency(0)}
+								value={formatCurrency(data?.international_exams || 0)}
 								label="International Exams"
-								percentage={10}
-								variant="danger"
+								percentage={0}
+								variant="success"
 							/>
 							<UserCard
 								icon={RiUserUnfollowLine}
-								value={formatCurrency(0)}
+								value={formatCurrency(data?.cancelled || 0)}
 								label="Cancelled"
-								percentage={10}
-								variant="danger"
+								percentage={0}
+								variant="success"
 							/>
 						</div>
 					</div>
@@ -128,8 +144,9 @@ const Page = () => {
 							<PaymentTable
 								onPageChange={setPage}
 								page={page}
-								subscriptions={subscriptions}
-								total={subscriptions.length}
+								subscriptions={data?.subscriptions ?? []}
+								total={data?.meta.itemCount ?? 0}
+								isLoading={isLoading}
 							/>
 						</div>
 					</div>

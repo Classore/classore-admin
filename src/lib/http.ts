@@ -65,21 +65,31 @@ export const createFormDataFromObject = <T extends Record<string, any>>(
 		return formData;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const isEmptyValue = (value: any): boolean => {
+		if (value === null || value === undefined) return true;
+		if (typeof value === "string" && value.trim() === "") return true;
+		if (Array.isArray(value) && value.length === 0) return true;
+		if (typeof value === "object" && Object.keys(value).length === 0) return true;
+
+		return false;
+	};
+
 	Object.entries(payload).forEach(([key, value]) => {
-		if (value === null || value === undefined) {
+		if (isEmptyValue(value)) {
 			return;
 		}
 
 		if (Array.isArray(value)) {
-			value.forEach((item) => {
-				if (item !== null && item !== undefined) {
-					if (item instanceof File) {
-						formData.append(key, item);
-					} else if (typeof item === "object") {
-						formData.append(key, JSON.stringify(item));
-					} else {
-						formData.append(key, String(item));
-					}
+			const filteredArray = value.filter((item) => !isEmptyValue(item));
+
+			filteredArray.forEach((item) => {
+				if (item instanceof File) {
+					formData.append(key, item);
+				} else if (typeof item === "object") {
+					formData.append(key, JSON.stringify(item));
+				} else {
+					formData.append(key, String(item));
 				}
 			});
 		} else if (value instanceof File) {

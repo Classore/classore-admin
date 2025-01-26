@@ -42,7 +42,7 @@ export const UserActions = ({ user }: Props) => {
 				</DialogTrigger>
 				<DialogContent
 					animate={false}
-					className="top-4 w-[550px] -translate-y-0 translate-x-[42%] p-1">
+					className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
 					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 						<DialogTitle className="capitalize">
 							{user.user_user_type.toLowerCase()} Details
