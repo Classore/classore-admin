@@ -21,6 +21,7 @@ export const endpoints = (id?: string) => {
 		},
 		payments: {
 			all: "/admin/payment/get-all",
+			one: `/admin/payment/view-one/${id}`,
 		},
 		school: {
 			create_exam: "/admin/examination/create-exam",

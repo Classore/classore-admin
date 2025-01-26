@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import React from "react";
 
 import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
+import { useCourseStore } from "@/store/z-store";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
 import { QuizCard } from "./quiz-card";
@@ -17,10 +18,8 @@ type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
 export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
-	const [sequence, setSequence] = React.useState(() => {
-		return existingChapters.length > 0 ? existingChapters.length - 1 : 0;
-	});
 	const [module, setModule] = React.useState<ChapterModule | null>(null);
+	const [sequence, setSequence] = React.useState(0);
 	const [tab, setTab] = React.useState("video");
 	const [chapters, setChapters] = React.useState<Chapter[]>(() => {
 		const initialChapters = existingChapters.map((chapter, idx) => ({
@@ -55,7 +54,6 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 			};
 			return [...prev, newChapter];
 		});
-		// Set sequence to the newly added chapter
 		setSequence((prev) => prev + 1);
 	};
 
@@ -74,8 +72,6 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 				}));
 			return newChapters;
 		});
-
-		// Adjust sequence after deletion
 		if (sequence >= chapters.length - 1) {
 			setSequence(Math.max(0, sequence - 1));
 		}
@@ -88,12 +84,11 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 		setChapters((prev) => {
 			const newChapter = {
 				...chapter,
-				id: "", // Reset ID for the duplicate
+				id: "",
 				sequence: prev.length,
 			};
 			return [...prev, newChapter];
 		});
-		// Set sequence to the newly duplicated chapter
 		setSequence(chapters.length);
 	};
 
@@ -110,24 +105,26 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 
 		setChapters((prev) => {
 			const newChapters = [...prev];
-			// Swap the chapters
 			[newChapters[currentIndex], newChapters[targetIndex]] = [
 				newChapters[targetIndex],
 				newChapters[currentIndex],
 			];
-			// Update sequences
 			return newChapters.map((chapter, idx) => ({
 				...chapter,
 				sequence: idx,
 			}));
 		});
-
-		// Update selected sequence if we're moving the current chapter
 		if (sequence === currentIndex) {
 			setSequence(targetIndex);
 		} else if (sequence === targetIndex) {
 			setSequence(currentIndex);
 		}
+	};
+
+	const { onSelectChapterModule } = useCourseStore();
+	const onSelectModule = (module: ChapterModule) => {
+		setModule(module);
+		onSelectChapterModule(module);
 	};
 
 	return (
@@ -155,7 +152,7 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 							onDuplicate={duplicateChapter}
 							onMove={moveChapter}
 							onSelectChapter={setSequence}
-							onSelectModule={setModule}
+							onSelectModule={onSelectModule}
 							setTab={setTab}
 							subjectId={subjectId}
 						/>

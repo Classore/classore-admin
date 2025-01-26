@@ -36,6 +36,7 @@ export const VideoPlayer = ({ src }: Props) => {
 	React.useEffect(() => {
 		if (isGoogleDriveUrl(src)) {
 			const fileId = getGoogleDriveId(src);
+			console.log("Google Drive URL detected.", fileId);
 			fetch(`/api/google-drive?fileId=${fileId}`)
 				.then((response) => {
 					if (!response.ok) {

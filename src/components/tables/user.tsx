@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { CastedUserProps } from "@/types/casted-types";
 import { UserActions } from "@/components/actions";
 import { Pagination } from "@/components/shared";
+import { hasPermission } from "@/lib/permission";
+import { useUserStore } from "@/store/z-store";
 import {
 	Table,
 	TableBody,
@@ -21,9 +23,10 @@ interface Props {
 	page: number;
 	total: number;
 	users: CastedUserProps[];
+	isLoading?: boolean;
 }
 
-export const UserTable = ({ onPageChange, page, total, users }: Props) => {
+export const UserTable = ({ onPageChange, page, total, users, isLoading }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -37,14 +40,21 @@ export const UserTable = ({ onPageChange, page, total, users }: Props) => {
 						<TableHead className="max-w-[85px] text-neutral-400"></TableHead>
 					</TableRow>
 				</TableHeader>
-				{users.length === 0 && (
-					<TableRow>
-						<TableCell colSpan={6} className="py-10 text-center text-xs">
-							No users found.
-						</TableCell>
-					</TableRow>
-				)}
 				<TableBody>
+					{isLoading && (
+						<TableRow>
+							<TableCell colSpan={12} className="h-[400px] py-10 text-center text-xs">
+								Loading...
+							</TableCell>
+						</TableRow>
+					)}
+					{users.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="py-10 text-center text-xs">
+								No users found.
+							</TableCell>
+						</TableRow>
+					)}
 					{users.map((user) => (
 						<LineItem key={user.user_id} user={user} />
 					))}
@@ -56,6 +66,9 @@ export const UserTable = ({ onPageChange, page, total, users }: Props) => {
 };
 
 const LineItem = ({ user }: { user: CastedUserProps }) => {
+	const admin = useUserStore().user;
+	hasPermission(admin, ["student_write"]);
+
 	return (
 		<TableRow>
 			<TableCell className="flex items-center gap-x-2 text-xs">
@@ -85,7 +98,7 @@ const LineItem = ({ user }: { user: CastedUserProps }) => {
 			</TableCell>
 			<TableCell>
 				<Popover>
-					<PopoverTrigger asChild>
+					<PopoverTrigger asChild disabled={!hasPermission(admin, ["student_write"])}>
 						<button className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>

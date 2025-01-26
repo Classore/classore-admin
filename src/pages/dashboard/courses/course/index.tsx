@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
-import { Breadcrumbs, Loading, Seo, TabPanel } from "@/components/shared";
+import { Breadcrumbs, Seo, TabPanel } from "@/components/shared";
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -44,8 +44,6 @@ const Page = () => {
 		},
 	];
 
-	if (!course) return <Loading />;
-
 	return (
 		<>
 			<Seo title="New Course" />
@@ -62,7 +60,7 @@ const Page = () => {
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
 								<div className="flex items-center gap-x-2">
-									<h3 className="text-lg font-medium capitalize">{course.data.name}</h3>
+									<h3 className="text-lg font-medium capitalize">{course?.data.name}</h3>
 								</div>
 							</div>
 							<Breadcrumbs links={breadcrumbs} />
@@ -97,7 +95,10 @@ const Page = () => {
 						</div>
 						<div className="h-full max-h-[calc(100vh-372px)] w-full">
 							<TabPanel selected={tab} value="course">
-								<CreateCourse existingChapters={course.data.chapters} subjectId={courseId} />
+								<CreateCourse
+									existingChapters={course?.data.chapters ?? []}
+									subjectId={courseId}
+								/>
 							</TabPanel>
 							<TabPanel selected={tab} value="quiz">
 								<QuizSettings />

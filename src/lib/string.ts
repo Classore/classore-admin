@@ -216,7 +216,10 @@ export const getFileExtension = (name: string) => {
 };
 
 export const isGoogleDriveUrl = (url: string) => {
-	return url.startsWith("https://drive.google.com/file/d");
+	return (
+		url.startsWith("https://drive.google.com/file/d") ||
+		url.startsWith("https://www.googleapis.com/drive")
+	);
 };
 
 export const isCloudinaryUrl = (url: string) => {
@@ -226,14 +229,26 @@ export const isCloudinaryUrl = (url: string) => {
 export const getGoogleDriveId = (url: string) => {
 	if (!url) return "";
 
-	const patterns = [
-		/\/file\/d\/([^/]+)/, // Format: /file/d/{fileId}
-		/id=([^&]+)/, // Format: ?id={fileId}
-	];
+	if (url.startsWith("https://drive.google.com/file/d")) {
+		const patterns = [
+			/\/file\/d\/([^/]+)/, // Format: /file/d/{fileId}
+			/id=([^&]+)/, // Format: ?id={fileId}
+		];
+		for (const pattern of patterns) {
+			const match = url.match(pattern);
+			if (match) return match[1];
+		}
+	}
 
-	for (const pattern of patterns) {
-		const match = url.match(pattern);
-		if (match) return match[1];
+	if (url.startsWith("https://www.googleapis.com/drive")) {
+		const patterns = [
+			/files\/([^/]+)/, // Format: /files/{fileId}
+			/id=([^&]+)/, // Format: ?id={fileId}
+		];
+		for (const pattern of patterns) {
+			const match = url.match(pattern);
+			if (match) return match[1].split("?")[0];
+		}
 	}
 
 	return url;

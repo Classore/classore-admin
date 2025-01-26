@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { CastedExamBundleProps } from "@/types/casted-types";
 import { Pagination } from "@/components/shared";
+import { hasPermission } from "@/lib/permission";
+import { useUserStore } from "@/store/z-store";
 import { GetExaminations } from "@/queries";
 import { ExamActions } from "../actions";
 import { formatCurrency } from "@/lib";
@@ -24,9 +26,10 @@ interface Props {
 	onPageChange: (page: number) => void;
 	page: number;
 	total: number;
+	isLoading?: boolean;
 }
 
-export const ExamTable = ({ bundles, onPageChange, page, total }: Props) => {
+export const ExamTable = ({ bundles, onPageChange, page, total, isLoading }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -47,6 +50,13 @@ export const ExamTable = ({ bundles, onPageChange, page, total }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{isLoading && (
+						<TableRow>
+							<TableCell colSpan={12} className="h-[400px] py-10 text-center text-xs">
+								Loading...
+							</TableCell>
+						</TableRow>
+					)}
 					{bundles.length === 0 && (
 						<TableRow>
 							<TableCell colSpan={6} className="py-10 text-center text-xs">
@@ -65,6 +75,8 @@ export const ExamTable = ({ bundles, onPageChange, page, total }: Props) => {
 };
 
 const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
+	const admin = useUserStore().user;
+
 	const { data: exams } = useQuery({
 		queryKey: ["get-exams"],
 		queryFn: () => GetExaminations(),
@@ -112,7 +124,7 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 			</TableCell>
 			<TableCell>
 				<Popover>
-					<PopoverTrigger asChild>
+					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
 						<button className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>

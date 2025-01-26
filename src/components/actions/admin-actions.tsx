@@ -33,7 +33,7 @@ export const AdminActions = ({ admin }: Props) => {
 				</DialogTrigger>
 				<DialogContent
 					animate={false}
-					className="top-4 w-[550px] -translate-y-0 translate-x-[42%]">
+					className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
 					<DialogTitle>User Details</DialogTitle>
 					<DialogDescription hidden>User Details</DialogDescription>
 					<div className="w-full">

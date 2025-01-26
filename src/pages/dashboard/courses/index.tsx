@@ -1,18 +1,18 @@
 import { useQueries } from "@tanstack/react-query";
 import React from "react";
 import {
-	RiAddLine,
 	RiBook2Line,
 	RiBookMarkedLine,
 	RiBookOpenLine,
 	RiBookReadLine,
 } from "@remixicon/react";
 
-import { AddBundle, UserCard } from "@/components/dashboard";
+import { AddBundle, AddExamination, UserCard } from "@/components/dashboard";
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { SearchInput, Seo } from "@/components/shared";
-import { DashboardLayout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
+import { hasPermission } from "@/lib/permission";
 import { ExamTable } from "@/components/tables";
+import { useUserStore } from "@/store/z-store";
 import { GetBundles } from "@/queries";
 import { useDebounce } from "@/hooks";
 import {
@@ -29,15 +29,16 @@ type SortBy = (typeof sort_options)[number] | (string & {});
 type Exam = (typeof exams)[number];
 
 const Page = () => {
+	const [open, setOpen] = React.useState({ bundle: false, exam: false });
 	const [sort_by, setSortBy] = React.useState<SortBy>("");
 	const [exam, setExam] = React.useState<Exam>("all");
-	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
+	const { user } = useUserStore();
 
 	const search = useDebounce(query, 500);
 
-	const [{ data: bundles }] = useQueries({
+	const [{ data: bundles, isLoading }] = useQueries({
 		queries: [
 			{
 				queryKey: ["bundles", { page, search }],
@@ -55,18 +56,28 @@ const Page = () => {
 		return 0;
 	}, [bundles]);
 
+	if (!hasPermission(user, ["videos_read"])) {
+		return <Unauthorized />;
+	}
+
 	return (
 		<>
-			<AddBundle open={open} onOpenChange={setOpen} />
 			<Seo title="Courses" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
-							<Button className="w-fit" onClick={() => setOpen(true)} size="sm">
-								<RiAddLine /> Add New Bundle
-							</Button>
+							<div className="flex items-center gap-x-4">
+								<AddExamination
+									open={open.exam}
+									onOpenChange={(exam) => setOpen({ ...open, exam })}
+								/>
+								<AddBundle
+									open={open.bundle}
+									onOpenChange={(bundle) => setOpen({ ...open, bundle })}
+								/>
+							</div>
 						</div>
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<UserCard
@@ -113,6 +124,7 @@ const Page = () => {
 								onPageChange={setPage}
 								page={page}
 								total={bundles?.data.meta.itemCount ?? 0}
+								isLoading={isLoading}
 							/>
 						</div>
 					</div>

@@ -7,9 +7,9 @@ import {
 } from "@remixicon/react";
 
 export type QuestionSettings = {
+	description: string;
 	label: string;
 	icon: RemixiconComponentType;
-	description: string;
 	hasChildren: boolean;
 };
 

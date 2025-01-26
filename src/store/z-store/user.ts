@@ -1,11 +1,11 @@
 import Cookies from "js-cookie";
 
 import { createPersistMiddleware } from "../middleware";
-import type { AdminProps, Maybe } from "@/types";
+import type { AdminOneProps, Maybe } from "@/types";
 
 interface UserStore {
-	user: Maybe<AdminProps>;
-	signIn: (user: AdminProps, token: string) => void;
+	user: Maybe<AdminOneProps>;
+	signIn: (user: AdminOneProps, token: string) => void;
 	signOut: () => Promise<void>;
 }
 
@@ -17,7 +17,7 @@ const initialState: UserStore = {
 
 const useUserStore = createPersistMiddleware<UserStore>("CLASSORE_ADMIN", (set) => ({
 	...initialState,
-	signIn: (user: AdminProps, token: string) => {
+	signIn: (user, token) => {
 		Cookies.set("CLASSORE_ADMIN_TOKEN", token);
 		set({ user });
 	},

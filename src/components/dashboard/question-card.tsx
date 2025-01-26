@@ -59,6 +59,17 @@ export const QuestionCard = ({
 	onUpdateQuestions,
 }: Props) => {
 	const [question, setQuestion] = React.useState<CreateQuestionDto>(initialQuestion);
+	const [questionSettings, setQuestionSettings] = React.useState({
+		randomized: false,
+		required: false,
+	});
+
+	const handleSettingsChange = React.useCallback(
+		(key: keyof typeof questionSettings, value: boolean) => {
+			setQuestionSettings((prev) => ({ ...prev, [key]: value }));
+		},
+		[]
+	);
 
 	const handleTypeChange = (question_type: QuestionTypeProps) => {
 		let options: CreateOptionsDto[] = [];
@@ -142,6 +153,25 @@ export const QuestionCard = ({
 		onUpdateQuestions(updatedQuestion);
 	};
 
+	const randomizeOptions = React.useCallback(() => {
+		if (question.question_type !== "MULTICHOICE") {
+			toast.error("Options can only be randomized for multiple choice questions");
+			handleSettingsChange("randomized", !questionSettings.randomized);
+			return;
+		}
+		const updatedOptions = [...question.options];
+		for (let i = updatedOptions.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[updatedOptions[i], updatedOptions[j]] = [updatedOptions[j], updatedOptions[i]];
+		}
+		const updatedQuestion = {
+			...question,
+			options: updatedOptions,
+		};
+		setQuestion(updatedQuestion);
+		onUpdateQuestions(updatedQuestion);
+	}, []);
+
 	const setCorrectOption = (index: number) => {
 		const updatedOptions: CreateOptionsDto[] = question.options.map((option, i) => {
 			if (i === index) {
@@ -180,6 +210,14 @@ export const QuestionCard = ({
 				break;
 		}
 	};
+
+	React.useEffect(() => {
+		if (questionSettings.randomized) {
+			randomizeOptions();
+		} else {
+			handleSettingsChange("randomized", false);
+		}
+	}, [handleSettingsChange, questionSettings.randomized, randomizeOptions]);
 
 	return (
 		<div className="space-y-3 rounded-lg bg-white p-4">
@@ -223,11 +261,19 @@ export const QuestionCard = ({
 				<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
 				<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 					<p className="text-xs text-neutral-400">Randomize options</p>
-					<Switch className="data-[state=checked]:bg-green-500" />
+					<Switch
+						checked={questionSettings.randomized}
+						onCheckedChange={(value) => handleSettingsChange("randomized", value)}
+						className="data-[state=checked]:bg-green-500"
+					/>
 				</div>
 				<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 					<p className="text-xs text-neutral-400">Mark as required</p>
-					<Switch className="data-[state=checked]:bg-green-500" />
+					<Switch
+						checked={questionSettings.required}
+						onCheckedChange={(value) => handleSettingsChange("required", value)}
+						className="data-[state=checked]:bg-green-500"
+					/>
 				</div>
 			</div>
 			{question.question_type === "MULTICHOICE" && (
@@ -293,6 +339,12 @@ export const QuestionCard = ({
 					</div>
 				</div>
 			)}
+			{question.question_type === "MEDIA" && (
+				<div className="space-y-3">
+					<p className="text-sm text-neutral-400">Options</p>
+					<div className="w-full space-y-2"></div>
+				</div>
+			)}
 		</div>
 	);
 };
@@ -304,7 +356,7 @@ const OptionItem = ({
 	option,
 	setCorrectOption,
 	allowDeletion,
-	readOnly,
+	readOnly = false,
 }: {
 	index: number;
 	option: CreateOptionsDto;

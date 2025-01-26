@@ -4,7 +4,9 @@ import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { hasPermission } from "@/lib/permission";
 import { Pagination } from "@/components/shared";
+import { useUserStore } from "@/store/z-store";
 import type { AdminProps } from "@/types";
 import { AdminActions } from "../actions";
 import {
@@ -17,13 +19,14 @@ import {
 } from "@/components/ui/table";
 
 interface Props {
+	admins: AdminProps[];
 	onPageChange: (page: number) => void;
 	page: number;
 	total: number;
-	admins: AdminProps[];
+	isLoading?: boolean;
 }
 
-export const AdminTable = ({ onPageChange, page, total, admins }: Props) => {
+export const AdminTable = ({ admins, onPageChange, page, total, isLoading }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -38,9 +41,16 @@ export const AdminTable = ({ onPageChange, page, total, admins }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{isLoading && (
+						<TableRow>
+							<TableCell colSpan={12} className="h-[400px] py-10 text-center text-xs">
+								Loading...
+							</TableCell>
+						</TableRow>
+					)}
 					{admins.length === 0 && (
 						<TableRow>
-							<TableCell colSpan={6} className="py-10 text-center text-xs">
+							<TableCell colSpan={6} className="h-[300px] text-center text-xs">
 								No admins found.
 							</TableCell>
 						</TableRow>
@@ -56,6 +66,8 @@ export const AdminTable = ({ onPageChange, page, total, admins }: Props) => {
 };
 
 const LineItem = ({ admin }: { admin: AdminProps }) => {
+	const { user } = useUserStore();
+
 	return (
 		<TableRow>
 			<TableCell className="flex items-center gap-x-2 text-xs">
@@ -83,7 +95,7 @@ const LineItem = ({ admin }: { admin: AdminProps }) => {
 			</TableCell>
 			<TableCell>
 				<Popover>
-					<PopoverTrigger asChild>
+					<PopoverTrigger asChild disabled={!hasPermission(user, ["admin_write"])}>
 						<button className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>

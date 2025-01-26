@@ -1,3 +1,4 @@
+import { useFormik } from "formik";
 import React from "react";
 
 import {
@@ -8,27 +9,22 @@ import {
 	SelectValue,
 } from "../ui/select";
 
-export interface AttemptsProps {
-	attempts: string;
-	attemptedInterval: string;
-	onAttemptChange: (attempt: string) => void;
-	onAttemptedIntervalChange: (attemptedInterval: string) => void;
-}
-
-export interface PassMarkProps {
-	passMark: string;
-	onPassMarkChange: (passMark: string) => void;
-}
-
-export interface TimerProps {
-	timer: string;
-	onTimerChange: (timer: string) => void;
-}
-
 export const Attempts = () => {
+	const { setFieldValue, values } = useFormik({
+		initialValues: {
+			attempt: "",
+			frequency: "",
+		},
+		onSubmit: (values) => {
+			console.log(values);
+		},
+	});
+
 	return (
 		<div className="flex h-10 items-center">
-			<Select>
+			<Select
+				value={values.attempt}
+				onValueChange={(value) => setFieldValue("attempt", value)}>
 				<SelectTrigger className="w-[119px] rounded-r-none bg-neutral-200 text-xs">
 					<SelectValue placeholder="Select attempts" />
 				</SelectTrigger>
@@ -40,7 +36,9 @@ export const Attempts = () => {
 					))}
 				</SelectContent>
 			</Select>
-			<Select>
+			<Select
+				value={values.frequency}
+				onValueChange={(value) => setFieldValue("frequency", value)}>
 				<SelectTrigger className="w-[119px] rounded-l-none text-xs">
 					<SelectValue placeholder="Select frequuency" />
 				</SelectTrigger>
@@ -64,9 +62,20 @@ export const Attempts = () => {
 };
 
 export const PassMark = () => {
+	const { setFieldValue, values } = useFormik({
+		initialValues: {
+			passmark: "",
+		},
+		onSubmit: (values) => {
+			console.log(values);
+		},
+	});
+
 	return (
 		<div className="h-10">
-			<Select>
+			<Select
+				value={values.passmark}
+				onValueChange={(value) => setFieldValue("passmark", value)}>
 				<SelectTrigger className="w-[119px] bg-neutral-200 text-xs">
 					<SelectValue placeholder="Select pass mark" />
 				</SelectTrigger>
@@ -83,9 +92,19 @@ export const PassMark = () => {
 };
 
 export const Timer = () => {
+	const { setFieldValue, values } = useFormik({
+		initialValues: {
+			hours: "",
+			minutes: "",
+		},
+		onSubmit: (values) => {
+			console.log(values);
+		},
+	});
+
 	return (
 		<div className="flex h-10 items-center">
-			<Select>
+			<Select value={values.hours} onValueChange={(value) => setFieldValue("hours", value)}>
 				<SelectTrigger className="w-[119px] rounded-r-none bg-neutral-200 text-xs">
 					<SelectValue placeholder="Select hours" />
 				</SelectTrigger>
@@ -97,7 +116,9 @@ export const Timer = () => {
 					))}
 				</SelectContent>
 			</Select>
-			<Select>
+			<Select
+				value={values.minutes}
+				onValueChange={(value) => setFieldValue("minutes", value)}>
 				<SelectTrigger className="w-[119px] rounded-l-none text-xs">
 					<SelectValue placeholder="Select minutes" />
 				</SelectTrigger>

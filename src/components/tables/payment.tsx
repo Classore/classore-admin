@@ -28,6 +28,7 @@ interface Props {
 	page: number;
 	total: number;
 	subscriptions: SubscriptionProps[];
+	isLoading?: boolean;
 }
 
 const status: Record<SubscriptionProps["status"], string> = {
@@ -37,7 +38,13 @@ const status: Record<SubscriptionProps["status"], string> = {
 	SUCCESSFUL: "bg-green-100 text-green-500",
 };
 
-export const PaymentTable = ({ onPageChange, page, total, subscriptions }: Props) => {
+export const PaymentTable = ({
+	onPageChange,
+	page,
+	total,
+	subscriptions,
+	isLoading,
+}: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -54,9 +61,16 @@ export const PaymentTable = ({ onPageChange, page, total, subscriptions }: Props
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{isLoading && (
+						<TableRow>
+							<TableCell colSpan={12} className="h-[400px] py-10 text-center text-xs">
+								Loading...
+							</TableCell>
+						</TableRow>
+					)}
 					{subscriptions.length === 0 && (
 						<TableRow>
-							<TableCell colSpan={6} className="py-10 text-center text-xs">
+							<TableCell colSpan={6} className="h-[400px] py-10 text-center text-xs">
 								No subscriptions found.
 							</TableCell>
 						</TableRow>

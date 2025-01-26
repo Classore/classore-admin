@@ -2,9 +2,11 @@ import { useQueries } from "@tanstack/react-query";
 import { toast } from "sonner";
 import React from "react";
 
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { DataTable, Pagination, Seo } from "@/components/shared";
-import { DashboardLayout } from "@/components/layout";
+import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/z-store";
 import { Input } from "@/components/ui/input";
 import { GetWaitlistQuery } from "@/queries";
 import { waitlistColumns } from "@/config";
@@ -34,10 +36,11 @@ const Page = () => {
 	const [role, setRole] = React.useState<Role>("");
 	const [query, setQuery] = React.useState("");
 	const [page, setPage] = React.useState(1);
+	const { user } = useUserStore();
 
 	const search = useDebounce(query, 500);
 
-	const [{ data }, { data: waitlist }] = useQueries({
+	const [{ data, isLoading }, { data: waitlist }] = useQueries({
 		queries: [
 			{
 				queryFn: () => GetWaitlistQuery({ limit: LIMIT, page, role, search }),
@@ -70,6 +73,10 @@ const Page = () => {
 			toast.success("Exported to Excel");
 		}
 	};
+
+	if (!hasPermission(user, ["waitlist_read"])) {
+		return <Unauthorized />;
+	}
 
 	return (
 		<>
@@ -107,7 +114,11 @@ const Page = () => {
 							</Button>
 						</div>
 					</div>
-					<DataTable columns={waitlistColumns} data={data?.data.data ?? []} />
+					<DataTable
+						columns={waitlistColumns}
+						data={data?.data.data ?? []}
+						isLoading={isLoading}
+					/>
 					<Pagination
 						current={page}
 						onPageChange={setPage}

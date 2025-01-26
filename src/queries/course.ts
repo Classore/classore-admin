@@ -24,11 +24,14 @@ export interface CreateChapterDto {
 
 export interface CreateChapterModuleDto {
 	attachments: File[];
+	attachment_urls: string[];
 	content: string;
 	images: File[];
+	image_urls: string[];
 	sequence: number;
 	title: string;
 	videos: File[];
+	video_urls: string[];
 	tutor: string;
 }
 
@@ -38,6 +41,7 @@ export interface CreateQuestionDto {
 	options: CreateOptionsDto[];
 	question_type: QuestionTypeProps;
 	sequence: number;
+	sequence_number: number;
 }
 
 export interface CreateOptionsDto {
@@ -49,7 +53,19 @@ export interface CreateOptionsDto {
 
 export type UpdateChapterModuleDto = MakeOptional<
 	CreateChapterModuleDto,
-	"attachments" | "content" | "images" | "title" | "tutor" | "videos"
+	| "attachments"
+	| "attachment_urls"
+	| "content"
+	| "images"
+	| "image_urls"
+	| "title"
+	| "tutor"
+	| "videos"
+	| "video_urls"
+>;
+
+export type GetChapterModuleResponse = HttpResponse<
+	PaginatedResponse<CastedChapterModuleProps>
 >;
 
 const CreateChapter = async (payload: CreateChapterDto) => {

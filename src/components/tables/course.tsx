@@ -5,7 +5,9 @@ import React from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { CastedCourseProps } from "@/types/casted-types";
+import { hasPermission } from "@/lib/permission";
 import { Pagination } from "@/components/shared";
+import { useUserStore } from "@/store/z-store";
 import { CourseActions } from "../actions";
 import { formatCurrency } from "@/lib";
 import {
@@ -22,9 +24,10 @@ interface Props {
 	onPageChange: (page: number) => void;
 	page: number;
 	total: number;
+	isLoading?: boolean;
 }
 
-export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
+export const CourseTable = ({ courses, onPageChange, page, total, isLoading }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -43,6 +46,13 @@ export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
+					{isLoading && (
+						<TableRow>
+							<TableCell colSpan={12} className="h-[400px] py-10 text-center text-xs">
+								Loading...
+							</TableCell>
+						</TableRow>
+					)}
 					{courses.length === 0 && (
 						<TableRow>
 							<TableCell colSpan={6} className="py-10 text-center text-xs">
@@ -61,6 +71,8 @@ export const CourseTable = ({ courses, onPageChange, page, total }: Props) => {
 };
 
 const LineItem = ({ course }: { course: CastedCourseProps }) => {
+	const admin = useUserStore().user;
+
 	return (
 		<TableRow>
 			<TableCell className="text-xs font-medium capitalize">{course.subject_name}</TableCell>
@@ -90,7 +102,7 @@ const LineItem = ({ course }: { course: CastedCourseProps }) => {
 			</TableCell>
 			<TableCell>
 				<Popover>
-					<PopoverTrigger asChild>
+					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
 						<button className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>

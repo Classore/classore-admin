@@ -1,7 +1,7 @@
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
 import type {
-	AdminProps,
+	AdminOneProps,
 	HttpResponse,
 	Node,
 	PaginatedResponse,
@@ -41,15 +41,17 @@ export interface CreateRoleDto {
 	waitlist_write: "NO" | "YES";
 }
 
+export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;
+
 const SignInMutation = async (payload: SignInDto) => {
 	return axios
-		.post<HttpResponse<AdminProps>>(endpoints().auth.signin, payload)
+		.post<HttpResponse<AdminOneProps>>(endpoints().auth.signin, payload)
 		.then((res) => res.data);
 };
 
 const CreateAdminMutation = async (payload: CreateAdminDto) => {
 	return axios
-		.post<HttpResponse<AdminProps>>(endpoints().auth.create, payload)
+		.post<HttpResponse<AdminOneProps>>(endpoints().auth.create, payload)
 		.then((res) => res.data);
 };
 
