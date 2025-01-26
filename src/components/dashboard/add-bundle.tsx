@@ -1,14 +1,23 @@
-import { RiAddLine, RiBookMarkedLine, RiLoaderLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiBookMarkedLine,
+	RiCameraLine,
+	RiLoaderLine,
+} from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import { addDays } from "date-fns";
 import { DatePicker } from "antd";
+import { toast } from "sonner";
+import Image from "next/image";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import React from "react";
 
 import { CreateBundle, GetExaminations } from "@/queries";
 import type { CreateBundleDto } from "@/queries";
+import { processImageToBase64 } from "@/lib";
+import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Input } from "../ui/input";
@@ -36,6 +45,8 @@ interface Props {
 }
 
 export const AddBundle = ({ onOpenChange, open }: Props) => {
+	const [previewUrl, setPreviewUrl] = React.useState("");
+
 	const { isPending, mutate } = useMutation({
 		mutationFn: (data: CreateBundleDto) => CreateBundle(data),
 		onSuccess: () => {
@@ -66,6 +77,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		allowed_subjects: 0,
 		amount: 0,
 		amount_per_subject: 0,
+		cover_image: null,
 		end_date: addDays(new Date(), 1),
 		examination: "",
 		extra_charge: 0,
@@ -73,6 +85,25 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		name: "",
 		start_date: new Date(),
 	};
+
+	const { handleClick, handleFileChange, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			processImageToBase64(files[0]).then((base64) => {
+				setPreviewUrl(base64);
+			});
+			setFieldValue("cover_image", files[0]);
+		},
+		fileType: "image",
+		validationRules: {
+			allowedTypes: ["image/png", "image/jpeg", "image/jpg"],
+			maxSize: 1024 * 1024 * 2,
+			maxFiles: 1,
+			minFiles: 1,
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+	});
 
 	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik(
 		{
@@ -114,18 +145,43 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>
 				<Button className="w-fit" onClick={() => onOpenChange(true)} size="sm">
-					<RiAddLine /> Add New Bundle
+					<RiAddLine /> Add New subcategory
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="w-[500px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<div className="space-y-5">
 						<IconLabel icon={RiBookMarkedLine} />
-						<DialogTitle>Add New Bundle</DialogTitle>
-						<DialogDescription hidden>Add New Bundle</DialogDescription>
+						<DialogTitle>Add New subcategory</DialogTitle>
+						<DialogDescription hidden>Add New subcategory</DialogDescription>
 						<form onSubmit={handleSubmit} className="w-full space-y-4">
+							<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
+								{values.cover_image ? (
+									<Image
+										src={previewUrl}
+										alt={values.cover_image.name}
+										fill
+										sizes="100%"
+										className="rounded-md object-cover object-center"
+									/>
+								) : null}
+								<input
+									ref={inputRef}
+									type="file"
+									name="image"
+									id="image"
+									className="sr-only hidden"
+									onChange={handleFileChange}
+								/>
+								<button
+									type="button"
+									onClick={handleClick}
+									className="absolute bottom-2 right-2 flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs">
+									<RiCameraLine className="size-3" /> Update cover image
+								</button>
+							</div>
 							<Input
-								label="Bundle Name"
+								label="Subcategory Name"
 								placeholder="IELTS"
 								className="col-span-full"
 								name="name"
@@ -238,7 +294,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 										}
 										className="h-10 w-full font-body font-medium focus-within:border-primary-400 hover:border-primary-400"
 										format="DD/MM/YYYY"
-										minDate={dayjs(new Date(values.start_date)).add(1, "day")}
+										minDate={dayjs(new Date(values.start_date ?? new Date())).add(1, "day")}
 									/>
 								</div>
 							</div>
@@ -263,7 +319,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 								/>
 							</div>
 							<Button type="submit" className="w-full" disabled={isPending}>
-								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Examination"}
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Subcategory"}
 							</Button>
 						</form>
 					</div>

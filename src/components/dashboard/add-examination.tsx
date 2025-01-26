@@ -49,18 +49,18 @@ export const AddExamination = ({ onOpenChange, open }: Props) => {
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>
 				<Button className="w-fit" onClick={() => onOpenChange(true)} size="sm">
-					<RiAddLine /> Add New Examination
+					<RiAddLine /> Add New Category
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="w-[400px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<div className="space-y-5">
 						<IconLabel icon={RiBookMarkedLine} />
-						<DialogTitle>Add New Examination</DialogTitle>
-						<DialogDescription hidden>Add Examination</DialogDescription>
+						<DialogTitle>Add New Category</DialogTitle>
+						<DialogDescription hidden>Add Category</DialogDescription>
 						<form onSubmit={handleSubmit} className="w-full space-y-4">
 							<Input
-								label="Examination Name"
+								label="Category Name"
 								placeholder="National Examination"
 								className="col-span-full"
 								name="name"
@@ -68,7 +68,7 @@ export const AddExamination = ({ onOpenChange, open }: Props) => {
 								error={touched.name && errors.name ? errors.name : ""}
 							/>
 							<Button type="submit" className="w-full" disabled={isPending}>
-								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Examination"}
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Category"}
 							</Button>
 						</form>
 					</div>

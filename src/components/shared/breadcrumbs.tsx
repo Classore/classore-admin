@@ -1,16 +1,20 @@
 import Link from "next/link";
 import React from "react";
 
+import { ChangeDirectory } from "../dashboard";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 
 export interface BreadcrumbItemProps {
 	label: string;
 	href: string;
 	active?: boolean;
+	change_directory?: boolean;
 	variant?: "default" | "error" | "info" | "success" | "warning";
 }
 
 interface Props {
+	courseId: string;
 	links: BreadcrumbItemProps[];
 	className?: string;
 }
@@ -23,7 +27,9 @@ const variants = {
 	warning: "text-amber-500 hover:text-amber-400",
 };
 
-export const Breadcrumbs = ({ links, className }: Props) => {
+export const Breadcrumbs = ({ courseId, links, className }: Props) => {
+	const [open, setOpen] = React.useState(false);
+
 	return (
 		<nav aria-label="Breadcrumb" className={className}>
 			<ol className="flex items-center text-xs">
@@ -42,9 +48,24 @@ export const Breadcrumbs = ({ links, className }: Props) => {
 								{link.label}
 							</Link>
 						) : (
-							<span className={`capitalize ${variants[link.variant || "default"]}`}>
-								{link.label}
-							</span>
+							<>
+								{link.change_directory ? (
+									<Dialog open={open} onOpenChange={setOpen}>
+										<DialogTrigger asChild>
+											<button className={`capitalize ${variants[link.variant || "default"]}`}>
+												{link.label}
+											</button>
+										</DialogTrigger>
+										<DialogContent className="w-[400px] p-1">
+											<ChangeDirectory courseId={courseId} onOpenChange={setOpen} />
+										</DialogContent>
+									</Dialog>
+								) : (
+									<span className={`capitalize ${variants[link.variant || "default"]}`}>
+										{link.label}
+									</span>
+								)}
+							</>
 						)}
 					</li>
 				))}

@@ -1,7 +1,8 @@
-import { RiDeleteBin6Line, RiInformationLine } from "@remixicon/react";
+import { RiDeleteBin6Line, RiEdit2Line, RiInformationLine } from "@remixicon/react";
 import Link from "next/link";
 import React from "react";
 
+import { EditSubcategory } from "../dashboard";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import {
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export const ExamActions = ({ id }: Props) => {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = React.useState({ edit: false, remove: false });
 
 	return (
 		<div className="flex w-full flex-col gap-y-1">
@@ -26,7 +27,19 @@ export const ExamActions = ({ id }: Props) => {
 				className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 				<RiInformationLine size={18} /> View Details
 			</Link>
-			<Dialog open={open} onOpenChange={setOpen}>
+			<Dialog open={open.edit} onOpenChange={(edit) => setOpen({ ...open, edit })}>
+				<DialogTrigger asChild>
+					<button
+						onClick={() => {}}
+						className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
+						<RiEdit2Line size={18} /> Edit Details
+					</button>
+				</DialogTrigger>
+				<DialogContent className="w-[500px] p-1">
+					<EditSubcategory id={id} onOpenChange={(edit) => setOpen({ ...open, edit })} />
+				</DialogContent>
+			</Dialog>
+			<Dialog open={open.remove} onOpenChange={(remove) => setOpen({ ...open, remove })}>
 				<DialogTrigger asChild>
 					<button
 						onClick={() => {}}
@@ -40,7 +53,10 @@ export const ExamActions = ({ id }: Props) => {
 						<DialogTitle className="my-4">Delete Exam Bundle</DialogTitle>
 						<DialogDescription>Are you sure you want to delete this bundle?</DialogDescription>
 						<div className="mt-6 flex w-full items-center justify-end gap-x-4">
-							<Button onClick={() => setOpen(false)} className="w-fit" variant="outline">
+							<Button
+								onClick={() => setOpen({ ...open, remove: false })}
+								className="w-fit"
+								variant="outline">
 								Cancel
 							</Button>
 							<Button className="w-fit" variant="destructive">
