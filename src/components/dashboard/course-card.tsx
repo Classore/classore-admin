@@ -269,7 +269,7 @@ export const CourseCard = ({
 	return (
 		<div
 			onClick={() => onSelectChapter(index)}
-			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
+			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500 shadow-xl" : "border-transparent"}`}>
 			<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
 				<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
 				<div className="flex items-center">
