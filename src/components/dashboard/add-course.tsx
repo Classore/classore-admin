@@ -56,7 +56,7 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient
-				.invalidateQueries({ queryKey: ["get-bundle", "get-subjects"] })
+				.invalidateQueries({ queryKey: ["get-bundle", "get-subject", "get-subjects"] })
 				.then(() => {
 					onOpenChange(false);
 				});

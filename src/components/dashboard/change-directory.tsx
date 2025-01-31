@@ -1,4 +1,4 @@
-import { useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { RiBookLine } from "@remixicon/react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -7,6 +7,7 @@ import React from "react";
 import type { BundlesResponse, ExaminationResponse } from "@/queries";
 import { DialogDescription, DialogTitle } from "../ui/dialog";
 import { GetExaminations, GetBundles } from "@/queries";
+import type { ChangeDirectoryDto } from "@/queries";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import {
@@ -19,18 +20,32 @@ import {
 
 interface Props {
 	courseId: string;
+	currentCategory: string;
+	currentSubcategory: string;
 	onOpenChange: (open: boolean) => void;
 }
 
-export const ChangeDirectory = ({ onOpenChange }: Props) => {
+export const ChangeDirectory = ({
+	courseId,
+	currentCategory,
+	currentSubcategory,
+	onOpenChange,
+}: Props) => {
+	const {} = useMutation({});
+
+	const initialValues: ChangeDirectoryDto = {
+		examination: currentCategory,
+		bundle: currentSubcategory,
+		subject: courseId,
+	};
+
 	const { errors, handleSubmit, setFieldValue, touched, values } = useFormik({
-		initialValues: {
-			examination: "",
-			bundle: "",
-		},
+		initialValues,
+		validateOnChange: true,
 		validationSchema: Yup.object({
 			examination: Yup.string().required("Examination is required"),
 			bundle: Yup.string().required("Bundle is required"),
+			subject: Yup.string().required("Subject is required"),
 		}),
 		onSubmit: (values) => {
 			console.log(values);
@@ -102,10 +117,10 @@ export const ChangeDirectory = ({ onOpenChange }: Props) => {
 					<SelectTrigger className="uppercase">
 						<SelectValue placeholder="Select Subategory" />
 					</SelectTrigger>
-					<SelectContent className="uppercase">
+					<SelectContent className="">
 						{bundles?.map((bundle) => (
 							<SelectItem key={bundle.examinationbundle_id} value={bundle.examinationbundle_id}>
-								{bundle.examinationbundle_name}
+								{bundle.examinationbundle_name.toUpperCase()}
 							</SelectItem>
 						))}
 					</SelectContent>

@@ -50,6 +50,12 @@ export interface SubjectResponse {
 	name: string;
 }
 
+export interface ChangeDirectoryDto {
+	bundle: string;
+	examination: string;
+	subject: string;
+}
+
 export type ExaminationResponse = HttpResponse<PaginatedResponse<CastedExamTypeProps>>;
 export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
 export type BundlesResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;

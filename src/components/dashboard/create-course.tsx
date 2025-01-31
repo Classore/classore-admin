@@ -1,11 +1,14 @@
+import { useMutation } from "@tanstack/react-query";
 import { RiAddLine } from "@remixicon/react";
 import { toast } from "sonner";
 import React from "react";
 
 import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
+import { IsHttpError, httpErrorhandler } from "@/lib";
 import { useCourseStore } from "@/store/z-store";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
+import { DeleteChapter } from "@/queries";
 import { QuizCard } from "./quiz-card";
 import { TabPanel } from "../shared";
 
@@ -41,6 +44,21 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 		return initialChapters;
 	});
 
+	const { isPending, mutateAsync } = useMutation({
+		mutationFn: (id: string) => DeleteChapter(id),
+		mutationKey: ["delete-chapter"],
+		onError: (error) => {
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
+		},
+	});
+
 	const addChapter = () => {
 		setChapters((prev) => {
 			const newChapter: Chapter = {
@@ -63,17 +81,36 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 			return;
 		}
 
-		setChapters((prev) => {
-			const newChapters = prev
-				.filter((ch) => ch.sequence !== chapter.sequence)
-				.map((ch, idx) => ({
-					...ch,
-					sequence: idx,
-				}));
-			return newChapters;
-		});
-		if (sequence >= chapters.length - 1) {
-			setSequence(Math.max(0, sequence - 1));
+		if (chapter.id !== "") {
+			mutateAsync(chapter.id).then(() => {
+				setChapters((prev) => {
+					const newChapters = prev
+						.filter((ch) => ch.sequence !== chapter.sequence)
+						.map((ch, idx) => ({
+							...ch,
+							sequence: idx,
+						}));
+					return newChapters;
+				});
+				if (sequence >= chapters.length - 1) {
+					setSequence(Math.max(0, sequence - 1));
+					toast.success("Chapter deleted successfully");
+				}
+			});
+		} else {
+			setChapters((prev) => {
+				const newChapters = prev
+					.filter((ch) => ch.sequence !== chapter.sequence)
+					.map((ch, idx) => ({
+						...ch,
+						sequence: idx,
+					}));
+				return newChapters;
+			});
+			if (sequence >= chapters.length - 1) {
+				setSequence(Math.max(0, sequence - 1));
+				toast.success("Chapter deleted successfully");
+			}
 		}
 	};
 
@@ -146,6 +183,7 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 							addChapter={addChapter}
 							chapter={chapter}
 							index={index}
+							isPending={isPending}
 							isSelected={index === sequence}
 							lesson={module}
 							onDelete={deleteChapter}

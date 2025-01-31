@@ -17,6 +17,8 @@ interface Props {
 	courseId: string;
 	links: BreadcrumbItemProps[];
 	className?: string;
+	currentSubcategory?: string;
+	currentCategory?: string;
 }
 
 const variants = {
@@ -27,7 +29,13 @@ const variants = {
 	warning: "text-amber-500 hover:text-amber-400",
 };
 
-export const Breadcrumbs = ({ courseId, links, className }: Props) => {
+export const Breadcrumbs = ({
+	courseId,
+	currentCategory,
+	currentSubcategory,
+	links,
+	className,
+}: Props) => {
 	const [open, setOpen] = React.useState(false);
 
 	return (
@@ -57,7 +65,12 @@ export const Breadcrumbs = ({ courseId, links, className }: Props) => {
 											</button>
 										</DialogTrigger>
 										<DialogContent className="w-[400px] p-1">
-											<ChangeDirectory courseId={courseId} onOpenChange={setOpen} />
+											<ChangeDirectory
+												courseId={courseId}
+												currentCategory={String(currentCategory)}
+												currentSubcategory={String(currentSubcategory)}
+												onOpenChange={setOpen}
+											/>
 										</DialogContent>
 									</Dialog>
 								) : (

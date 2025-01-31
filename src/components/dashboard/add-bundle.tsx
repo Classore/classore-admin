@@ -148,7 +148,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 					<RiAddLine /> Add New subcategory
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-[500px] p-1">
+			<DialogContent className="max-h-[80vh] w-[500px] overflow-y-auto p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<div className="space-y-5">
 						<IconLabel icon={RiBookMarkedLine} />
