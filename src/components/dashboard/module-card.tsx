@@ -105,15 +105,17 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	return (
 		<div className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
-				<div className="space-y-2">
-					<p className="text-xs font-medium text-neutral-500">
-						CHAPTER {chapter.sequence + 1}
-					</p>
-					<h5
-						className={`text-lg font-medium capitalize ${module?.title ? "text-black" : "text-neutral-300"}`}>
-						{chapter.name}: {module?.title || "Input title 'e.g. Introduction to Algebra'"}
-					</h5>
-				</div>
+				{chapter && (
+					<div className="space-y-2">
+						<p className="text-xs font-medium text-neutral-500">
+							CHAPTER {chapter.sequence + 1}
+						</p>
+						<h5
+							className={`text-lg font-medium capitalize ${module?.title ? "text-black" : "text-neutral-300"}`}>
+							{chapter.name}: {module?.title || "Input title 'e.g. Introduction to Algebra'"}
+						</h5>
+					</div>
+				)}
 				{hasVideo && (
 					<button className="flex items-center gap-x-2 rounded-md bg-white px-2 py-1.5 text-sm font-medium">
 						Change Video

@@ -170,7 +170,7 @@ export const QuestionCard = ({
 		};
 		setQuestion(updatedQuestion);
 		onUpdateQuestions(updatedQuestion);
-	}, []);
+	}, [handleSettingsChange, onUpdateQuestions, question, questionSettings.randomized]);
 
 	const setCorrectOption = (index: number) => {
 		const updatedOptions: CreateOptionsDto[] = question.options.map((option, i) => {

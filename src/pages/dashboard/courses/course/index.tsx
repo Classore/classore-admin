@@ -63,7 +63,12 @@ const Page = () => {
 									<h3 className="text-lg font-medium capitalize">{course?.data.name}</h3>
 								</div>
 							</div>
-							<Breadcrumbs courseId={courseId} links={breadcrumbs} />
+							<Breadcrumbs
+								courseId={courseId}
+								currentCategory={String(course?.data.examination.id)}
+								currentSubcategory={String(course?.data.examination_bundle.id)}
+								links={breadcrumbs}
+							/>
 						</div>
 						<div className="flex items-center gap-x-2">
 							<Button className="w-fit" size="sm" variant="destructive-outline">

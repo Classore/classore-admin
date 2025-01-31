@@ -35,7 +35,7 @@ export const ExamActions = ({ id }: Props) => {
 						<RiEdit2Line size={18} /> Edit Details
 					</button>
 				</DialogTrigger>
-				<DialogContent className="w-[500px] p-1">
+				<DialogContent className="max-h-[80vh] w-[500px] overflow-y-auto p-1">
 					<EditSubcategory id={id} onOpenChange={(edit) => setOpen({ ...open, edit })} />
 				</DialogContent>
 			</Dialog>

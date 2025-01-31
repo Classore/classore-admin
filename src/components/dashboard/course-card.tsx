@@ -32,6 +32,7 @@ interface CardProps {
 	addChapter: () => void;
 	chapter: Chapter;
 	index: number;
+	isPending: boolean;
 	isSelected: boolean;
 	lesson: ChapterModule | null;
 	onDelete: (chapter: Chapter) => void;
@@ -198,7 +199,9 @@ export const CourseCard = ({
 		mutationKey: ["create-chapter"],
 		onSuccess: () => {
 			toast.success("Chapter created successfully");
-			queryClient.invalidateQueries({ queryKey: ["get-subject"] }).then(() => addChapter());
+			queryClient
+				.invalidateQueries({ queryKey: ["get-subject", "get-modules"] })
+				.then(() => addChapter());
 		},
 		onError: (error) => {
 			const isHttpError = IsHttpError(error);
