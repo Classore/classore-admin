@@ -64,7 +64,6 @@ export const CourseCard = ({
 	onSelectModule,
 	setTab,
 }: CardProps) => {
-	console.log("chapter", chapter);
 	const router = useRouter();
 	const subjectId = router.query.courseId as string;
 

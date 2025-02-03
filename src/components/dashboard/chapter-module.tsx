@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { convertHTmlToMd, convertMdToHtml, sanitize } from "@/lib";
 import { queryClient } from "@/providers";
 import { CreateChapterModule, type CreateChapterModuleDto } from "@/queries";
+import { useQuizStore } from "@/store/z-store/quiz";
 import type { ChapterModuleProps, MakeOptional } from "@/types";
 import { Editor } from "../shared";
 import { Button } from "../ui/button";
@@ -63,6 +64,7 @@ export const ChapterModule = ({
 	setTab,
 	...rest
 }: Props) => {
+	const { addQuestion } = useQuizStore((state) => state.actions);
 	// const router = useRouter();
 	// const courseId = router.query.courseId as string;
 
@@ -238,7 +240,10 @@ export const ChapterModule = ({
 					</Dialog>
 					<button
 						type="button"
-						onClick={() => setTab("quiz")}
+						onClick={() => {
+							setTab("quiz");
+							addQuestion();
+						}}
 						className={`flex items-center gap-x-1 rounded bg-neutral-200 px-2 py-1 text-xs capitalize text-neutral-400 hover:bg-neutral-300 ${isSelected ? "bg-white" : "bg-neutral-200"}`}>
 						<RiAddLine size={14} /> Add Quiz
 					</button>

@@ -1,11 +1,11 @@
 import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "sonner";
 
 import { capitalize } from "@/lib";
 import type { CreateQuestionDto } from "@/queries";
 import { CreateQuestions } from "@/queries";
+import { useQuizStore } from "@/store/z-store/quiz";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { Button } from "../ui/button";
 import { QuestionCard } from "./question-card";
@@ -25,16 +25,10 @@ interface QuizProps {
 }
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
-	const [questions, setQuestions] = React.useState<CreateQuestionDto[]>([
-		{
-			content: "",
-			images: [],
-			options: [],
-			question_type: "",
-			sequence: 0,
-			sequence_number: Number(module?.sequence),
-		},
-	]);
+	const questions = useQuizStore((state) => state.questions);
+	const { addQuestion } = useQuizStore((state) => state.actions);
+
+	console.log("questions", questions);
 
 	const {} = useMutation({
 		mutationFn: ({ module_id, payload }: UseMutationProps) =>
@@ -48,6 +42,10 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		},
 	});
 
+	// React.useEffect(() => {
+	// 	addQuestion();
+	// }, []);
+
 	const handleSubmit = () => {
 		if (questions.length === 0) {
 			toast.error("At least one question is required");
@@ -55,6 +53,10 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		}
 		if (questions.some((question) => question.content === "")) {
 			toast.error("All questions must have content");
+			return;
+		}
+		if (questions.some((question) => question.question_type === "")) {
+			toast.error("All questions must have a type");
 			return;
 		}
 		if (
@@ -89,71 +91,9 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 				sequence: index,
 			})),
 		};
+
 		console.log(payload);
 	};
-
-	const handleAddQuestion = () => {
-		setQuestions((prev) => [
-			...prev,
-			{
-				content: "",
-				images: [],
-				options: [],
-				question_type: "",
-				sequence: 0,
-				sequence_number: Number(module?.sequence),
-			},
-		]);
-	};
-
-	const handleDeleteQuestion = (index: number) => {
-		if (questions.length === 1) {
-			toast.error("At least one question is required");
-			return;
-		}
-		setQuestions((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	const handleReorder = (sequence: number, direction: "up" | "down") => {
-		const updatedQuestions = [...questions];
-		const currentIndex = updatedQuestions.findIndex(
-			(question) => question.sequence === sequence
-		);
-		const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-		if (targetIndex >= 0 && targetIndex < updatedQuestions.length) {
-			const [movedQuestion] = updatedQuestions.splice(currentIndex, 1);
-			updatedQuestions.splice(targetIndex, 0, movedQuestion);
-			setQuestions(updatedQuestions);
-		}
-	};
-
-	const handleUpdatequestions = (question: CreateQuestionDto) => {
-		const updatedQuestions = [...questions];
-		const index = updatedQuestions.findIndex((q) => q.sequence === question.sequence);
-		if (index !== -1) {
-			updatedQuestions[index] = question;
-			setQuestions(updatedQuestions);
-		}
-	};
-
-	const handleDuplicateQuestion = (sequence: number) => {
-		const questionToDuplicate = questions.find((q) => q.sequence === sequence);
-		if (questionToDuplicate) {
-			const duplicatedQuestion: CreateQuestionDto = {
-				...questionToDuplicate,
-				sequence: questions.length,
-			};
-			setQuestions((prev) => [...prev, duplicatedQuestion]);
-		}
-	};
-
-	const hasValidQuestions = React.useMemo(() => {
-		return !!questions.some((question) => question.content !== "");
-	}, [questions]);
-
-	React.useEffect(() => {
-		console.log(questions);
-	}, [questions]);
 
 	return (
 		<div className="w-full space-y-4">
@@ -181,7 +121,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			<div className="flex w-full items-center justify-between rounded-lg bg-white p-3">
 				<p className="text-xs text-neutral-400">ALL QUESTIONS</p>
 				<button
-					onClick={handleAddQuestion}
+					onClick={addQuestion}
 					className="flex items-center gap-x-2 rounded-md border border-neutral-400 bg-neutral-100 px-1 py-0.5 text-xs text-neutral-400">
 					<RiAddLine className="size-5" />
 					Add New Question
@@ -190,21 +130,19 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 
 			<div className="w-full space-y-2">
 				{questions.map((question, index) => (
-					<QuestionCard
-						key={index}
-						initialQuestion={question}
-						onDelete={handleDeleteQuestion}
-						onDuplicate={handleDuplicateQuestion}
-						onReorder={handleReorder}
-						onUpdateQuestions={handleUpdatequestions}
-					/>
+					<QuestionCard key={index} question={question} />
 				))}
 			</div>
-			{hasValidQuestions && (
-				<Button className="w-fit" size="sm" onClick={handleSubmit}>
+			{/* {hasValidQuestions && (
+			)} */}
+			<div className="flex items-center gap-2">
+				<Button className="w-32" size="sm" onClick={handleSubmit}>
 					Save Quiz
 				</Button>
-			)}
+				<Button className="w-32" variant="outline" size="sm" onClick={addQuestion}>
+					Add Question
+				</Button>
+			</div>
 		</div>
 	);
 };
