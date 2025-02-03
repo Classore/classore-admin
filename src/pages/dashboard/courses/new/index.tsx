@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
-import { Breadcrumbs, Loading, Seo, TabPanel } from "@/components/shared";
-import type { BreadcrumbItemProps } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { Breadcrumbs, Loading, Seo, TabPanel } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -97,7 +97,7 @@ const Page = () => {
 						</div>
 						<div className="h-full w-full">
 							<TabPanel selected={tab} value="course">
-								<CreateCourse existingChapters={course.data.chapters} subjectId={courseId} />
+								<CreateCourse existingChapters={course.data.chapters} />
 							</TabPanel>
 							<TabPanel selected={tab} value="settings">
 								<QuizSettings />

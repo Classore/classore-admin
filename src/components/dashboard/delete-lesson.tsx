@@ -1,12 +1,11 @@
 import { RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import React from "react";
 
-import { DialogDescription, DialogTitle } from "../ui/dialog";
 import { DeleteChapterModule } from "@/queries";
-import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { DialogDescription, DialogTitle } from "../ui/dialog";
 
 interface Props {
 	lessonId: string;
@@ -14,15 +13,18 @@ interface Props {
 }
 
 export const DeleteLesson = ({ lessonId, onClose }: Props) => {
+	const queryClient = useQueryClient();
+
 	const { isPending, mutate } = useMutation({
 		mutationFn: (id: string) => DeleteChapterModule(id),
 		mutationKey: ["delete-lesson"],
 		onSuccess: () => {
 			toast.success("Lesson deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
-		// onError: () => {
-		// 	toast.error("Failed to delete lesson");
-		// },
+		onError: () => {
+			toast.error("Failed to delete lesson");
+		},
 	});
 
 	return (
