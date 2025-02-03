@@ -1,15 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
 import { RiAddLine } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
+import { httpErrorhandler, IsHttpError } from "@/lib";
+import { DeleteChapter } from "@/queries";
 import { useCourseStore } from "@/store/z-store";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { useRouter } from "next/router";
 import { TabPanel } from "../shared";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
-import { DeleteChapter } from "@/queries";
 import { QuizCard } from "./quiz-card";
 
 interface Props {

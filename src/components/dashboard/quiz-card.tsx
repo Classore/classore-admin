@@ -1,14 +1,14 @@
 import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import React from "react";
+import { toast } from "sonner";
 
-import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
-import type { CreateQuestionDto } from "@/queries";
-import { QuestionCard } from "./question-card";
-import { CreateQuestions } from "@/queries";
-import { Button } from "../ui/button";
 import { capitalize } from "@/lib";
+import type { CreateQuestionDto } from "@/queries";
+import { CreateQuestions } from "@/queries";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { Button } from "../ui/button";
+import { QuestionCard } from "./question-card";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -187,6 +187,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					Add New Question
 				</button>
 			</div>
+
 			<div className="w-full space-y-2">
 				{questions.map((question, index) => (
 					<QuestionCard

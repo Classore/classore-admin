@@ -1,12 +1,10 @@
-import { toast } from "sonner";
-import React from "react";
 import {
 	RiAddLine,
 	RiAlignLeft,
 	RiArrowDownLine,
 	RiArrowUpLine,
-	RiCheckboxMultipleLine,
 	RiCheckboxCircleFill,
+	RiCheckboxMultipleLine,
 	RiContrastLine,
 	RiDeleteBin6Line,
 	RiDraggable,
@@ -14,11 +12,11 @@ import {
 	RiImageLine,
 	RiQuestionLine,
 } from "@remixicon/react";
+import React from "react";
+import { toast } from "sonner";
 
 import type { CreateOptionsDto, CreateQuestionDto } from "@/queries";
 import type { QuestionTypeProps } from "@/types";
-import { Textarea } from "../ui/textarea";
-import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
 import {
 	Select,
@@ -27,6 +25,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
+import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	initialQuestion: CreateQuestionDto;
@@ -256,7 +256,13 @@ export const QuestionCard = ({
 					</div>
 				</div>
 			</div>
+
+			<div>
+
 			<Textarea className="h-40 w-full" />
+			</div>
+
+
 			<div className="flex w-full items-center justify-center gap-x-4">
 				<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
 				<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
