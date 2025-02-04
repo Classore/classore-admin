@@ -1,12 +1,12 @@
-import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { capitalize } from "@/lib";
-import type { CreateQuestionDto } from "@/queries";
 import { CreateQuestions } from "@/queries";
-import { useQuizStore } from "@/store/z-store/quiz";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { Spinner } from "../shared";
 import { Button } from "../ui/button";
 import { QuestionCard } from "./question-card";
 
@@ -15,7 +15,7 @@ type Chapter = MakeOptional<ChapterProps, "createdOn">;
 
 type UseMutationProps = {
 	module_id: string;
-	payload: CreateQuestionDto[];
+	payload: QuestionDto[];
 };
 
 interface QuizProps {
@@ -28,9 +28,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const questions = useQuizStore((state) => state.questions);
 	const { addQuestion } = useQuizStore((state) => state.actions);
 
-	console.log("questions", questions);
-
-	const {} = useMutation({
+	const { mutate, isPending } = useMutation({
 		mutationFn: ({ module_id, payload }: UseMutationProps) =>
 			CreateQuestions(module_id, payload),
 		onSuccess: () => {
@@ -41,10 +39,6 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			console.error(error);
 		},
 	});
-
-	// React.useEffect(() => {
-	// 	addQuestion();
-	// }, []);
 
 	const handleSubmit = () => {
 		if (questions.length === 0) {
@@ -69,7 +63,11 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			return;
 		}
 		if (
-			questions.some((question) => question.options.some((option) => option.content === ""))
+			questions.some((question) =>
+				question.options.some(
+					(option) => question.question_type !== "SHORT_ANSWER" && option.content === ""
+				)
+			)
 		) {
 			toast.error("All options must have content");
 			return;
@@ -77,7 +75,8 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		if (
 			questions.some(
 				(question) =>
-					(question.question_type === "MULTICHOICE" || question.question_type === "BOOLEAN") &&
+					(question.question_type === "MULTICHOICE" ||
+						question.question_type === "YES_OR_NO") &&
 					question.options.every((option) => option.is_correct !== "YES")
 			)
 		) {
@@ -96,7 +95,12 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 	};
 
 	return (
-		<div className="w-full space-y-4">
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				handleSubmit();
+			}}
+			className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-neutral-500">
@@ -120,12 +124,6 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			</div>
 			<div className="flex w-full items-center justify-between rounded-lg bg-white p-3">
 				<p className="text-xs text-neutral-400">ALL QUESTIONS</p>
-				<button
-					onClick={addQuestion}
-					className="flex items-center gap-x-2 rounded-md border border-neutral-400 bg-neutral-100 px-1 py-0.5 text-xs text-neutral-400">
-					<RiAddLine className="size-5" />
-					Add New Question
-				</button>
 			</div>
 
 			<div className="w-full space-y-2">
@@ -133,16 +131,20 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					<QuestionCard key={index} question={question} />
 				))}
 			</div>
-			{/* {hasValidQuestions && (
-			)} */}
+
 			<div className="flex items-center gap-2">
-				<Button className="w-32" size="sm" onClick={handleSubmit}>
-					Save Quiz
+				<Button disabled={isPending} className="w-32" size="sm" type="submit">
+					{isPending ? <Spinner /> : "Save Quiz"}
 				</Button>
-				<Button className="w-32" variant="outline" size="sm" onClick={addQuestion}>
+				<Button
+					disabled={isPending}
+					className="w-32"
+					variant="outline"
+					size="sm"
+					onClick={addQuestion}>
 					Add Question
 				</Button>
 			</div>
-		</div>
+		</form>
 	);
 };

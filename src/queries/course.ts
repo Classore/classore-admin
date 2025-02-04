@@ -1,5 +1,6 @@
-import { axios, createFormDataFromObject } from "@/lib";
 import { endpoints } from "@/config";
+import { axios, createFormDataFromObject } from "@/lib";
+import type { QuestionDto } from "@/store/z-store/quiz";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -89,9 +90,19 @@ const CreateChapterModule = async (
 		.then((res) => res.data);
 };
 
-const CreateQuestions = async (module_id: string, payload: CreateQuestionDto[]) => {
+const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
+	// const formData = new FormData();
+	// for (const key in payload) {
+	// 	formData.append(key, payload[key]);
+	// }
+
 	return axios
-		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, payload)
+		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, payload, {
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "multipart/form-data",
+			},
+		})
 		.then((res) => res.data);
 };
 

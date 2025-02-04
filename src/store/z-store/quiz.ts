@@ -8,7 +8,7 @@ type Option = {
 	images?: File[];
 };
 
-type QuestionDto = {
+export type QuestionDto = {
 	content: string;
 	images: File[];
 	options: Option[];
@@ -31,10 +31,12 @@ type QuizOptions = {
 		setCorrectOption: (id: number, option_id: number) => void;
 		addOptionContent: (id: number, content: string, option_id: number) => void;
 		addQuestionContent: (id: number, content: string) => void;
-		handleDuplicateQuestion: (id: number) => void;
-		moveQuestionUp: (index: number) => void;
-		moveQuestionDown: (index: number) => void;
-		submitQuestions: () => void;
+
+		addImagesToQuestion: (id: number, images: File[]) => void;
+		removeImageFromQuestion: (id: number, image_id: number) => void;
+		// moveQuestionUp: (index: number) => void;
+		// moveQuestionDown: (index: number) => void;
+		// submitQuestions: () => void;
 	};
 };
 
@@ -180,22 +182,33 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 				return { questions: updatedQuestions };
 			});
 		},
-		handleDuplicateQuestion: (id: number) => {
+		addImagesToQuestion: (id: number, images: File[]) => {
 			set((state) => {
-				const questionToDuplicate = state.questions.find((q) => q.sequence === id);
-				if (questionToDuplicate) {
-					const duplicatedQuestion = {
-						...questionToDuplicate,
-						sequence: state.questions.length,
-					};
-					return { questions: [...state.questions, duplicatedQuestion] };
-				}
+				const updatedQuestions = state.questions.map((question) => {
+					if (question.sequence === id) {
+						return { ...question, images };
+					}
+					return question;
+				});
+				return { questions: updatedQuestions };
 			});
 		},
-		submitQuestions: () => {
+		removeImageFromQuestion: (id: number, image_id: number) => {
 			set((state) => {
-				return { questions: state.questions };
+				const updatedQuestions = state.questions.map((question) => {
+					if (question.sequence === id) {
+						const updatedImages = question.images.filter((image, index) => index !== image_id);
+						return { ...question, images: updatedImages };
+					}
+					return question;
+				});
+				return { questions: updatedQuestions };
 			});
 		},
+		// submitQuestions: () => {
+		// 	set((state) => {
+		// 		return { questions: state.questions };
+		// 	});
+		// },
 	},
 }));

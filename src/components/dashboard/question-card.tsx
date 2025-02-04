@@ -7,12 +7,13 @@ import {
 	RiCheckboxMultipleLine,
 	RiContrastLine,
 	RiDeleteBin6Line,
+	RiDeleteBinLine,
 	RiFileCopyLine,
+	RiImageAddLine,
 	RiQuestionLine,
 } from "@remixicon/react";
 
-import type { CreateQuestionDto } from "@/queries";
-import { useQuizStore } from "@/store/z-store/quiz";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import {
@@ -25,7 +26,7 @@ import {
 import { Textarea } from "../ui/textarea";
 
 interface Props {
-	question: CreateQuestionDto;
+	question: QuestionDto;
 	// onDelete: (sequence: number) => void;
 	// onDuplicate: (sequence: number) => void;
 	// onReorder: (sequence: number, direction: "up" | "down") => void;
@@ -34,8 +35,8 @@ interface Props {
 
 const question_types = [
 	{ label: "Multiple Choice", value: "MULTICHOICE", icon: RiCheckboxMultipleLine },
-	{ label: "Short Answer", value: "SHORTANSWER", icon: RiAlignLeft },
-	{ label: "Yes/No", value: "BOOLEAN", icon: RiContrastLine },
+	{ label: "Short Answer", value: "SHORT_ANSWER", icon: RiAlignLeft },
+	{ label: "Yes/No", value: "YES_OR_NO", icon: RiContrastLine },
 	{ label: "Single Choice", value: "SINGLECHOICE", icon: RiCheckboxMultipleLine },
 	// { label: "Media", value: "MEDIA", icon: RiImageLine },
 ];
@@ -51,176 +52,10 @@ export const QuestionCard = ({ question }: Props) => {
 	const {
 		handleTypeChange,
 		addQuestionContent,
-		addOptionContent,
-		addOption,
 		removeQuestion,
-		setCorrectOption,
-		removeOption,
+		addImagesToQuestion,
+		removeImageFromQuestion,
 	} = useQuizStore((state) => state.actions);
-	// const handleQuestionContent =
-	// const [question, setQuestion] = React.useState<CreateQuestionDto>(initialQuestion);
-	// const [questionSettings, setQuestionSettings] = React.useState({
-	// 	randomized: false,
-	// 	required: false,
-	// });
-
-	// const handleSettingsChange = React.useCallback(
-	// 	(key: keyof typeof questionSettings, value: boolean) => {
-	// 		setQuestionSettings((prev) => ({ ...prev, [key]: value }));
-	// 	},
-	// 	[]
-	// );
-
-	// const handleTypeChange = (question_type: QuestionTypeProps) => {
-	// 	let options: CreateOptionsDto[] = [];
-	// 	switch (question_type) {
-	// 		case "MULTICHOICE":
-	// 			options = [{ content: "", is_correct: "NO", sequence_number: 1 }];
-	// 			break;
-	// 		case "BOOLEAN":
-	// 			options = [
-	// 				{ content: "True", is_correct: "YES", sequence_number: 1 },
-	// 				{ content: "False", is_correct: "NO", sequence_number: 2 },
-	// 			];
-	// 			break;
-	// 		case "SHORTANSWER":
-	// 			options = [{ content: "", is_correct: "YES", sequence_number: 1 }];
-	// 			break;
-	// 		case "SINGLECHOICE":
-	// 			options = [{ content: "", is_correct: "YES", sequence_number: 1 }];
-	// 			break;
-	// 		default:
-	// 			options = [];
-	// 	}
-	// 	const updatedQuestion = {
-	// 		...question,
-	// 		question_type,
-	// 		options,
-	// 	};
-	// 	setQuestion(updatedQuestion);
-	// 	onUpdateQuestions(updatedQuestion);
-	// };
-
-	// const addOption = () => {
-	// 	const currentOptionsCount = question.options.length;
-	// 	if (currentOptionsCount >= 4) {
-	// 		toast.error("Maximum options limit for this question type reached");
-	// 		return;
-	// 	}
-	// 	if (question.question_type !== "MULTICHOICE") {
-	// 		toast.error("Options can only be added to multiple choice questions");
-	// 		return;
-	// 	}
-	// 	const option: CreateOptionsDto = {
-	// 		content: "",
-	// 		is_correct: "NO",
-	// 		sequence_number: currentOptionsCount + 1,
-	// 	};
-	// 	const updatedOptions = [...question.options, option];
-	// 	const updatedQuestion = {
-	// 		...question,
-	// 		options: updatedOptions,
-	// 	};
-	// 	setQuestion(updatedQuestion);
-	// 	onUpdateQuestions(updatedQuestion);
-	// };
-
-	// const removeOption = (index: number) => {
-	// 	if (question.question_type === "MULTICHOICE") {
-	// 		if (question.options.length === 1) {
-	// 			toast.error("At least one option is required");
-	// 			return;
-	// 		}
-	// 		const updatedOptions = question.options.filter((_, i) => i !== index);
-	// 		const updatedQuestion = {
-	// 			...question,
-	// 			options: updatedOptions,
-	// 		};
-	// 		setQuestion(updatedQuestion);
-	// 		onUpdateQuestions(updatedQuestion);
-	// 	}
-	// };
-
-	// const updateOption = (index: number, content: string) => {
-	// 	const updatedOptions = question.options.map((option, i) =>
-	// 		i + 1 === index ? { ...option, content } : option
-	// 	);
-
-	// 	const updatedQuestion = {
-	// 		...question,
-	// 		options: updatedOptions,
-	// 	};
-	// 	setQuestion(updatedQuestion);
-	// 	onUpdateQuestions(updatedQuestion);
-	// };
-
-	// const randomizeOptions = React.useCallback(() => {
-	// 	if (question.question_type !== "MULTICHOICE") {
-	// 		toast.error("Options can only be randomized for multiple choice questions");
-	// 		handleSettingsChange("randomized", !questionSettings.randomized);
-	// 		return;
-	// 	}
-	// 	const updatedOptions = [...question.options];
-	// 	for (let i = updatedOptions.length - 1; i > 0; i--) {
-	// 		const j = Math.floor(Math.random() * (i + 1));
-	// 		[updatedOptions[i], updatedOptions[j]] = [updatedOptions[j], updatedOptions[i]];
-	// 	}
-	// 	const updatedQuestion = {
-	// 		...question,
-	// 		options: updatedOptions,
-	// 	};
-	// 	setQuestion(updatedQuestion);
-	// 	onUpdateQuestions(updatedQuestion);
-	// }, [handleSettingsChange, onUpdateQuestions, question, questionSettings.randomized]);
-
-	// const setCorrectOption = (index: number) => {
-	// 	const updatedOptions: CreateOptionsDto[] = question.options.map((option, i) => {
-	// 		if (i === index) {
-	// 			return {
-	// 				...option,
-	// 				is_correct: option.is_correct === "YES" ? "NO" : "YES",
-	// 			};
-	// 		} else {
-	// 			return option.is_correct === "YES" && question.options[index].is_correct !== "YES"
-	// 				? { ...option, is_correct: "NO" }
-	// 				: option;
-	// 		}
-	// 	});
-
-	// 	const updatedQuestion = {
-	// 		...question,
-	// 		options: updatedOptions,
-	// 	};
-	// 	setQuestion(updatedQuestion);
-	// 	// This is replacing the data coming from the parent instead of merging the two, how do i achieve that?
-
-	// 	onUpdateQuestions(updatedQuestion);
-	// };
-
-	// const handleQuestionAction = (label: string) => {
-	// 	switch (label) {
-	// 		case "up":
-	// 			onReorder(question.sequence, "up");
-	// 			break;
-	// 		case "down":
-	// 			onReorder(question.sequence, "down");
-	// 			break;
-	// 		case "duplicate":
-	// 			onDuplicate(question.sequence);
-	// 			break;
-	// 		case "delete":
-	// 			onDelete(question.sequence);
-	// 			break;
-	// 	}
-	// };
-
-	// React.useEffect(() => {
-	// 	if (questionSettings.randomized) {
-	// 		randomizeOptions();
-	// 	} else {
-	// 		handleSettingsChange("randomized", false);
-	// 	}
-	// }, [handleSettingsChange, questionSettings.randomized, randomizeOptions]);
 
 	return (
 		<div className="space-y-3 rounded-lg bg-white p-4">
@@ -264,13 +99,58 @@ export const QuestionCard = ({ question }: Props) => {
 				</div>
 			</div>
 
-			<div>
+			<div className="relative flex flex-col gap-2">
 				<Textarea
 					value={question.content}
 					onChange={(e) => addQuestionContent(question.sequence_number, e.target.value)}
-					className="h-40 w-full text-base"
+					className="h-44 w-full md:text-sm"
 				/>
+
+				<label className="absolute bottom-2 right-2 ml-auto">
+					<input
+						// value={question.images}
+						onChange={(e) => {
+							const files = Array.from(e.target.files ?? []);
+							addImagesToQuestion(question.sequence_number, files);
+						}}
+						type="file"
+						accept="image/*"
+						multiple
+						maxLength={4}
+						className="peer sr-only"
+					/>
+
+					<div className="flex w-fit cursor-pointer items-center gap-x-2 rounded-md border border-neutral-200 bg-neutral-100 px-2 py-1 text-xs text-neutral-400 transition-all peer-focus:border-2 peer-focus:border-primary-300">
+						<RiImageAddLine className="size-4" />
+						<span>Upload Image</span>
+					</div>
+				</label>
 			</div>
+
+			{question.images.length ? (
+				<ul className="grid grid-cols-4 gap-x-2">
+					{question.images.map((image, index) => {
+						const source = URL.createObjectURL(image);
+
+						return (
+							<li key={index} className="relative">
+								{/* eslint-disable-next-line @next/next/no-img-element */}
+								<img alt="" className="size-32 rounded-md" src={source} />
+
+								<button
+									type="button"
+									onClick={() => {
+										removeImageFromQuestion(question.sequence_number, index);
+										URL.revokeObjectURL(source);
+									}}
+									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
+									<RiDeleteBinLine className="size-4" />
+								</button>
+							</li>
+						);
+					})}
+				</ul>
+			) : null}
 
 			{/* Randomizer */}
 			{/* <div className="flex w-full items-center justify-center gap-x-4">
@@ -300,7 +180,7 @@ export const QuestionCard = ({ question }: Props) => {
 				</div>
 			)}
 
-			{question.question_type === "BOOLEAN" && (
+			{question.question_type === "YES_OR_NO" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
 					<div className="w-full space-y-2">
@@ -314,12 +194,12 @@ export const QuestionCard = ({ question }: Props) => {
 					<div className="w-full space-y-2"></div>
 				</div>
 			)}
-			{question.question_type === "SHORTANSWER" && (
+			{question.question_type === "SHORT_ANSWER" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
-					<div className="w-full">
+					{/* <div className="w-full">
 						<OptionItem question={question} />
-					</div>
+					</div> */}
 				</div>
 			)}
 			{/* {question.question_type === "MEDIA" && (
@@ -332,7 +212,7 @@ export const QuestionCard = ({ question }: Props) => {
 	);
 };
 
-const OptionItem = ({ question }: { question: CreateQuestionDto }) => {
+const OptionItem = ({ question }: { question: QuestionDto }) => {
 	const { addOptionContent, addOption, setCorrectOption, removeOption } = useQuizStore(
 		(state) => state.actions
 	);
@@ -384,7 +264,7 @@ const OptionItem = ({ question }: { question: CreateQuestionDto }) => {
 							</div>
 						</div>
 
-						{question.question_type !== "BOOLEAN" && (
+						{question.question_type !== "YES_OR_NO" && (
 							<button
 								onClick={() => removeOption(question.sequence_number, option.sequence_number)}
 								className="grid size-6 place-items-center rounded-md border">
@@ -394,25 +274,28 @@ const OptionItem = ({ question }: { question: CreateQuestionDto }) => {
 					</div>
 				))}
 			</div>
-			<Button
-				type="button"
-				onClick={() => {
-					if (question.options.length >= 4) {
-						toast.error("Maximum options limit for this question type reached");
-						return;
-					}
 
-					if (question.question_type !== "MULTICHOICE") {
-						toast.error("Options can only be added to multiple choice questions");
-						return;
-					}
-					addOption(question.sequence_number);
-				}}
-				className="w-fit focus:border-primary-300"
-				size="xs"
-				variant="dotted">
-				<RiAddLine className="size-4" /> Add Option
-			</Button>
+			{question.question_type === "MULTICHOICE" ? (
+				<Button
+					type="button"
+					onClick={() => {
+						if (question.options.length >= 4) {
+							toast.error("Maximum options limit for this question type reached");
+							return;
+						}
+
+						if (question.question_type !== "MULTICHOICE") {
+							toast.error("Options can only be added to multiple choice questions");
+							return;
+						}
+						addOption(question.sequence_number);
+					}}
+					className="w-fit focus:border-primary-300"
+					size="xs"
+					variant="dotted">
+					<RiAddLine className="size-4" /> Add Option
+				</Button>
+			) : null}
 		</>
 	);
 };
