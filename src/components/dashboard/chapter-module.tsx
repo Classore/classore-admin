@@ -1,7 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-import { useFormik } from "formik";
-import { toast } from "sonner";
-import React from "react";
 import {
 	RiAddLine,
 	RiDeleteBin6Line,
@@ -11,16 +7,19 @@ import {
 	RiLoaderLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
+import { useFormik } from "formik";
+import React from "react";
+import { toast } from "sonner";
 
-import { CreateChapterModule, type CreateChapterModuleDto } from "@/queries";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { convertHTmlToMd, convertMdToHtml, sanitize } from "@/lib";
-import type { ChapterModuleProps, MakeOptional } from "@/types";
-import { AddAttachment } from "./add-attachment";
-import { DeleteLesson } from "./delete-lesson";
 import { queryClient } from "@/providers";
-import { Button } from "../ui/button";
+import { CreateChapterModule, type CreateChapterModuleDto } from "@/queries";
+import { useQuizStore } from "@/store/z-store/quiz";
+import type { ChapterModuleProps, MakeOptional } from "@/types";
 import { Editor } from "../shared";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import {
 	Sheet,
 	SheetContent,
@@ -28,6 +27,8 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "../ui/sheet";
+import { AddAttachment } from "./add-attachment";
+import { DeleteLesson } from "./delete-lesson";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
@@ -63,6 +64,10 @@ export const ChapterModule = ({
 	setTab,
 	...rest
 }: Props) => {
+	const { addQuestion } = useQuizStore((state) => state.actions);
+	// const router = useRouter();
+	// const courseId = router.query.courseId as string;
+
 	const [isGrabbing, setIsGrabbing] = React.useState(false);
 	const [open, setOpen] = React.useState({
 		attachment: false,
@@ -147,7 +152,7 @@ export const ChapterModule = ({
 								value={isExistingModule ? module.title : values.title}
 								onChange={handleChange}
 								disabled={isExistingModule || isPending}
-								className="h-6 flex-1 rounded border border-neutral-400 bg-transparent px-1 text-xs outline-0 ring-0 transition-all duration-500 focus:border focus:border-primary-400 focus:outline-0 focus:ring-0 disabled:bg-transparent"
+								className="flex-1 rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-xs outline-0 ring-0 transition-all duration-500 focus:border-2 focus:border-primary-400 focus:outline-0 focus:ring-0 disabled:bg-transparent"
 								placeholder="Lesson title"
 							/>
 						)}
@@ -195,7 +200,7 @@ export const ChapterModule = ({
 								/>
 								<div className="flex w-full items-center justify-end">
 									<Button
-										className="w-fit"
+										className="w-32"
 										onClick={() => setOpen({ ...open, content: false })}
 										size="sm">
 										Save
@@ -204,12 +209,14 @@ export const ChapterModule = ({
 							</div>
 						</SheetContent>
 					</Sheet>
+
 					<button
 						type="button"
 						onClick={() => setTab("video")}
 						className={`flex items-center gap-x-1 rounded bg-neutral-200 px-2 py-1 text-xs capitalize text-neutral-400 hover:bg-neutral-300 ${isSelected ? "bg-white" : "bg-neutral-200"}`}>
 						<RiUploadCloud2Line size={14} /> Upload Video
 					</button>
+
 					<Dialog
 						open={open.attachment}
 						onOpenChange={(attachment) => setOpen({ ...open, attachment })}>
@@ -218,7 +225,7 @@ export const ChapterModule = ({
 								type="button"
 								onClick={() => setOpen({ ...open, attachment: true })}
 								className={`flex items-center gap-x-1 rounded px-2 py-1 text-xs capitalize text-neutral-400 hover:bg-neutral-300 ${isSelected ? "bg-white" : "bg-neutral-200"}`}>
-								<RiFileUploadLine size={14} /> Upload Attachement
+								<RiFileUploadLine size={14} /> Upload Attachment
 							</button>
 						</DialogTrigger>
 						<DialogContent className="w-[400px] p-1">
@@ -233,7 +240,10 @@ export const ChapterModule = ({
 					</Dialog>
 					<button
 						type="button"
-						onClick={() => setTab("quiz")}
+						onClick={() => {
+							setTab("quiz");
+							addQuestion();
+						}}
 						className={`flex items-center gap-x-1 rounded bg-neutral-200 px-2 py-1 text-xs capitalize text-neutral-400 hover:bg-neutral-300 ${isSelected ? "bg-white" : "bg-neutral-200"}`}>
 						<RiAddLine size={14} /> Add Quiz
 					</button>
@@ -251,7 +261,7 @@ export const ChapterModule = ({
 						onOpenChange={(value) => setOpen({ ...open, delete: value })}>
 						<DialogTrigger asChild>
 							<button
-								type="submit"
+								type="button"
 								className="flex items-center gap-x-1 rounded bg-red-400 px-3 py-1.5 text-xs capitalize text-white hover:bg-red-500">
 								Delete Lesson
 							</button>

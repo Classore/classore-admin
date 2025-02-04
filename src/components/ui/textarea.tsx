@@ -12,7 +12,7 @@ const Textarea = React.forwardRef<
 	}
 >(({ className, error, label, labelClassName, wrapperClassName, ...props }, ref) => {
 	return (
-		<div className={cn("flex flex-col gap-1.5 font-body", className)}>
+		<div className={cn("flex flex-col gap-1.5 font-body", wrapperClassName)}>
 			{label && (
 				<label
 					className={cn("text-xs text-neutral-400 dark:text-neutral-50", labelClassName)}

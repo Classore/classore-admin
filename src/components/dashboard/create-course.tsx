@@ -1,45 +1,39 @@
-import { useMutation } from "@tanstack/react-query";
 import { RiAddLine } from "@remixicon/react";
-import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
+import { toast } from "sonner";
 
-import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
-import { IsHttpError, httpErrorhandler } from "@/lib";
+import { httpErrorhandler, IsHttpError } from "@/lib";
+import { DeleteChapter } from "@/queries";
 import { useCourseStore } from "@/store/z-store";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { useRouter } from "next/router";
+import { TabPanel } from "../shared";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
-import { DeleteChapter } from "@/queries";
 import { QuizCard } from "./quiz-card";
-import { TabPanel } from "../shared";
 
 interface Props {
 	existingChapters: Chapter[];
-	subjectId: string;
 }
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
-export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
+export const CreateCourse = ({ existingChapters }: Props) => {
+	const router = useRouter();
+	const subjectId = router.query.courseId as string;
+
 	const [module, setModule] = React.useState<ChapterModule | null>(null);
 	const [sequence, setSequence] = React.useState(0);
 	const [tab, setTab] = React.useState("video");
+
 	const [chapters, setChapters] = React.useState<Chapter[]>(() => {
 		const initialChapters = existingChapters.map((chapter, idx) => ({
 			...chapter,
 			sequence: idx,
 			subject_id: subjectId,
 		}));
-
-		initialChapters.push({
-			content: "",
-			id: "",
-			images: [],
-			name: "",
-			sequence: initialChapters.length,
-			subject_id: subjectId,
-			videos: [],
-		});
 
 		return initialChapters;
 	});
@@ -175,6 +169,7 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 						<RiAddLine size={16} /> Add New Chapter
 					</button>
 				</div>
+
 				<div
 					className={`h-full w-full space-y-4 overflow-y-auto ${chapters.length > 1 ? "pb-10" : ""}`}>
 					{chapters.map((chapter, index) => (
@@ -192,15 +187,17 @@ export const CreateCourse = ({ existingChapters, subjectId }: Props) => {
 							onSelectChapter={setSequence}
 							onSelectModule={onSelectModule}
 							setTab={setTab}
-							subjectId={subjectId}
+							// subjectId={subjectId}
 						/>
 					))}
 				</div>
 			</div>
+
 			<div className="h-full w-full flex-1 space-y-3 rounded-lg bg-neutral-100 p-3">
 				<TabPanel selected={tab} value="video" innerClassName="overflow-y-auto">
 					<ModuleCard chapter={chapters[sequence]} index={sequence} module={module} />
 				</TabPanel>
+
 				<TabPanel selected={tab} value="quiz" innerClassName="overflow-y-auto">
 					<QuizCard chapter={chapters[sequence]} index={sequence} module={module} />
 				</TabPanel>
