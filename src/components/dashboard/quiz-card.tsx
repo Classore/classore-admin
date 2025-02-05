@@ -28,7 +28,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const questions = useQuizStore((state) => state.questions);
 	const { addQuestion } = useQuizStore((state) => state.actions);
 
-	const { mutate, isPending } = useMutation({
+	const { isPending } = useMutation({
 		mutationFn: ({ module_id, payload }: UseMutationProps) =>
 			CreateQuestions(module_id, payload),
 		onSuccess: () => {
