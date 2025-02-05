@@ -84,6 +84,7 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 								break;
 							case "SINGLECHOICE":
 								question.options = [{ content: "", is_correct: "NO", sequence_number: 1 }];
+								break;
 							default:
 								question.options = [];
 						}
@@ -140,9 +141,11 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 					if (question.sequence_number === id) {
 						const updatedOptions = question.options.map((option) => {
 							if (option.sequence_number === option_id) {
-								return { ...option, is_correct: "YES" };
+								const updatedOption: Option = { ...option, is_correct: "YES" };
+								return updatedOption;
 							}
-							return { ...option, is_correct: "NO" };
+							const updatedOption: Option = { ...option, is_correct: "YES" };
+							return updatedOption;
 						});
 						return { ...question, options: updatedOptions };
 					}
@@ -197,7 +200,7 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 			set((state) => {
 				const updatedQuestions = state.questions.map((question) => {
 					if (question.sequence === id) {
-						const updatedImages = question.images.filter((image, index) => index !== image_id);
+						const updatedImages = question.images.filter((_, index) => index !== image_id);
 						return { ...question, images: updatedImages };
 					}
 					return question;
