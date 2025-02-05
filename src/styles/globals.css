@@ -59,7 +59,7 @@ body {
 	background: #f2edf7;
 	color: var(--neutral-900);
 	overflow-x: hidden;
-	user-select: none;
+	/* user-select: none; */
 	width: 100%;
 	transition: colors 0.75s cubic-bezier(0.215, 0.61, 0.355, 1);
 	-webkit-transition: colors 0.75s cubic-bezier(0.215, 0.61, 0.355, 1);

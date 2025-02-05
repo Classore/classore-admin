@@ -1,7 +1,3 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useFormik } from "formik";
-import { toast } from "sonner";
-import React from "react";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -11,19 +7,24 @@ import {
 	RiFolderVideoLine,
 	RiLoaderLine,
 } from "@remixicon/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useFormik } from "formik";
+import React from "react";
+import { toast } from "sonner";
 
-import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { IsHttpError, httpErrorhandler } from "@/lib";
-import { ChapterModule } from "./chapter-module";
-import { queryClient } from "@/providers";
-import { Button } from "../ui/button";
 import { useDrag } from "@/hooks";
+import { IsHttpError, httpErrorhandler } from "@/lib";
+import { queryClient } from "@/providers";
 import {
 	CreateChapter,
 	DeleteChapter,
 	GetChapterModules,
 	type CreateChapterDto,
 } from "@/queries";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { useRouter } from "next/router";
+import { Button } from "../ui/button";
+import { ChapterModule } from "./chapter-module";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
@@ -41,7 +42,6 @@ interface CardProps {
 	onSelectChapter: (index: number) => void;
 	onSelectModule: (module: ChapterModule) => void;
 	setTab: (tab: string) => void;
-	subjectId: string;
 }
 
 const course_actions = [
@@ -63,8 +63,10 @@ export const CourseCard = ({
 	onSelectChapter,
 	onSelectModule,
 	setTab,
-	subjectId,
 }: CardProps) => {
+	const router = useRouter();
+	const subjectId = router.query.courseId as string;
+
 	const { data } = useQuery({
 		queryKey: ["get-modules", chapter.id],
 		queryFn: () => GetChapterModules({ chapter_id: chapter.id }),
@@ -269,7 +271,7 @@ export const CourseCard = ({
 	return (
 		<div
 			onClick={() => onSelectChapter(index)}
-			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500 shadow-xl" : "border-transparent"}`}>
+			className={`w-full rounded-lg border bg-white pb-10 transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
 			<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
 				<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
 				<div className="flex items-center">
@@ -284,6 +286,7 @@ export const CourseCard = ({
 					))}
 				</div>
 			</div>
+
 			<div className="flex w-full flex-col items-center space-y-3 px-4 py-5">
 				<form onSubmit={handleSubmit} className="w-full space-y-2">
 					<div className="w-full rounded-lg border">
@@ -310,14 +313,20 @@ export const CourseCard = ({
 						</div>
 					</div>
 					{values.name && values.content && (
-						<button
-							type="submit"
-							disabled={isCreating}
-							className="rounded-lg bg-primary-400 px-3 py-1.5 text-sm text-white">
-							{isCreating ? <RiLoaderLine className="size-4 animate-spin" /> : "Add Chapter"}
-						</button>
+						<div className="flex items-center gap-2 py-2">
+							<button
+								type="submit"
+								disabled={isCreating}
+								className="rounded-lg bg-primary-400 px-4 py-1.5 text-sm text-white disabled:opacity-50">
+								{isCreating ? <RiLoaderLine className="size-4 animate-spin" /> : "Save Chapter"}
+							</button>
+							<p className="text-xs text-neutral-400">
+								NB: Pls save chapter before adding modules
+							</p>
+						</div>
 					)}
 				</form>
+
 				<div className="w-full space-y-1.5">
 					{modules.map((module, index) => (
 						<ChapterModule
@@ -334,6 +343,7 @@ export const CourseCard = ({
 						/>
 					))}
 				</div>
+
 				<Button
 					onClick={addNewModule}
 					className="max-w-[250px]"

@@ -1,26 +1,26 @@
-import { type HeadingTagType, HeadingNode, $createHeadingNode } from "@lexical/rich-text";
-import { type ListType, ListItemNode, ListNode, $createListNode } from "@lexical/list";
-import type { EditorThemeClasses, ElementFormatType, TextFormatType } from "lexical";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { type ListType, $createListNode, ListItemNode, ListNode } from "@lexical/list";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { type HeadingTagType, $createHeadingNode, HeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
-import { Redo, Undo } from "lucide-react";
-import React from "react";
+import type { EditorThemeClasses, ElementFormatType, TextFormatType } from "lexical";
 import {
+	$getSelection,
+	$insertNodes,
+	$isRangeSelection,
 	FORMAT_ELEMENT_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	REDO_COMMAND,
 	UNDO_COMMAND,
-	$insertNodes,
-	$getSelection,
-	$isRangeSelection,
 } from "lexical";
+import { Redo, Undo } from "lucide-react";
+import React from "react";
 
 import { alignment_types, format_types, heading_types, list_types } from "@/config";
 import { capitalize, cn } from "@/lib";
@@ -40,14 +40,14 @@ const iconSize: Record<string, string> = {
 };
 
 const buttonSize: Record<string, string> = {
-	lg: "size-6 rounded-md",
-	md: "size-5 rounded",
-	sm: "size-4 rounded-sm",
+	lg: "rounded-md",
+	md: "rounded",
+	sm: "rounded-sm",
 };
 
 const editorSize: Record<string, string> = {
 	lg: "text-sm rounded-md",
-	md: "text-xs rounded",
+	md: "text-sm rounded-md",
 	sm: "text-[10px] rounded-sm",
 };
 
@@ -90,19 +90,24 @@ export const Editor = ({
 				theme,
 				onError: (error) => console.error("editor error: ", error),
 			}}>
-			<div className="h-full w-full space-y-2">
-				<div className="flex w-full flex-wrap items-center gap-1">
+			<div className="h-full w-full space-y-4">
+				<div className="flex w-full flex-wrap items-center gap-1 rounded bg-neutral-100 p-2">
 					<CustomHeadingActions size={size} />
 					<CustomTextActions size={size} />
 					<CustomAlignmentActions size={size} />
 					<CustomListActions size={size} />
 					<CustomHistoryActions size={size} />
 				</div>
+
 				<RichTextPlugin
 					contentEditable={
 						<ContentEditable
+							style={{
+								padding: "16px",
+								outline: "none",
+							}}
 							className={cn(
-								"editor min-h-[500px] w-full overflow-y-auto border transition-all duration-500 focus:border-primary-400",
+								"editor max-h-[500px] w-full overflow-y-auto border-2 text-lg transition-all duration-500 focus:border-primary-400",
 								editorSize[size],
 								className
 							)}
@@ -128,13 +133,13 @@ const CustomHistoryActions = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) =>
 		<div className="flex items-center gap-1">
 			<button
 				title="Undo"
-				className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}
+				className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}
 				onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}>
 				<Undo className={`${iconSize[size]}`} />
 			</button>
 			<button
 				title="Redo"
-				className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}
+				className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}
 				onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}>
 				<Redo className={`${iconSize[size]}`} />
 			</button>
@@ -156,7 +161,7 @@ const CustomTextActions = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
 					key={label}
 					title={capitalize(label)}
 					onClick={() => handleClick(label.toLowerCase() as TextFormatType)}
-					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}>
+					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}>
 					<Icon className={`${iconSize[size]}`} />
 				</button>
 			))}
@@ -178,7 +183,7 @@ const CustomAlignmentActions = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) 
 					key={label}
 					title={capitalize(label)}
 					onClick={() => handleClick(label.toLowerCase() as ElementFormatType)}
-					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}>
+					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}>
 					<Icon className={`${iconSize[size]}`} />
 				</button>
 			))}
@@ -205,7 +210,7 @@ const CustomHeadingActions = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) =>
 					key={label}
 					title={capitalize(label)}
 					onClick={() => handleClick(label.toLowerCase() as HeadingTagType)}
-					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}>
+					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}>
 					<Icon className={`${iconSize[size]}`} />
 				</button>
 			))}
@@ -232,7 +237,7 @@ const CustomListActions = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
 					key={label}
 					title={capitalize(label)}
 					onClick={() => handleClick(label.toLowerCase() as ListType)}
-					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 text-primary-400 transition-colors ${buttonSize[size]}`}>
+					className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}>
 					<Icon className={`${iconSize[size]}`} />
 				</button>
 			))}
