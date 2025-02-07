@@ -1,3 +1,4 @@
+import { convertNumberToWord } from "@/lib";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import {
 	RiAddLine,
@@ -9,6 +10,7 @@ import {
 	RiFileCopyLine,
 	RiFolderVideoLine,
 } from "@remixicon/react";
+import * as React from "react";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -17,11 +19,23 @@ const question_actions = [
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
-export const Chapters = () => {
-	const chapters = useChapterStore((state) => state.chapter);
-	const { addChapter, removeChapter, addChapterName, addChapterContent } = chapterActions;
+const {
+	addChapter,
+	removeChapter,
+	addChapterName,
+	addChapterContent,
+	removeLesson,
+	addLesson,
+} = chapterActions;
 
-	console.log("chapter", chapters);
+type ChaptersProps = {
+	lessonTab: string;
+	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
+};
+
+export const Chapters = ({ setLessonTab, lessonTab }: ChaptersProps) => {
+	const chapters = useChapterStore((state) => state.chapters);
+	const lessons = useChapterStore((state) => state.lessons);
 
 	return (
 		<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
@@ -80,20 +94,35 @@ export const Chapters = () => {
 								/>
 							</div>
 
-							<ul>
-								<li className="flex items-center gap-x-3 rounded-md border border-neutral-200 bg-white p-2 text-sm text-neutral-500">
-									<RiDraggable className="size-4" />
-									<p>Lesson One</p>
+							<div className="flex flex-col gap-2">
+								{lessons
+									.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
+									.map((lesson) => (
+										<button
+											key={lesson.sequence}
+											onClick={() => setLessonTab(lesson.id)}
+											className={`flex items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+											<RiDraggable className="size-4" />
+											<p className="flex-1 truncate text-left capitalize">
+												{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
+											</p>
 
-									<button
-										type="button"
-										className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-										<RiDeleteBinLine className="size-4" />
-									</button>
-								</li>
-							</ul>
+											<button
+												onClick={(e) => {
+													e.stopPropagation();
+													setLessonTab("");
+													removeLesson(chapter.sequence, lesson.sequence);
+												}}
+												type="button"
+												className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+												<RiDeleteBinLine className="size-4" />
+											</button>
+										</button>
+									))}
+							</div>
 
 							<button
+								onClick={() => addLesson(chapter.sequence)}
 								type="button"
 								className="mx-auto flex w-52 items-center justify-center gap-1 rounded-md border border-dotted border-neutral-200 bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200">
 								<RiAddLine className="size-4" />
