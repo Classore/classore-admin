@@ -1,6 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import React from "react";
 import {
 	RiFileUploadLine,
 	RiInformationLine,
@@ -8,17 +5,18 @@ import {
 	RiLoaderLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
+import React from "react";
+import { toast } from "sonner";
 
-import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
-import type { UpdateChapterModuleDto } from "@/queries";
-import { IconLabel, VideoPlayer } from "../shared";
-import { AttachmentItem } from "./attachment-item";
 import { useDrag, useFileHandler } from "@/hooks";
-import { AddAttachment } from "./add-attachment";
-import { UpdateChapterModule } from "@/queries";
-import { queryClient } from "@/providers";
-import { Button } from "../ui/button";
 import { embedUrl } from "@/lib";
+import { queryClient } from "@/providers";
+import type { UpdateChapterModuleDto } from "@/queries";
+import { UpdateChapterModule } from "@/queries";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { IconLabel, VideoPlayer } from "../shared";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -26,6 +24,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
+import { AddAttachment } from "./add-attachment";
+import { AttachmentItem } from "./attachment-item";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -125,6 +125,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			{module?.videos.length ? (
 				<div className="w-full space-y-4">
 					<VideoPlayer src={embedUrl(module.videos[0])} />
+
 					<div className="w-full space-y-3 bg-white px-3">
 						<div className="flex h-[52px] w-full items-center justify-between">
 							<p className="text-sm font-medium">File Attachments</p>

@@ -288,7 +288,7 @@ export type OptionsProps = Node & {
 };
 
 export type QuestionTypeProps = OptionalString<
-	"BOOLEAN" | "LONGTEXT" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORTANSWER"
+	"YES_OR_NO" | "LONGTEXT" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORT_ANSWER"
 >;
 
 export type WaitlistUserProps = {

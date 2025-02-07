@@ -1,21 +1,21 @@
-import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import React from "react";
 
-import type { ChapterProps, ChapterModuleProps, MakeOptional } from "@/types";
-import type { CreateQuestionDto } from "@/queries";
-import { QuestionCard } from "./question-card";
-import { CreateQuestions } from "@/queries";
-import { Button } from "../ui/button";
 import { capitalize } from "@/lib";
+import { CreateQuestions } from "@/queries";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { Spinner } from "../shared";
+import { Button } from "../ui/button";
+import { QuestionCard } from "./question-card";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 
 type UseMutationProps = {
 	module_id: string;
-	payload: CreateQuestionDto[];
+	payload: QuestionDto[];
 };
 
 interface QuizProps {
@@ -25,18 +25,10 @@ interface QuizProps {
 }
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
-	const [questions, setQuestions] = React.useState<CreateQuestionDto[]>([
-		{
-			content: "",
-			images: [],
-			options: [],
-			question_type: "",
-			sequence: 0,
-			sequence_number: Number(module?.sequence),
-		},
-	]);
+	const questions = useQuizStore((state) => state.questions);
+	const { addQuestion } = useQuizStore((state) => state.actions);
 
-	const {} = useMutation({
+	const { isPending } = useMutation({
 		mutationFn: ({ module_id, payload }: UseMutationProps) =>
 			CreateQuestions(module_id, payload),
 		onSuccess: () => {
@@ -57,6 +49,10 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			toast.error("All questions must have content");
 			return;
 		}
+		if (questions.some((question) => question.question_type === "")) {
+			toast.error("All questions must have a type");
+			return;
+		}
 		if (
 			questions.some(
 				(question) =>
@@ -67,7 +63,11 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			return;
 		}
 		if (
-			questions.some((question) => question.options.some((option) => option.content === ""))
+			questions.some((question) =>
+				question.options.some(
+					(option) => question.question_type !== "SHORT_ANSWER" && option.content === ""
+				)
+			)
 		) {
 			toast.error("All options must have content");
 			return;
@@ -75,7 +75,8 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		if (
 			questions.some(
 				(question) =>
-					(question.question_type === "MULTICHOICE" || question.question_type === "BOOLEAN") &&
+					(question.question_type === "MULTICHOICE" ||
+						question.question_type === "YES_OR_NO") &&
 					question.options.every((option) => option.is_correct !== "YES")
 			)
 		) {
@@ -89,74 +90,17 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 				sequence: index,
 			})),
 		};
+
 		console.log(payload);
 	};
 
-	const handleAddQuestion = () => {
-		setQuestions((prev) => [
-			...prev,
-			{
-				content: "",
-				images: [],
-				options: [],
-				question_type: "",
-				sequence: 0,
-				sequence_number: Number(module?.sequence),
-			},
-		]);
-	};
-
-	const handleDeleteQuestion = (index: number) => {
-		if (questions.length === 1) {
-			toast.error("At least one question is required");
-			return;
-		}
-		setQuestions((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	const handleReorder = (sequence: number, direction: "up" | "down") => {
-		const updatedQuestions = [...questions];
-		const currentIndex = updatedQuestions.findIndex(
-			(question) => question.sequence === sequence
-		);
-		const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-		if (targetIndex >= 0 && targetIndex < updatedQuestions.length) {
-			const [movedQuestion] = updatedQuestions.splice(currentIndex, 1);
-			updatedQuestions.splice(targetIndex, 0, movedQuestion);
-			setQuestions(updatedQuestions);
-		}
-	};
-
-	const handleUpdatequestions = (question: CreateQuestionDto) => {
-		const updatedQuestions = [...questions];
-		const index = updatedQuestions.findIndex((q) => q.sequence === question.sequence);
-		if (index !== -1) {
-			updatedQuestions[index] = question;
-			setQuestions(updatedQuestions);
-		}
-	};
-
-	const handleDuplicateQuestion = (sequence: number) => {
-		const questionToDuplicate = questions.find((q) => q.sequence === sequence);
-		if (questionToDuplicate) {
-			const duplicatedQuestion: CreateQuestionDto = {
-				...questionToDuplicate,
-				sequence: questions.length,
-			};
-			setQuestions((prev) => [...prev, duplicatedQuestion]);
-		}
-	};
-
-	const hasValidQuestions = React.useMemo(() => {
-		return !!questions.some((question) => question.content !== "");
-	}, [questions]);
-
-	React.useEffect(() => {
-		console.log(questions);
-	}, [questions]);
-
 	return (
-		<div className="w-full space-y-4">
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				handleSubmit();
+			}}
+			className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-neutral-500">
@@ -180,30 +124,27 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			</div>
 			<div className="flex w-full items-center justify-between rounded-lg bg-white p-3">
 				<p className="text-xs text-neutral-400">ALL QUESTIONS</p>
-				<button
-					onClick={handleAddQuestion}
-					className="flex items-center gap-x-2 rounded-md border border-neutral-400 bg-neutral-100 px-1 py-0.5 text-xs text-neutral-400">
-					<RiAddLine className="size-5" />
-					Add New Question
-				</button>
 			</div>
+
 			<div className="w-full space-y-2">
 				{questions.map((question, index) => (
-					<QuestionCard
-						key={index}
-						initialQuestion={question}
-						onDelete={handleDeleteQuestion}
-						onDuplicate={handleDuplicateQuestion}
-						onReorder={handleReorder}
-						onUpdateQuestions={handleUpdatequestions}
-					/>
+					<QuestionCard key={index} question={question} />
 				))}
 			</div>
-			{hasValidQuestions && (
-				<Button className="w-fit" size="sm" onClick={handleSubmit}>
-					Save Quiz
+
+			<div className="flex items-center gap-2">
+				<Button disabled={isPending} className="w-32" size="sm" type="submit">
+					{isPending ? <Spinner /> : "Save Quiz"}
 				</Button>
-			)}
-		</div>
+				<Button
+					disabled={isPending}
+					className="w-32"
+					variant="outline"
+					size="sm"
+					onClick={addQuestion}>
+					Add Question
+				</Button>
+			</div>
+		</form>
 	);
 };

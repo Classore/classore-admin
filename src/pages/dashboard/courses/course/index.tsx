@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
-import { Breadcrumbs, Seo, TabPanel } from "@/components/shared";
-import type { BreadcrumbItemProps } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { Breadcrumbs, Seo, Spinner, TabPanel } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -16,7 +16,7 @@ const Page = () => {
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
-	const [{ data: course }] = useQueries({
+	const [{ data: course, isPending: isCoursePending }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-subject", courseId],
@@ -82,7 +82,8 @@ const Page = () => {
 							</Button>
 						</div>
 					</div>
-					<div className="flex h-[calc(100vh-268px)] w-full flex-col gap-y-6 overflow-hidden rounded-lg bg-white p-5">
+
+					<div className="flex h-[calc(100vh-268px)] w-full flex-col gap-y-6 overflow-y-auto rounded-lg bg-white p-5">
 						<div className="flex h-10 w-full items-center justify-between border-b">
 							<div className="flex items-center gap-x-6">
 								{create_course_tabs.map(({ action, icon: Icon, label }) => (
@@ -98,12 +99,19 @@ const Page = () => {
 								<RiEyeLine size={16} /> Preview
 							</button>
 						</div>
+
+						<p className="mx-auto rounded-md bg-orange-100 p-2 text-center text-xs text-orange-600">
+							NB: Pls make sure there is a chapter saved before trying to add lessons under that
+							chapter.
+						</p>
+
 						<div className="h-full max-h-[calc(100vh-372px)] w-full">
 							<TabPanel selected={tab} value="course">
-								<CreateCourse
-									existingChapters={course?.data.chapters ?? []}
-									subjectId={courseId}
-								/>
+								{isCoursePending ? (
+									<Spinner variant="primary" />
+								) : (
+									<CreateCourse existingChapters={course?.data.chapters ?? []} />
+								)}
 							</TabPanel>
 							<TabPanel selected={tab} value="quiz">
 								<QuizSettings />
