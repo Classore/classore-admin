@@ -1,5 +1,6 @@
 import { CreateCourseTabPanel } from "@/components/create-course";
 import { DashboardLayout } from "@/components/layout";
+import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Seo, Spinner } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
@@ -118,6 +119,7 @@ const Page = () => {
 
 					<div>
 						<CreateCourseTabPanel tab={tab} />
+						<QuizSettingsTab tab={tab} />
 					</div>
 				</section>
 			</DashboardLayout>

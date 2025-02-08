@@ -48,6 +48,7 @@ export const endpoints = (id?: string) => {
 			update_chapter_module: `admin/learning/chapter-module/update-one/${id}`,
 			update_question: `${id}`,
 			delete_entities: "admin/learning/delete-entities",
+			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
 		},
 		users: {
 			all: "/admin/user/get-all",

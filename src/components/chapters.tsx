@@ -1,4 +1,5 @@
 import { convertNumberToWord } from "@/lib";
+import { DeleteEntities, type DeleteEntitiesPayload } from "@/queries";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import {
 	RiAddLine,
@@ -10,6 +11,7 @@ import {
 	RiFileCopyLine,
 	RiFolderVideoLine,
 } from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { Button } from "./ui/button";
 
@@ -40,18 +42,17 @@ export const Chapters = ({
 	lessonTab,
 	onChapterIdChange,
 }: ChaptersProps) => {
-	// const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
 
-	// const { mutate } = useMutation({
-	// 	mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
-	// 	mutationKey: ["delete-entities"],
-	// 	// Using "onSettled" here to mimic something like 😂 optimistic update. invalidate the data no matter the result. Not trying to achieve optimistic update though
-	// 	onSettled: () => {
-	// 		queryClient.invalidateQueries({ queryKey: ["get-modules"] });
-	// 	},
-	// });
+	const { mutate } = useMutation({
+		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
+		mutationKey: ["delete-entities"],
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+		},
+	});
 
 	React.useEffect(() => {
 		// This will notify the parent component when chapter.id changes
@@ -135,10 +136,13 @@ export const Chapters = ({
 												onClick={(e) => {
 													e.stopPropagation();
 													setLessonTab("");
-													// mutate({
-													// 	ids: [lesson.id],
-													// 	model_type: "CHAPTER_MODULE",
-													// });
+													if (lesson.lesson_chapter) {
+														// delete the data immediately and send the request in the background
+														mutate({
+															ids: [lesson.id],
+															model_type: "CHAPTER_MODULE",
+														});
+													}
 													removeLesson(chapter.sequence, lesson.sequence);
 												}}
 												type="button"

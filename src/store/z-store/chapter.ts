@@ -36,6 +36,8 @@ type ChapterActions = {
 	addChapterName: (sequence: number, name: string) => void;
 	addChapterContent: (sequence: number, content: string) => void;
 	setChapters: (chapters: Chapter[]) => void;
+	// moveChapterUp: (sequence: number) => void;
+	// moveChapterDown: (sequence: number) => void;
 
 	// chapter lessons
 	setChapterLessons: (lessons: Lesson[]) => void;
@@ -60,6 +62,7 @@ type ChapterActions = {
 		attachment_index: number,
 		chapter_sequence: number
 	) => void;
+	addLessonTutor: (sequence: number, tutor: string, chapter_sequence: number) => void;
 };
 
 const useChapterStore = create<ChapterState>(() => ({
@@ -259,6 +262,15 @@ const chapterActions: ChapterActions = {
 	},
 	setChapterLessons: (lessons: Lesson[]) => {
 		useChapterStore.setState({ lessons });
+	},
+	addLessonTutor: (sequence: number, tutor: string, chapter_sequence: number) => {
+		useChapterStore.setState((state) => ({
+			lessons: state.lessons.map((lesson) =>
+				lesson.chapter_sequence === chapter_sequence && lesson.sequence === sequence
+					? { ...lesson, tutor }
+					: lesson
+			),
+		}));
 	},
 };
 

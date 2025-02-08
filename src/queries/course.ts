@@ -214,6 +214,21 @@ const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) =
 		.then((res) => res.data);
 };
 
+export type UpdateQuizSettingsPayload = {
+	bench_mark: number;
+	shuffle_questions: string;
+	skip_questions: string;
+	timer_minute: number;
+	timer_hour: number;
+	attempt_limit: number;
+	attempt_reset: number;
+};
+const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload) => {
+	return axios
+		.put(endpoints(id).school.update_quiz_settings, payload)
+		.then((res) => res.data);
+};
+
 export type DeleteEntitiesPayload = {
 	ids: string[];
 	model_type:
@@ -261,5 +276,6 @@ export {
 	UpdateChapter,
 	UpdateChapterModule,
 	UpdateQuestion,
+	UpdateQuizSettings,
 };
 

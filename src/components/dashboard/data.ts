@@ -11,6 +11,7 @@ export type QuestionSettings = {
 	label: string;
 	icon: RemixiconComponentType;
 	hasChildren: boolean;
+	slug: string;
 };
 
 export const answer_settings: QuestionSettings[] = [
@@ -18,15 +19,17 @@ export const answer_settings: QuestionSettings[] = [
 		label: "Assign Pass Mark",
 		icon: RiListCheck3,
 		description:
-			"Let the system automatically shuffle questions for each attempt or anytime they attempt the quiz.",
+			"Allow students to go to another chapter only after they have achieved a certain pass mark.",
 		hasChildren: true,
+		slug: "assign_pass_mark",
 	},
 	{
 		label: "Attempts",
 		icon: RiSkipForwardLine,
 		description:
-			"Allow students to skip questions and allow them to revisit them before the limit is up",
+			"Set the number of attempts a student can take and the frequency at which they can take the quiz.",
 		hasChildren: true,
+		slug: "attempts",
 	},
 ];
 
@@ -37,6 +40,7 @@ export const question_settings: QuestionSettings[] = [
 		description:
 			"Let the system automatically shuffle questions for each attempt or anytime they attempt the quiz.",
 		hasChildren: false,
+		slug: "shuffle_questions",
 	},
 	{
 		label: "Skip Questions",
@@ -44,12 +48,14 @@ export const question_settings: QuestionSettings[] = [
 		description:
 			"Allow students to skip questions and allow them to revisit them before the limit is up",
 		hasChildren: false,
+		slug: "skip_questions",
 	},
 	{
 		label: "Set Timer",
 		icon: RiTimeLine,
 		description:
-			"Allow students to skip questions and allow them to revisit them before the limit is up",
+			"Set a timer for the quiz to ensure students don't spend too much time on a quiz.",
 		hasChildren: true,
+		slug: "set_timer",
 	},
 ];
