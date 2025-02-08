@@ -1,6 +1,8 @@
 import { create } from "zustand";
 
 type Chapter = {
+	// if chapter has this "id", then it means its coming from the backend, i.e user can update chapter and add lesson
+	id: string;
 	name: string;
 	content: string;
 	sequence: number;
@@ -9,15 +11,18 @@ type Chapter = {
 type Lesson = {
 	id: string;
 	chapter_sequence: number;
+	// if lesson has this "lesson_chapter", then it means its coming from the backend, i.e user can update the module/lesson
+	lesson_chapter: string;
 	title: string;
 	content: string;
 	sequence: number;
-	videos: File | null;
-	images: File[];
-	attachments: File[];
+	videos: (File | string)[];
+	images: (File | string)[];
+	attachments: (File | string)[];
 	image_urls: string[];
 	video_urls: string[];
-	attatchment_urls: string[];
+	attachment_urls: string[];
+	tutor: string;
 };
 
 type ChapterState = {
@@ -30,19 +35,24 @@ type ChapterActions = {
 	removeChapter: (sequence: number) => void;
 	addChapterName: (sequence: number, name: string) => void;
 	addChapterContent: (sequence: number, content: string) => void;
-	setValues: (values: Chapter[]) => void;
+	setChapters: (chapters: Chapter[]) => void;
 
 	// chapter lessons
+	setChapterLessons: (lessons: Lesson[]) => void;
 	addLesson: (chapter_sequence: number) => void;
 	removeLesson: (chapter_sequence: number, sequence: number) => void;
 	addLessonTitle: (sequence: number, title: string, chapter_sequence: number) => void;
 	addLessonContent: (sequence: number, content: string, chapter_sequence: number) => void;
-	addLessonVideo: (sequence: number, videos: File, chapter_sequence: number) => void;
+	addLessonVideo: (
+		sequence: number,
+		videos: (File | string)[],
+		chapter_sequence: number
+	) => void;
 	removeLessonVideo: (sequence: number, chapter_sequence: number) => void;
 	// updateVideo: (sequence: number, videos: File, chapter_sequence: string) => void;
 	addLessonAttachments: (
 		sequence: number,
-		attachments: File[],
+		attachments: (File | string)[],
 		chapter_sequence: number
 	) => void;
 	removeLessonAttachment: (
@@ -55,6 +65,7 @@ type ChapterActions = {
 const useChapterStore = create<ChapterState>(() => ({
 	chapters: [
 		{
+			id: "",
 			name: "",
 			content: "",
 			sequence: 1,
@@ -70,6 +81,7 @@ const chapterActions: ChapterActions = {
 			chapters: [
 				...state.chapters,
 				{
+					id: "",
 					name: "",
 					content: "",
 					sequence: state.chapters.length + 1,
@@ -122,9 +134,9 @@ const chapterActions: ChapterActions = {
 			),
 		}));
 	},
-	setValues: (values: Chapter[]) => {
+	setChapters: (chapters: Chapter[]) => {
 		useChapterStore.setState(() => ({
-			chapters: values,
+			chapters,
 		}));
 	},
 
@@ -141,15 +153,17 @@ const chapterActions: ChapterActions = {
 					{
 						id: crypto.randomUUID(),
 						chapter_sequence,
+						lesson_chapter: "",
 						title: "",
 						content: "",
 						sequence: chapterLessonLength + 1,
-						videos: null,
+						videos: [],
 						images: [],
+						tutor: "",
 						attachments: [],
 						image_urls: [],
 						video_urls: [],
-						attatchment_urls: [],
+						attachment_urls: [],
 					},
 				],
 			};
@@ -192,7 +206,11 @@ const chapterActions: ChapterActions = {
 			),
 		}));
 	},
-	addLessonVideo: (sequence: number, video: File, chapter_sequence: number) => {
+	addLessonVideo: (
+		sequence: number,
+		video: (File | string)[],
+		chapter_sequence: number
+	) => {
 		useChapterStore.setState((state) => ({
 			lessons: state.lessons.map((lesson) =>
 				lesson.chapter_sequence === chapter_sequence && lesson.sequence === sequence
@@ -205,14 +223,14 @@ const chapterActions: ChapterActions = {
 		useChapterStore.setState((state) => ({
 			lessons: state.lessons.map((lesson) =>
 				lesson.chapter_sequence === chapter_sequence && lesson.sequence === sequence
-					? { ...lesson, videos: null }
+					? { ...lesson, videos: [] }
 					: lesson
 			),
 		}));
 	},
 	addLessonAttachments: (
 		sequence: number,
-		attachments: File[],
+		attachments: (File | string)[],
 		chapter_sequence: number
 	) => {
 		useChapterStore.setState((state) => ({
@@ -238,6 +256,9 @@ const chapterActions: ChapterActions = {
 					: lesson
 			),
 		}));
+	},
+	setChapterLessons: (lessons: Lesson[]) => {
+		useChapterStore.setState({ lessons });
 	},
 };
 

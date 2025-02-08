@@ -24,16 +24,16 @@ export interface CreateChapterDto {
 }
 
 export interface CreateChapterModuleDto {
-	attachments: File[];
-	attachment_urls: string[];
-	content: string;
-	images: File[];
-	image_urls: string[];
-	sequence: number;
 	title: string;
-	videos: File[];
-	video_urls: string[];
+	content: string;
+	sequence: number;
 	tutor: string;
+	attachment_urls: string[];
+	videos: (File | string)[];
+	images: (File | string)[];
+	attachments: (File | string)[];
+	image_urls: string[];
+	video_urls: string[];
 }
 
 export interface CreateQuestionDto {
@@ -82,22 +82,41 @@ const CreateChapterModule = async (
 	chapter_id: string,
 	payload: CreateChapterModuleDto
 ) => {
-	const formData = createFormDataFromObject(payload);
+	const formdata = new FormData();
+	formdata.append("title", payload.title);
+	formdata.append("content", payload.content);
+	formdata.append("sequence", payload.sequence.toString());
+	formdata.append("tutor", payload.tutor);
+	for (const image of payload.images) {
+		if (typeof image === "string") return formdata.append("images", image);
+		formdata.append("images", image, image.name);
+	}
+
+	for (const video of payload.videos) {
+		if (typeof video === "string") return formdata.append("videos", video);
+		formdata.append("videos", video, video.name);
+	}
+
+	for (const attachment of payload.attachments) {
+		if (typeof attachment === "string") return formdata.append("attachments", attachment);
+		formdata.append("attachments", attachment, attachment.name);
+	}
+
+	for (const video of payload.video_urls) {
+		formdata.append("video_urls", video);
+	}
+
 	return axios
 		.post<
 			HttpResponse<ChapterModuleProps>
-		>(endpoints(chapter_id).school.create_chapter_module, formData)
+		>(endpoints(chapter_id).school.create_chapter_module, formdata)
 		.then((res) => res.data);
 };
 
 const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
-	// const formData = new FormData();
-	// for (const key in payload) {
-	// 	formData.append(key, payload[key]);
-	// }
-
+	const formdata = createFormDataFromObject(payload);
 	return axios
-		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, payload, {
+		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, formdata, {
 			headers: {
 				Accept: "application/json",
 				"Content-Type": "multipart/form-data",
@@ -106,7 +125,12 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		.then((res) => res.data);
 };
 
-const GetChapters = async (params?: PaginationProps & {}) => {
+type GetChaptersParams = Partial<
+	PaginationProps & {
+		subject_id: string;
+	}
+>;
+const GetChapters = async (params?: GetChaptersParams) => {
 	if (params) {
 		for (const key in params) {
 			if (
@@ -118,9 +142,7 @@ const GetChapters = async (params?: PaginationProps & {}) => {
 		}
 	}
 	return axios
-		.get<
-			PaginatedResponse<CastedChapterProps[]>
-		>(endpoints().school.get_chapters, { params })
+		.get<PaginatedResponse<CastedChapterProps>>(endpoints().school.get_chapters, { params })
 		.then((res) => res.data);
 };
 
@@ -192,6 +214,24 @@ const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) =
 		.then((res) => res.data);
 };
 
+export type DeleteEntitiesPayload = {
+	ids: string[];
+	model_type:
+		| "CHAPTER"
+		| "CHAPTER_MODULE"
+		| "QUESTION"
+		| "EXAM_BUNDLE"
+		| "EXAMINATION"
+		| "SUBJECT";
+};
+const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
+	return axios
+		.delete(endpoints().school.delete_entities, {
+			data: payload,
+		})
+		.then((res) => res.data);
+};
+
 const DeleteChapter = async (id: string) => {
 	return id;
 };
@@ -210,6 +250,7 @@ export {
 	CreateQuestions,
 	DeleteChapter,
 	DeleteChapterModule,
+	DeleteEntities,
 	DeleteQuestion,
 	GetChapter,
 	GetChapterModule,
@@ -221,3 +262,4 @@ export {
 	UpdateChapterModule,
 	UpdateQuestion,
 };
+

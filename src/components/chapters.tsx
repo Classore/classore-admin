@@ -11,6 +11,7 @@ import {
 	RiFolderVideoLine,
 } from "@remixicon/react";
 import * as React from "react";
+import { Button } from "./ui/button";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -31,11 +32,34 @@ const {
 type ChaptersProps = {
 	lessonTab: string;
 	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
+	onChapterIdChange?: (chapterId: string | undefined) => void;
 };
 
-export const Chapters = ({ setLessonTab, lessonTab }: ChaptersProps) => {
+export const Chapters = ({
+	setLessonTab,
+	lessonTab,
+	onChapterIdChange,
+}: ChaptersProps) => {
+	// const queryClient = useQueryClient();
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
+
+	// const { mutate } = useMutation({
+	// 	mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
+	// 	mutationKey: ["delete-entities"],
+	// 	// Using "onSettled" here to mimic something like 😂 optimistic update. invalidate the data no matter the result. Not trying to achieve optimistic update though
+	// 	onSettled: () => {
+	// 		queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+	// 	},
+	// });
+
+	React.useEffect(() => {
+		// This will notify the parent component when chapter.id changes
+		const chapterWithId = chapters.find((chapter) => chapter.id);
+		if (onChapterIdChange) {
+			onChapterIdChange(chapterWithId?.id);
+		}
+	}, [chapters, onChapterIdChange]);
 
 	return (
 		<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
@@ -83,7 +107,7 @@ export const Chapters = ({ setLessonTab, lessonTab }: ChaptersProps) => {
 										value={chapter.name}
 										onChange={(e) => addChapterName(chapter.sequence, e.target.value)}
 										placeholder="Enter chapter title"
-										className="w-full rounded-t-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm text-neutral-600 outline-0 ring-0 placeholder:text-neutral-300 focus:ring-0"
+										className="w-full rounded-t-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm text-neutral-600 outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:ring-0"
 									/>
 								</div>
 								<textarea
@@ -111,6 +135,10 @@ export const Chapters = ({ setLessonTab, lessonTab }: ChaptersProps) => {
 												onClick={(e) => {
 													e.stopPropagation();
 													setLessonTab("");
+													// mutate({
+													// 	ids: [lesson.id],
+													// 	model_type: "CHAPTER_MODULE",
+													// });
 													removeLesson(chapter.sequence, lesson.sequence);
 												}}
 												type="button"
@@ -121,13 +149,17 @@ export const Chapters = ({ setLessonTab, lessonTab }: ChaptersProps) => {
 									))}
 							</div>
 
-							<button
-								onClick={() => addLesson(chapter.sequence)}
-								type="button"
-								className="mx-auto flex w-52 items-center justify-center gap-1 rounded-md border border-dotted border-neutral-200 bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200">
-								<RiAddLine className="size-4" />
-								<span>Add new Lesson</span>
-							</button>
+							{chapter.id ? (
+								<button
+									onClick={() => addLesson(chapter.sequence)}
+									type="button"
+									className="mx-auto flex w-52 items-center justify-center gap-1 rounded-md border border-dotted border-neutral-200 bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200">
+									<RiAddLine className="size-4" />
+									<span>Add new Lesson</span>
+								</button>
+							) : (
+								<Button className="w-40 text-sm font-medium">Save Chapter</Button>
+							)}
 						</div>
 					</div>
 				))}
