@@ -1,68 +1,15 @@
 import { CreateCourseTabPanel } from "@/components/create-course";
 import { DashboardLayout } from "@/components/layout";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import { Seo, Spinner } from "@/components/shared";
+import { Seo } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
-import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
 import { RiArrowLeftSLine, RiEyeLine } from "@remixicon/react";
-import { skipToken, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import * as React from "react";
-
-const { setChapters } = chapterActions;
 
 const Page = () => {
 	const [tab, setTab] = React.useState("course");
 	const router = useRouter();
-	const courseId = router.query.courseId as string;
-
-	const {
-		data: course,
-		isPending,
-		isError,
-	} = useQuery({
-		queryKey: ["get-subject", courseId],
-		queryFn: courseId ? () => GetSubject(courseId) : skipToken,
-		staleTime: Infinity,
-		gcTime: Infinity,
-	});
-
-	React.useEffect(() => {
-		if (course) {
-			const chapters = course.data.chapters.map((chapter) => ({
-				name: chapter.name,
-				content: chapter.content,
-				sequence: chapter.sequence,
-				id: chapter.id,
-			}));
-
-			setChapters(chapters);
-		}
-	}, [course]);
-
-	if (isPending) {
-		return (
-			<DashboardLayout>
-				<div className="flex flex-col items-center justify-center gap-2">
-					<Spinner variant="primary" />
-					<p className="text-sm text-primary-300">Fetching course...</p>
-				</div>
-			</DashboardLayout>
-		);
-	}
-
-	if (isError) {
-		return (
-			<DashboardLayout>
-				<div className="flex flex-col items-center justify-center gap-2">
-					<p className="text-sm text-primary-300">Error Fetching course</p>
-					<p className="text-xs text-neutral-400">Refresh the page to try again...</p>
-				</div>
-			</DashboardLayout>
-		);
-	}
 
 	return (
 		<>
@@ -77,7 +24,7 @@ const Page = () => {
 								variant="outline">
 								<RiArrowLeftSLine className="text-neutral-400" /> Back
 							</Button>
-							<h3 className="text-xl font-semibold capitalize">{course.data.name}</h3>
+							<h3 className="text-xl font-semibold">Mathematics</h3>
 						</div>
 					</div>
 
@@ -119,7 +66,6 @@ const Page = () => {
 
 					<div>
 						<CreateCourseTabPanel tab={tab} />
-						<QuizSettingsTab tab={tab} />
 					</div>
 				</section>
 			</DashboardLayout>

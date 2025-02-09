@@ -251,6 +251,13 @@ export type ChapterProps = Node & {
 	images: string[];
 	videos: string[];
 	content: string;
+	bench_mark: string;
+	shuffle_questions: string;
+	skip_questions: string;
+	timer_minute: number;
+	timer_hour: number;
+	attempt_limit: number;
+	attempt_reset: number;
 };
 
 export type ChapterModuleProps = Node & {
