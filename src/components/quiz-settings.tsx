@@ -1,7 +1,12 @@
 import { toKebabCase } from "@/lib";
-import { UpdateQuizSettings, type UpdateQuizSettingsPayload } from "@/queries";
+import {
+	GetSubject,
+	UpdateQuizSettings,
+	type UpdateQuizSettingsPayload,
+} from "@/queries";
 import { quizSettingsActions, useQuizSettingsStore } from "@/store/z-store/quiz-settings";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 import {
@@ -25,10 +30,18 @@ const items: Record<string, React.ReactNode> = {
 	"set-timer": <Timer />,
 };
 
-const { addValue } = quizSettingsActions;
+const { addValue, setValues } = quizSettingsActions;
 export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 	const queryClient = useQueryClient();
 	const setting = useQuizSettingsStore((state) => state);
+
+	const router = useRouter();
+	const courseId = router.query.courseId as string;
+
+	const { data: course } = useQuery({
+		queryKey: ["get-subject", courseId],
+		queryFn: courseId ? () => GetSubject(courseId) : skipToken,
+	});
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: ({ chapter_id, module }: UseMutationProps) =>
@@ -46,23 +59,55 @@ export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 	});
 
 	const onUpdateQuizSettings = () => {
-		if (!setting.timer_hour || !setting.timer_minute) {
+		if (
+			typeof setting.timer_hour !== "number" ||
+			typeof setting.timer_minute !== "number"
+		) {
 			toast.error("Please select a timer duration (hour and minute) for the quiz");
 			return;
 		}
 
-		if (!setting.bench_mark) {
+		if (typeof setting.bench_mark !== "number") {
 			toast.error("Please select a pass mark");
 			return;
 		}
 
-		if (!setting.attempt_limit || !setting.attempt_reset) {
+		if (
+			typeof setting.attempt_limit !== "number" ||
+			typeof setting.attempt_reset !== "number"
+		) {
 			toast.error("Please select a number of attempts and frequency");
 			return;
 		}
 
-		console.log("quiz settings", setting);
+		mutate({
+			chapter_id: course?.data?.chapters[0]?.id ?? "",
+			module: {
+				timer_hour: setting.timer_hour,
+				timer_minute: setting.timer_minute,
+				bench_mark: setting.bench_mark,
+				attempt_limit: setting.attempt_limit,
+				attempt_reset: setting.attempt_reset,
+				shuffle_questions: setting.shuffle_questions ? "YES" : "NO",
+				skip_questions: setting.skip_questions ? "YES" : "NO",
+			},
+		});
 	};
+
+	React.useEffect(() => {
+		if (course) {
+			setValues({
+				timer_hour: course.data.chapters[0].timer_hour,
+				timer_minute: course?.data?.chapters[0]?.timer_minute,
+				bench_mark: Number(course?.data?.chapters[0]?.bench_mark),
+				attempt_limit: course?.data?.chapters[0]?.attempt_limit,
+				attempt_reset: course?.data?.chapters[0]?.attempt_reset,
+				shuffle_questions:
+					course?.data?.chapters[0]?.shuffle_questions === "YES" ? true : false,
+				skip_questions: course?.data?.chapters[0]?.skip_questions === "YES" ? true : false,
+			});
+		}
+	}, [course]);
 
 	return (
 		<TabPanel innerClassName="space-y-4 pt-5" selected={tab} value="quiz">

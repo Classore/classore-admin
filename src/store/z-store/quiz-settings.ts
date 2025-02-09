@@ -17,13 +17,13 @@ type QuizSettingsAction = {
 };
 
 const initialState: QuizSettings = {
-	bench_mark: undefined,
+	bench_mark:undefined,
 	shuffle_questions: false,
 	skip_questions: false,
-	timer_minute: undefined,
-	timer_hour: undefined,
-	attempt_limit: undefined,
-	attempt_reset: undefined,
+	timer_minute:undefined,
+	timer_hour:undefined,
+	attempt_limit:undefined,
+	attempt_reset:undefined,
 };
 
 export const useQuizSettingsStore = create<QuizSettings>(() => ({
