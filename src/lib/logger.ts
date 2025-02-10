@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class Logger {
 	public static LogLevel = {
 		DEBUG: "DEBUG",

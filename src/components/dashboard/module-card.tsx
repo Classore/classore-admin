@@ -298,7 +298,7 @@ const PasteLink = ({
 			setLink("");
 			queryClient.removeQueries({ queryKey: ["update-chapter-module"] });
 		}
-	}, [open, queryClient]);
+	}, [open]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
