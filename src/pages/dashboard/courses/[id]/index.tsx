@@ -7,6 +7,7 @@ import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
 import type { HttpResponse, PaginatedResponse } from "@/types";
 import type { CastedCourseProps } from "@/types/casted-types";
 import { DashboardLayout } from "@/components/layout";
+import { useNavigationStore } from "@/store/z-store";
 import type { ExamBundleResponse } from "@/queries";
 import { AddCourse } from "@/components/dashboard";
 import { GetBundle, GetSubjects } from "@/queries";
@@ -38,9 +39,10 @@ const Page = () => {
 	const router = useRouter();
 	const id = router.query.id as string;
 
+	const { setIds } = useNavigationStore();
 	useDebounce(query, 500);
 
-	const [{ data: bundle }, {}] = useQueries({
+	const [{ data: bundle }, { data: subjects }, {}] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-bundle", id, page],
@@ -49,15 +51,20 @@ const Page = () => {
 				select: (data: unknown) => (data as BundleResponse).data,
 			},
 			{
+				queryKey: ["get-bundle-for-subjects", id],
+				queryFn: () => GetBundle(id, { limit: 50 }),
+				enabled: !!id,
+				select: (data: unknown) => (data as BundleResponse).data.subjects,
+			},
+			{
 				queryKey: ["get-subjects", bundleId, id, page],
 				queryFn: () =>
 					GetSubjects({
 						examination: id,
 						examination_bundle: bundleId,
-						limit: 10,
+						limit: 30,
 						page,
 					}),
-				// enabled: !!(id && bundleId),
 				enabled: false,
 				select: (data: unknown) => (data as CoursesResponse).data,
 			},
@@ -78,6 +85,12 @@ const Page = () => {
 			setBundleId(bundle.examBundle.id);
 		}
 	}, [bundle]);
+
+	React.useEffect(() => {
+		if (subjects) {
+			setIds(subjects.data.map((subject) => subject.subject_id));
+		}
+	}, [setIds, subjects]);
 
 	return (
 		<>

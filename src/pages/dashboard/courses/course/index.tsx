@@ -4,9 +4,11 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
-import { DashboardLayout } from "@/components/layout";
-import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Seo, Spinner, TabPanel } from "@/components/shared";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { DashboardLayout } from "@/components/layout";
+import { useNavigationStore } from "@/store/z-store";
+import { DeleteAction } from "@/components/actions";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -15,6 +17,8 @@ const Page = () => {
 	const [tab, setTab] = React.useState("course");
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
+
+	const { onNavigate } = useNavigationStore();
 
 	const [{ data: course, isPending: isCoursePending }] = useQueries({
 		queries: [
@@ -71,13 +75,11 @@ const Page = () => {
 							/>
 						</div>
 						<div className="flex items-center gap-x-2">
-							<Button className="w-fit" size="sm" variant="destructive-outline">
-								Delete
-							</Button>
+							<DeleteAction id={courseId} />
 							<Button className="w-fit" size="sm" variant="outline">
 								Save and Exit
 							</Button>
-							<Button className="w-fit" size="sm">
+							<Button onClick={onNavigate} className="w-fit" size="sm">
 								Next <RiArrowLeftSLine className="rotate-180" />
 							</Button>
 						</div>

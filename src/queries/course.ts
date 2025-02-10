@@ -1,6 +1,6 @@
-import { endpoints } from "@/config";
 import { axios, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
+import { endpoints } from "@/config";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -91,18 +91,39 @@ const CreateChapterModule = async (
 };
 
 const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
-	// const formData = new FormData();
-	// for (const key in payload) {
-	// 	formData.append(key, payload[key]);
-	// }
-
+	const formData = new FormData();
+	payload.forEach((question, index) => {
+		formData.append(`questions[${index}][sequence]`, question.sequence.toString());
+		formData.append(`questions[${index}][content]`, question.content);
+		formData.append(`questions[${index}][question_type]`, question.question_type);
+		formData.append(
+			`questions[${index}][sequence_number]`,
+			question.sequence_number.toString()
+		);
+		question.images.forEach((image, imageIndex) => {
+			formData.append(`questions[${index}][images][${imageIndex}]`, image, image.name);
+		});
+		question.options?.forEach((option, optionIndex) => {
+			formData.append(
+				`questions[${index}][options][${optionIndex}][sequence_number]`,
+				option.sequence_number.toString()
+			);
+			if (option.content) {
+				formData.append(
+					`questions[${index}][options][${optionIndex}][content]`,
+					option.content
+				);
+			}
+			if (option.is_correct !== undefined) {
+				formData.append(
+					`questions[${index}][options][${optionIndex}][is_correct]`,
+					option.is_correct.toString()
+				);
+			}
+		});
+	});
 	return axios
-		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, payload, {
-			headers: {
-				Accept: "application/json",
-				"Content-Type": "multipart/form-data",
-			},
-		})
+		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, formData)
 		.then((res) => res.data);
 };
 
@@ -142,7 +163,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 		.then((res) => res.data);
 };
 
-const GetQuestions = async (params?: PaginationProps & {}) => {
+const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) => {
 	if (params) {
 		for (const key in params) {
 			if (
@@ -155,7 +176,7 @@ const GetQuestions = async (params?: PaginationProps & {}) => {
 	}
 	return axios
 		.get<
-			PaginatedResponse<CastedQuestionProps[]>
+			HttpResponse<PaginatedResponse<CastedQuestionProps>>
 		>(endpoints().school.get_questions, { params })
 		.then((res) => res.data);
 };
