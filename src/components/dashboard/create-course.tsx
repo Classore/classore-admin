@@ -1,17 +1,17 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { RiAddLine } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
 import React from "react";
 import { toast } from "sonner";
 
-import { httpErrorhandler, IsHttpError } from "@/lib";
-import { DeleteChapter } from "@/queries";
-import { useCourseStore } from "@/store/z-store";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { useRouter } from "next/router";
-import { TabPanel } from "../shared";
+import { useCourseStore, useQuizStore } from "@/store/z-store";
+import { DeleteChapter, GetQuestions } from "@/queries";
+import { httpErrorhandler, IsHttpError } from "@/lib";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
 import { QuizCard } from "./quiz-card";
+import { TabPanel } from "../shared";
 
 interface Props {
 	existingChapters: Chapter[];
@@ -21,6 +21,7 @@ type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
 export const CreateCourse = ({ existingChapters }: Props) => {
+	const {} = useQuizStore((state) => state.actions);
 	const router = useRouter();
 	const subjectId = router.query.courseId as string;
 
@@ -36,6 +37,12 @@ export const CreateCourse = ({ existingChapters }: Props) => {
 		}));
 
 		return initialChapters;
+	});
+
+	const {} = useQuery({
+		queryKey: ["get-questions", chapters[sequence].id, sequence],
+		queryFn: () => GetQuestions({ chapter_id: chapters[sequence].id, limit: 100, page: 1 }),
+		enabled: !!chapters[sequence].id,
 	});
 
 	const { isPending, mutateAsync } = useMutation({

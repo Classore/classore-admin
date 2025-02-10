@@ -9,13 +9,15 @@ import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
-import { useDrag, useFileHandler } from "@/hooks";
-import { embedUrl } from "@/lib";
-import { queryClient } from "@/providers";
-import type { UpdateChapterModuleDto } from "@/queries";
-import { UpdateChapterModule } from "@/queries";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import type { UpdateChapterModuleDto } from "@/queries";
+import { AttachmentItem } from "./attachment-item";
 import { IconLabel, VideoPlayer } from "../shared";
+import { useDrag, useFileHandler } from "@/hooks";
+import { AddAttachment } from "./add-attachment";
+import { UpdateChapterModule } from "@/queries";
+import { embedUrl, validateUrl } from "@/lib";
+import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -24,8 +26,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
-import { AddAttachment } from "./add-attachment";
-import { AttachmentItem } from "./attachment-item";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -42,7 +42,11 @@ interface UseMutationProps {
 }
 
 export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
-	const [open, setOpen] = React.useState({ attachment: false, paste: false });
+	const [open, setOpen] = React.useState({
+		attachment: false,
+		paste: false,
+		video: false,
+	});
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: ({ module_id, module }: UseMutationProps) =>
@@ -266,19 +270,23 @@ const PasteLink = ({
 			toast.error("Please enter a link");
 			return;
 		}
-		let validUrl = "";
+		let url = "";
 		if (!module?.id) {
 			toast.error("Please select a valid module");
 			return;
 		}
 		if (link.startsWith("https://")) {
-			validUrl = link;
+			url = link;
 		} else {
-			validUrl = `https://${link}`;
+			url = `https://${link}`;
+		}
+		const isValidUrl = validateUrl(url);
+		if (!isValidUrl) {
+			toast.error("Please enter a valid url");
+			return;
 		}
 		const video_urls: string[] = [];
-		video_urls.push(validUrl);
-		video_urls.push(validUrl);
+		video_urls.push(url);
 		mutate({
 			module_id: String(module?.id),
 			module: { sequence: Number(module?.sequence), video_urls },
@@ -290,7 +298,7 @@ const PasteLink = ({
 			setLink("");
 			queryClient.removeQueries({ queryKey: ["update-chapter-module"] });
 		}
-	}, [open]);
+	}, [open, queryClient]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiAlignLeft,
@@ -8,13 +9,16 @@ import {
 	RiContrastLine,
 	RiDeleteBin6Line,
 	RiDeleteBinLine,
+	RiDraggable,
 	RiFileCopyLine,
 	RiImageAddLine,
 	RiQuestionLine,
 } from "@remixicon/react";
 
 import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
-import { toast } from "sonner";
+import { Textarea } from "../ui/textarea";
+import { useFileHandler } from "@/hooks";
+import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
 import {
 	Select,
@@ -23,7 +27,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
-import { Textarea } from "../ui/textarea";
 
 interface Props {
 	question: QuestionDto;
@@ -35,10 +38,8 @@ interface Props {
 
 const question_types = [
 	{ label: "Multiple Choice", value: "MULTICHOICE", icon: RiCheckboxMultipleLine },
-	{ label: "Short Answer", value: "SHORT_ANSWER", icon: RiAlignLeft },
+	{ label: "Short Answer", value: "FILL_IN_THE_GAP", icon: RiAlignLeft },
 	{ label: "Yes/No", value: "YES_OR_NO", icon: RiContrastLine },
-	{ label: "Single Choice", value: "SINGLECHOICE", icon: RiCheckboxMultipleLine },
-	// { label: "Media", value: "MEDIA", icon: RiImageLine },
 ];
 
 const question_actions = [
@@ -57,8 +58,24 @@ export const QuestionCard = ({ question }: Props) => {
 		removeImageFromQuestion,
 	} = useQuizStore((state) => state.actions);
 
+	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			addImagesToQuestion(question.sequence_number, files);
+		},
+		fileType: "image",
+		onError: (error) => {
+			toast.error(error);
+		},
+		validationRules: {
+			allowedTypes: ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"],
+			maxFiles: 5,
+			maxSize: 1 * 1024 * 1024, // 1MB
+			minFiles: 1,
+		},
+	});
+
 	return (
-		<div className="space-y-3 rounded-lg bg-white p-4">
+		<div className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
 			<div className="flex h-7 w-full items-center justify-between">
 				<div className="flex items-center gap-x-1.5">
 					<RiQuestionLine className="size-5 text-neutral-400" />
@@ -108,11 +125,8 @@ export const QuestionCard = ({ question }: Props) => {
 
 				<label className="absolute bottom-2 right-2 ml-auto">
 					<input
-						// value={question.images}
-						onChange={(e) => {
-							const files = Array.from(e.target.files ?? []);
-							addImagesToQuestion(question.sequence_number, files);
-						}}
+						ref={inputRef}
+						onChange={handleFileChange}
 						type="file"
 						accept="image/*"
 						multiple
@@ -131,17 +145,15 @@ export const QuestionCard = ({ question }: Props) => {
 				<ul className="grid grid-cols-4 gap-x-2">
 					{question.images.map((image, index) => {
 						const source = URL.createObjectURL(image);
-
 						return (
 							<li key={index} className="relative">
 								{/* eslint-disable-next-line @next/next/no-img-element */}
-								<img alt="" className="size-32 rounded-md" src={source} />
-
+								<img alt="" className="size-32 rounded-md border" src={source} />
 								<button
 									type="button"
 									onClick={() => {
 										removeImageFromQuestion(question.sequence_number, index);
-										URL.revokeObjectURL(source);
+										handleRemoveFile(image);
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
 									<RiDeleteBinLine className="size-4" />
@@ -152,26 +164,27 @@ export const QuestionCard = ({ question }: Props) => {
 				</ul>
 			) : null}
 
-			{/* Randomizer */}
-			{/* <div className="flex w-full items-center justify-center gap-x-4">
-				<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
-				<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
-					<p className="text-xs text-neutral-400">Randomize options</p>
-					<Switch
-						checked={questionSettings.randomized}
-						onCheckedChange={(value) => handleSettingsChange("randomized", value)}
-						className="data-[state=checked]:bg-green-500"
-					/>
+			{question.question_type === "MULTICHOICE" && (
+				<div className="flex w-full items-center justify-center gap-x-4">
+					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
+					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
+						<p className="text-xs text-neutral-400">Randomize options</p>
+						<Switch
+							checked={false}
+							onCheckedChange={() => {}}
+							className="data-[state=checked]:bg-green-500"
+						/>
+					</div>
+					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
+						<p className="text-xs text-neutral-400">Mark as required</p>
+						<Switch
+							checked={false}
+							onCheckedChange={() => {}}
+							className="data-[state=checked]:bg-green-500"
+						/>
+					</div>
 				</div>
-				<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
-					<p className="text-xs text-neutral-400">Mark as required</p>
-					<Switch
-						checked={questionSettings.required}
-						onCheckedChange={(value) => handleSettingsChange("required", value)}
-						className="data-[state=checked]:bg-green-500"
-					/>
-				</div>
-			</div> */}
+			)}
 
 			{question.question_type === "MULTICHOICE" && (
 				<div className="space-y-3">
@@ -188,26 +201,14 @@ export const QuestionCard = ({ question }: Props) => {
 					</div>
 				</div>
 			)}
-			{question.question_type === "SINGLECHOICE" && (
+			{question.question_type === "FILL_IN_THE_GAP" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
-					<div className="w-full space-y-2"></div>
-				</div>
-			)}
-			{question.question_type === "SHORT_ANSWER" && (
-				<div className="space-y-3">
-					<p className="text-sm text-neutral-400">Options</p>
-					{/* <div className="w-full">
+					<div className="w-full space-y-2">
 						<OptionItem question={question} />
-					</div> */}
+					</div>
 				</div>
 			)}
-			{/* {question.question_type === "MEDIA" && (
-				<div className="space-y-3">
-					<p className="text-sm text-neutral-400">Options</p>
-					<div className="w-full space-y-2"></div>
-				</div>
-			)} */}
 		</div>
 	);
 };
@@ -225,15 +226,9 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 						key={index}
 						className="flex h-10 w-full items-center gap-x-4 rounded-lg border border-neutral-400 px-3">
 						<div className="flex flex-1 items-center gap-x-2">
-							{/* <button
-										onMouseDown={() => setIsGrabbing(true)}
-										onMouseUp={() => setIsGrabbing(false)}
-										onMouseLeave={() => setIsGrabbing(false)}
-										type="button"
-										className={`grid size-6 place-items-center p-1 ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}>
-										<RiDraggable className="size-full text-neutral-400" />
-									</button> */}
-
+							<button type="button" className={`grid size-6 place-items-center p-1`}>
+								<RiDraggable className="size-full text-neutral-400" />
+							</button>
 							<input
 								type="text"
 								value={option.content}
@@ -254,6 +249,7 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 									</div>
 								)}
 								<button
+									type="button"
 									onClick={() =>
 										setCorrectOption(question.sequence_number, option.sequence_number)
 									}>

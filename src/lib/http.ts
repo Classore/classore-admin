@@ -1,4 +1,5 @@
 import type { HttpError } from "@/types";
+import { Logger } from "./logger";
 
 type Environment = "development" | "production" | "test";
 
@@ -12,12 +13,7 @@ export const httpErrorhandler = (error: HttpError) => {
 	const errorData = error.response.data;
 
 	if (environment !== "production") {
-		console.error("=== Error Details ===");
-		console.error("Status:", errorData.status);
-		console.error("Error Code:", errorData.errorCode);
-		console.error("Message:", errorData.message);
-		console.error("Error:", errorData.error);
-		console.error("==================");
+		Logger.error("Http Error", error);
 	}
 
 	const formattedMessage = Array.isArray(errorData.message)
@@ -104,4 +100,17 @@ export const createFormDataFromObject = <T extends Record<string, any>>(
 	});
 
 	return formData;
+};
+
+export const validateUrl = (url: string) => {
+	const urlPattern = new RegExp(
+		"^(https?:\\/\\/)?" + // validate protocol
+			"((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
+			"((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
+			"(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
+			"(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
+			"(\\#[-a-z\\d_]*)?$",
+		"i"
+	); // validate fragment locator
+	return !!urlPattern.test(url);
 };
