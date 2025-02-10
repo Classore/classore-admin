@@ -90,7 +90,7 @@ const Page = () => {
 		if (subjects) {
 			setIds(subjects.data.map((subject) => subject.subject_id));
 		}
-	}, [subjects]);
+	}, [setIds, subjects]);
 
 	return (
 		<>
