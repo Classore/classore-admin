@@ -2,20 +2,20 @@ import { RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { capitalize } from "@/lib";
-import { CreateQuestions } from "@/queries";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { Spinner } from "../shared";
-import { Button } from "../ui/button";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import { QuestionCard } from "./question-card";
+import { CreateQuestions } from "@/queries";
+import { Button } from "../ui/button";
+import { Spinner } from "../shared";
+import { capitalize } from "@/lib";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 
 type UseMutationProps = {
 	module_id: string;
-	payload: QuestionDto[];
+	questions: QuestionDto[];
 };
 
 interface QuizProps {
@@ -28,9 +28,9 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const questions = useQuizStore((state) => state.questions);
 	const { addQuestion } = useQuizStore((state) => state.actions);
 
-	const { isPending } = useMutation({
-		mutationFn: ({ module_id, payload }: UseMutationProps) =>
-			CreateQuestions(module_id, payload),
+	const { isPending, mutate } = useMutation({
+		mutationFn: ({ module_id, questions }: UseMutationProps) =>
+			CreateQuestions(module_id, questions),
 		onSuccess: () => {
 			toast.success("Questions created successfully");
 		},
@@ -40,7 +40,9 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		},
 	});
 
-	const handleSubmit = () => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
 		if (questions.length === 0) {
 			toast.error("At least one question is required");
 			return;
@@ -65,7 +67,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		if (
 			questions.some((question) =>
 				question.options.some(
-					(option) => question.question_type !== "SHORT_ANSWER" && option.content === ""
+					(option) => question.question_type !== "FILL_IN_THE_GAP" && option.content === ""
 				)
 			)
 		) {
@@ -85,22 +87,16 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		}
 		const payload: UseMutationProps = {
 			module_id: String(module?.id),
-			payload: questions.map((question, index) => ({
+			questions: questions.map((question, index) => ({
 				...question,
 				sequence: index,
 			})),
 		};
-
-		console.log(payload);
+		mutate(payload);
 	};
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				handleSubmit();
-			}}
-			className="w-full space-y-4">
+		<form onSubmit={handleSubmit} className="w-full space-y-4">
 			<div className="flex w-full items-center justify-between">
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-neutral-500">
@@ -114,10 +110,14 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					</h5>
 				</div>
 				<div className="flex items-center gap-x-2">
-					<button className="grid size-7 place-items-center rounded border bg-white">
+					<button
+						type="button"
+						className="grid size-7 place-items-center rounded border bg-white">
 						<RiArrowLeftSLine className="size-4" />
 					</button>
-					<button className="grid size-7 place-items-center rounded border bg-white">
+					<button
+						type="button"
+						className="grid size-7 place-items-center rounded border bg-white">
 						<RiArrowLeftSLine className="size-4 rotate-180" />
 					</button>
 				</div>
@@ -141,6 +141,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 					className="w-32"
 					variant="outline"
 					size="sm"
+					type="button"
 					onClick={addQuestion}>
 					Add Question
 				</Button>

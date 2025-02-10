@@ -287,8 +287,15 @@ export type OptionsProps = Node & {
 	videos: string[];
 };
 
+//
+export type AnswerProps = {
+	answer: string;
+	answer_id: string;
+	question_id: string;
+};
+
 export type QuestionTypeProps = OptionalString<
-	"YES_OR_NO" | "LONGTEXT" | "MEDIA" | "MULTICHOICE" | "SINGLECHOICE" | "SHORT_ANSWER"
+	"YES_OR_NO" | "MULTICHOICE" | "FILL_IN_THE_GAP"
 >;
 
 export type WaitlistUserProps = {

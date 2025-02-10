@@ -1,3 +1,7 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useFormik } from "formik";
+import { toast } from "sonner";
+import React from "react";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -7,24 +11,20 @@ import {
 	RiFolderVideoLine,
 	RiLoaderLine,
 } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useFormik } from "formik";
-import React from "react";
-import { toast } from "sonner";
 
-import { useDrag } from "@/hooks";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IsHttpError, httpErrorhandler } from "@/lib";
+import { ChapterModule } from "./chapter-module";
 import { queryClient } from "@/providers";
+import { useRouter } from "next/router";
+import { Button } from "../ui/button";
+import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	DeleteChapter,
 	GetChapterModules,
 	type CreateChapterDto,
 } from "@/queries";
-import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { useRouter } from "next/router";
-import { Button } from "../ui/button";
-import { ChapterModule } from "./chapter-module";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
@@ -271,7 +271,7 @@ export const CourseCard = ({
 	return (
 		<div
 			onClick={() => onSelectChapter(index)}
-			className={`w-full rounded-lg border bg-white pb-10 transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
+			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
 			<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
 				<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
 				<div className="flex items-center">
