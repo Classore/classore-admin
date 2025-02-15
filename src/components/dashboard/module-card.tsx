@@ -130,7 +130,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		fileType: "video",
 		validationRules: {
 			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
-			maxSize: 300000000, // 300MB
+			maxSize: 1024 * 1024 * 5, // 500MB
 			maxFiles: 1,
 			minFiles: 1,
 		},
