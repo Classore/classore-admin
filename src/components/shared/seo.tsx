@@ -1,32 +1,32 @@
-import { useRouter } from "next/router"
-import Head from "next/head"
+import { useRouter } from "next/router";
+import Head from "next/head";
 
-const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
-const DEFAULT_OG_IMAGE = "/assets/meta/screenshot.png"
+const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+const DEFAULT_OG_IMAGE = "/assets/meta/screenshot.png";
 
 interface SeoProps {
-	readonly title?: string
-	readonly description?: string
-	readonly siteName?: string
-	readonly canonical?: string
-	readonly ogImage?: string
-	readonly ogType?: string
-	readonly twitterHandle?: string
-	readonly noIndex?: boolean
+	readonly title?: string;
+	readonly description?: string;
+	readonly siteName?: string;
+	readonly canonical?: string;
+	readonly ogImage?: string;
+	readonly ogType?: string;
+	readonly twitterHandle?: string;
+	readonly noIndex?: boolean;
 }
 
 export function Seo({
 	title = "",
-	description = "Discover and book unique accommodations in Nigeria on Spaceet. From cozy apartments to luxurious villas, find the perfect stay for your next adventure. Experience hospitality and create unforgettable memories.",
+	description = "",
 	siteName = "Classore Admin",
 	canonical = APP_URL,
 	ogImage = DEFAULT_OG_IMAGE,
 	ogType = "website",
-	twitterHandle = "SpaceetHq",
+	twitterHandle = "Classore",
 	noIndex = false,
 }: SeoProps) {
-	const router = useRouter()
-	const isHome = router.pathname === "/"
+	const router = useRouter();
+	const isHome = router.pathname === "/";
 
 	return (
 		<Head>
@@ -35,7 +35,7 @@ export function Seo({
 				<meta name="description" content={description} />
 				<meta name="keywords" content="" />
 				<meta name="author" content="Classore" />
-				<link rel="canonical" href="https://classore.com" />
+				<link rel="canonical" href="https://admin.classore.com" />
 
 				<meta key="og_type" property="og:type" content={ogType} />
 				<meta key="og_title" property="og:title" content={title} />
@@ -84,17 +84,17 @@ export function Seo({
 																	"@context": "http://schema.org",
 																	"@type": "WebApplication",
 																	name: "Classore",
-																	url: "https://classore.com",
+																	url: "https://admin.classore.com",
 																	applicationCategory: "BusinessApplication",
 																	operatingSystem: "Any",
 																	description,
 																	features: "",
 																	keywords: "",
-																	screenshot: "https://www.classore.com/meta/screenshot.png",
+																	screenshot: "https://www.admin.classore.com/meta/screenshot.png",
 																	creator: {
 																		"@type": "Organization",
 																		name: "Classore",
-																		url: "https://classore.com",
+																		url: "https://admin.classore.com",
 																	},
 																})}
                 `,
@@ -105,5 +105,5 @@ export function Seo({
 
 			<link rel="canonical" href={canonical ?? APP_URL} />
 		</Head>
-	)
+	);
 }

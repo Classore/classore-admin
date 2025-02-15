@@ -1,12 +1,12 @@
-import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table"
-import React from "react"
+import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import React from "react";
 import {
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
 	Table,
@@ -15,17 +15,19 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+import { RiLoaderLine } from "@remixicon/react";
 
 interface Props<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[]
-	data: TData[]
+	columns: ColumnDef<TData, TValue>[];
+	data: TData[];
+	isLoading?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>) {
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
-	const [rowSelection, setRowSelection] = React.useState({})
+export function DataTable<TData, TValue>({ columns, data, isLoading }: Props<TData, TValue>) {
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [rowSelection, setRowSelection] = React.useState({});
 
 	const table = useReactTable({
 		columns,
@@ -41,11 +43,11 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 			columnFilters,
 			rowSelection,
 		},
-	})
+	});
 
 	return (
 		<div className="w-full">
-			<Table>
+			<Table className="font-body">
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
@@ -56,12 +58,19 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 											? null
 											: flexRender(header.column.columnDef.header, header.getContext())}
 									</TableHead>
-								)
+								);
 							})}
 						</TableRow>
 					))}
 				</TableHeader>
 				<TableBody>
+					{isLoading ? (
+						<TableRow>
+							<TableCell colSpan={columns.length} className="h-[500px] text-center">
+								<RiLoaderLine className="size-8 text-primary-400" />
+							</TableCell>
+						</TableRow>
+					) : null}
 					{table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
@@ -74,7 +83,7 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-24 text-center">
+							<TableCell colSpan={columns.length} className="h-[500px] text-center">
 								No results.
 							</TableCell>
 						</TableRow>
@@ -82,5 +91,5 @@ export function DataTable<TData, TValue>({ columns, data }: Props<TData, TValue>
 				</TableBody>
 			</Table>
 		</div>
-	)
+	);
 }

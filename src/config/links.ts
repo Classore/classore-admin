@@ -1,83 +1,79 @@
-import type { RemixiconComponentType } from "@remixicon/react"
+import {
+	RiAdminLine,
+	RiBarChart2Line,
+	RiBookLine,
+	RiCalendar2Line,
+	RiFlaskLine,
+	RiHourglassLine,
+	RiLogoutBoxRLine,
+	RiMessage3Line,
+	RiMoneyDollarCircleLine,
+	RiSettingsLine,
+	RiTeamLine,
+} from "@remixicon/react";
 
-import type { AdminProps } from "@/types"
+import type { RoleProps } from "@/types";
 
-export type DashboardLinkProps = {
-	label: string
-	links: {
-		label: string
-		href: string
-		icon?: RemixiconComponentType
-	}[]
-}
-
-export const role_access: Record<AdminProps["role"], string[]> = {
-	ADMIN: ["dashboard", "courses", "teacher", "users", "account", "settings"],
-	SUB_TEACHER: ["dashboard", "courses", "account"],
-	SUPER_ADMIN: [
+export const role_access: Record<RoleProps["name"], string[]> = {
+	admin: ["dashboard", "courses", "teacher", "users", "account", "settings"],
+	teacher: ["dashboard", "courses", "account"],
+	super: [
 		"dashboard",
 		"courses",
 		"teachers",
 		"users",
-		"payments",
+		"transactions",
 		"subscriptions",
 		"account",
 		"admins",
+		"roles & permissions",
 		"waitlist",
 		"settings",
 	],
-	TEACHER: ["dashboard", "courses", "account"],
-}
+	sub: ["dashboard", "courses", "account"],
+};
 
-export const dashboard_links: DashboardLinkProps[] = [
-	{
-		label: "main",
-		links: [
-			{
-				label: "dashboard",
-				href: "/dashboard",
-			},
-			{
-				label: "courses",
-				href: "/dashboard/courses",
-			},
-			{
-				label: "users",
-				href: "/dashboard/users",
-			},
-			{
-				label: "payments",
-				href: "/dashboard/payments",
-			},
-			{
-				label: "subscriptions",
-				href: "/dashboard/subscriptions",
-			},
-			{
-				label: "teachers",
-				href: "/dashboard/teachers",
-			},
-			{
-				label: "admins",
-				href: "/dashboard/admins",
-			},
-		],
-	},
-	{
-		label: "others",
-		links: [
-			{
-				label: "account",
-				href: "/dashboard/account",
-			},
-			{
-				label: "waitlist",
-				href: "/dashboard/waitlist",
-			},
-			{
-				label: "settings",
-				href: "/dashboard/settings",
-			},
-		],
-	},
-]
+export const dashboard_links = {
+	label: "admin menu",
+	value: [
+		{
+			id: "1",
+			links: [
+				{ name: "analytics", href: "/dashboard", icon: RiBarChart2Line },
+				{ name: "manage users", href: "/dashboard/users", icon: RiTeamLine },
+				{ name: "manage courses", href: "/dashboard/courses", icon: RiBookLine },
+			],
+		},
+		{
+			id: "2",
+			links: [
+				{ name: "manage forums", href: "/dashboard/forums", icon: RiMessage3Line },
+				{
+					name: "payments",
+					href: "/dashboard/subscriptions",
+					icon: RiMoneyDollarCircleLine,
+				},
+				{
+					name: "manage roles",
+					href: "/dashboard/roles-and-permissions",
+					icon: RiAdminLine,
+				},
+			],
+		},
+		{
+			id: "3",
+			links: [
+				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
+				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
+				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },
+			],
+		},
+		{
+			id: "4",
+			links: [
+				{ name: "waitlist", href: "/dashboard/waitlist", icon: RiHourglassLine },
+				{ name: "log out", href: "", icon: RiLogoutBoxRLine },
+			],
+		},
+	],
+};

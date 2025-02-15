@@ -1,8 +1,8 @@
 // WIP: DO NOT USE (for now at least 😂)
-import { ChevronDown } from "@untitled-ui/icons-react"
-import * as React from "react"
+import { ChevronDown } from "@untitled-ui/icons-react";
+import * as React from "react";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
 	Command,
 	CommandEmpty,
@@ -10,7 +10,7 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 
 const frameworks = [
 	{
@@ -33,11 +33,11 @@ const frameworks = [
 		value: "astro",
 		label: "Astro",
 	},
-]
+];
 
 export const Combobox = () => {
-	const [open, setOpen] = React.useState(false)
-	const [value, setValue] = React.useState("")
+	const [open, setOpen] = React.useState(false);
+	const [value, setValue] = React.useState("");
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -67,8 +67,8 @@ export const Combobox = () => {
 									key={framework.value}
 									value={framework.value}
 									onSelect={(currentValue) => {
-										setValue(currentValue === value ? "" : currentValue)
-										setOpen(false)
+										setValue(currentValue === value ? "" : currentValue);
+										setOpen(false);
 									}}>
 									{framework.label}
 								</CommandItem>
@@ -78,5 +78,5 @@ export const Combobox = () => {
 				</Command>
 			</PopoverContent>
 		</Popover>
-	)
-}
+	);
+};

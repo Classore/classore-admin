@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -71,9 +71,29 @@ const config: Config = {
 					"0%,70%,100%": { opacity: "1" },
 					"20%,50%": { opacity: "0" },
 				},
+				"slide-from-bottom": {
+					"0%": { transform: "translateY(100%)" },
+					"100%": { transform: "translateY(0)" },
+				},
+				"slide-from-left": {
+					"0%": { transform: "translateX(-100%)" },
+					"100%": { transform: "translateX(0)" },
+				},
+				"slide-from-right": {
+					"0%": { transform: "translateX(100%)" },
+					"100%": { transform: "translateX(0)" },
+				},
+				"slide-from-top": {
+					"0%": { transform: "translateY(-100%)" },
+					"100%": { transform: "translateY(0)" },
+				},
 			},
 			animation: {
 				"caret-blink": "caret-blink 1.25s ease-out infinite",
+				"slide-from-bottom": "slide-from-bottom 0.5s ease-out forwards",
+				"slide-from-left": "slide-from-left 0.5s ease-out forwards",
+				"slide-from-right": "slide-from-right 0.5s ease-out forwards",
+				"slide-from-top": "slide-from-top 0.5s ease-out forwards",
 			},
 			boxShadow: {
 				primary: "0 0 0 2px rgba(111,66,193,0.1),0px 0px 0px 3px rgba(111,66,193,0.1)",
@@ -81,6 +101,6 @@ const config: Config = {
 		},
 	},
 	plugins: [require("tailwindcss-animate"), require("@tailwindcss/forms")],
-}
+};
 
-export default config
+export default config;
