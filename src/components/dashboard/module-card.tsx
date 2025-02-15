@@ -9,16 +9,9 @@ import {
 	RiUploadCloud2Line,
 } from "@remixicon/react";
 
-import type {
-	ChapterModuleProps,
-	ChapterProps,
-	HttpError,
-	HttpResponse,
-	MakeOptional,
-} from "@/types";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { axios, createFormDataFromObject, embedUrl, validateUrl } from "@/lib";
 import type { UpdateChapterModuleDto } from "@/queries";
+import { axios, embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
 import { IconLabel, VideoPlayer } from "../shared";
 import { useDrag, useFileHandler } from "@/hooks";
@@ -27,6 +20,13 @@ import { UpdateChapterModule } from "@/queries";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { endpoints } from "@/config";
+import type {
+	ChapterModuleProps,
+	ChapterProps,
+	HttpError,
+	HttpResponse,
+	MakeOptional,
+} from "@/types";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -53,7 +53,11 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ module, module_id }: UseMutationProps) => {
-			const formData = createFormDataFromObject(module);
+			const formData = new FormData();
+			module.videos?.forEach((video) => {
+				formData.append("videos", video);
+			});
+			formData.append("sequence", module.sequence.toString());
 			const controller = new AbortController();
 			const signal = controller.signal;
 			try {
@@ -130,7 +134,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		fileType: "video",
 		validationRules: {
 			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
-			maxSize: 1024 * 1024 * 5, // 500MB
+			maxSize: 1024 * 1024 * 1024 * 5, // 500MB
 			maxFiles: 1,
 			minFiles: 1,
 		},
