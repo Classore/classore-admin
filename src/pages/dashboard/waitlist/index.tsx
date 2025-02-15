@@ -91,9 +91,7 @@ const Page = () => {
 							className="h-10"
 						/>
 						<div className="flex items-center gap-4">
-							<Select
-								value={role}
-								onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
+							<Select value={role} onValueChange={(value) => setRole(value === "ALL" ? "" : value)}>
 								<SelectTrigger className="w-[180px]">
 									<SelectValue placeholder="Filter by role" />
 								</SelectTrigger>
@@ -114,11 +112,7 @@ const Page = () => {
 							</Button>
 						</div>
 					</div>
-					<DataTable
-						columns={waitlistColumns}
-						data={data?.data.data ?? []}
-						isLoading={isLoading}
-					/>
+					<DataTable columns={waitlistColumns} data={data?.data.data ?? []} isLoading={isLoading} />
 					<Pagination
 						current={page}
 						onPageChange={setPage}

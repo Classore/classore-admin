@@ -10,13 +10,7 @@ import { Appbar, IconLabel } from "../shared";
 import { dashboard_links } from "@/config";
 import { Button } from "../ui/button";
 import { normalize } from "@/lib";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-	DialogTrigger,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const [open, setOpen] = React.useState(false);
@@ -44,9 +38,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 						<p className="text-[10px] font-medium uppercase text-neutral-200">admin menu</p>
 						<div className="flex w-full flex-col">
 							{dashboard_links.value.map(({ id, links }) => (
-								<div
-									key={id}
-									className="flex w-full flex-col gap-2 border-b py-4 last:border-b-0">
+								<div key={id} className="flex w-full flex-col gap-2 border-b py-4 last:border-b-0">
 									{links.map(({ href, icon: Icon, name }) => {
 										if (href) {
 											return (
@@ -75,10 +67,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 																</DialogDescription>
 															</div>
 															<div className="flex items-center justify-end gap-x-4">
-																<Button
-																	onClick={() => setOpen(false)}
-																	className="w-fit"
-																	variant="outline">
+																<Button onClick={() => setOpen(false)} className="w-fit" variant="outline">
 																	Cancel
 																</Button>
 																<Button onClick={signOut} className="w-fit" variant="destructive">

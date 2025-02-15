@@ -31,16 +31,9 @@ interface UseMutationProps {
 	module: UpdateChapterModuleDto;
 }
 
-export const AddAttachment = ({
-	id,
-	sequence,
-	setFieldValue,
-	setOpen,
-	values,
-}: Props) => {
+export const AddAttachment = ({ id, sequence, setFieldValue, setOpen, values }: Props) => {
 	const { isPending, mutate } = useMutation({
-		mutationFn: ({ module_id, module }: UseMutationProps) =>
-			UpdateChapterModule(module_id, module),
+		mutationFn: ({ module_id, module }: UseMutationProps) => UpdateChapterModule(module_id, module),
 		mutationKey: ["update-chapter-module"],
 		onSuccess: (data) => {
 			toast.success(data.message);
@@ -147,17 +140,12 @@ export const AddAttachment = ({
 					<p className="text-xs text-neutral-400">Drop files here</p>
 				) : (
 					<p className="text-xs text-neutral-400">
-						<span className="text-amber-500">Click to upload</span> or drag and drop attachments
-						here
+						<span className="text-amber-500">Click to upload</span> or drag and drop attachments here
 					</p>
 				)}
 				<p className="text-center text-xs text-neutral-300">doc, docx, and pdf</p>
 				<div className="relative my-4 h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
-				<Button
-					onClick={handleClick}
-					className="w-[250px]"
-					size="sm"
-					variant="invert-outline">
+				<Button onClick={handleClick} className="w-[250px]" size="sm" variant="invert-outline">
 					<RiUploadCloud2Line /> Upload Attachment
 				</Button>
 			</label>
@@ -201,23 +189,16 @@ const Attachement = ({
 					<RiFileUploadLine className="size-full" />
 				</div>
 				<div className="flex flex-1 flex-col">
-					<p className="text-sm font-medium text-neutral-600">
-						{shortenFileName(attachment.name)}
-					</p>
+					<p className="text-sm font-medium text-neutral-600">{shortenFileName(attachment.name)}</p>
 					<div className="flex items-center gap-x-2">
-						<p className="text-xs text-neutral-400">
-							{format(new Date(), "dd MMM, yyyy HH:mm a")}
-						</p>
+						<p className="text-xs text-neutral-400">{format(new Date(), "dd MMM, yyyy HH:mm a")}</p>
 						<span className="size-1 rounded-full bg-neutral-400"></span>
 						<p className="text-xs text-neutral-400">{getFileSize(attachment, "mb")} MB</p>
 					</div>
 				</div>
 			</div>
 			<button className="size-[18px] text-neutral-400">
-				<RiDeleteBin6Line
-					onClick={() => onDelete(attachment)}
-					className="size-full text-neutral-400"
-				/>
+				<RiDeleteBin6Line onClick={() => onDelete(attachment)} className="size-full text-neutral-400" />
 			</button>
 		</div>
 	);

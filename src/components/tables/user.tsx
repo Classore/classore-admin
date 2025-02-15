@@ -83,9 +83,7 @@ const LineItem = ({ user }: { user: CastedUserProps }) => {
 					{user.user_first_name} {user.user_last_name}
 				</span>
 			</TableCell>
-			<TableCell className="text-xs text-neutral-400">
-				{user.user_email.toLowerCase()}
-			</TableCell>
+			<TableCell className="text-xs text-neutral-400">{user.user_email.toLowerCase()}</TableCell>
 			<TableCell className="text-xs text-neutral-400">{user.user_user_type}</TableCell>
 			<TableCell className="text-xs text-neutral-400">
 				{format(user.user_createdOn, "MMM dd,yyyy HH:mm a")}

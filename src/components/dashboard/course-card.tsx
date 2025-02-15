@@ -12,6 +12,7 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 
+import { CreateChapter, DeleteChapter, GetChapterModules, type CreateChapterDto } from "@/queries";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IsHttpError, httpErrorhandler } from "@/lib";
 import { ChapterModule } from "./chapter-module";
@@ -19,12 +20,6 @@ import { queryClient } from "@/providers";
 import { useRouter } from "next/router";
 import { Button } from "../ui/button";
 import { useDrag } from "@/hooks";
-import {
-	CreateChapter,
-	DeleteChapter,
-	GetChapterModules,
-	type CreateChapterDto,
-} from "@/queries";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
@@ -86,6 +81,7 @@ export const CourseCard = ({
 					sequence_number: chapter.chapter_module_sequence,
 					title: chapter.chapter_module_title,
 					tutor: chapter.chapter_module_tutor,
+					video_array: chapter.chapter_module_video_array,
 					videos: chapter.chapter_module_videos,
 				};
 				return mod;
@@ -123,6 +119,7 @@ export const CourseCard = ({
 					sequence_number: existingModules.length,
 					title: "",
 					tutor: null,
+					video_array: [],
 					videos: [],
 				},
 			];
@@ -141,6 +138,7 @@ export const CourseCard = ({
 					sequence_number: 0,
 					title: "",
 					tutor: null,
+					video_array: [],
 					videos: [],
 				},
 			]);
@@ -175,6 +173,7 @@ export const CourseCard = ({
 				sequence_number: prev.length,
 				title: "",
 				tutor: null,
+				video_array: [],
 				videos: [],
 			};
 			const newModules = [...prev, newModule];
@@ -320,9 +319,7 @@ export const CourseCard = ({
 								className="rounded-lg bg-primary-400 px-4 py-1.5 text-sm text-white disabled:opacity-50">
 								{isCreating ? <RiLoaderLine className="size-4 animate-spin" /> : "Save Chapter"}
 							</button>
-							<p className="text-xs text-neutral-400">
-								NB: Pls save chapter before adding modules
-							</p>
+							<p className="text-xs text-neutral-400">NB: Please save chapter before adding modules</p>
 						</div>
 					)}
 				</form>
@@ -344,11 +341,7 @@ export const CourseCard = ({
 					))}
 				</div>
 
-				<Button
-					onClick={addNewModule}
-					className="max-w-[250px]"
-					size="sm"
-					variant="invert-outline">
+				<Button onClick={addNewModule} className="max-w-[250px]" size="sm" variant="invert-outline">
 					<RiAddLine size={16} />
 					Add New Lesson
 				</Button>

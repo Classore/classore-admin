@@ -11,11 +11,7 @@ export interface HTMLToMarkdownOptions {
 }
 
 export const convertHTmlToMd = (html: string, options: HTMLToMarkdownOptions = {}) => {
-	const {
-		customRules = {},
-		preserveHeadingIds = false,
-		collapseWhitespace = true,
-	} = options;
+	const { customRules = {}, preserveHeadingIds = false, collapseWhitespace = true } = options;
 
 	const turndownService = new TurndownService({
 		headingStyle: "atx",
@@ -63,10 +59,7 @@ export interface MarkdownToHTMLOptions {
 	headingStyle?: "setext" | "atx";
 }
 
-export const convertMdToHtml = (
-	markdown: string,
-	options: MarkdownToHTMLOptions = {}
-) => {
+export const convertMdToHtml = (markdown: string, options: MarkdownToHTMLOptions = {}) => {
 	const { customRules = {}, headingStyle = "atx" } = options;
 
 	const turndownService = new TurndownService({

@@ -31,9 +31,7 @@ export const AdminActions = ({ admin }: Props) => {
 						<RiEditLine size={18} /> Edit Details
 					</button>
 				</DialogTrigger>
-				<DialogContent
-					animate={false}
-					className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
+				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
 					<DialogTitle>User Details</DialogTitle>
 					<DialogDescription hidden>User Details</DialogDescription>
 					<div className="w-full">

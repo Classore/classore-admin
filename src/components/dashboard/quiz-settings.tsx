@@ -34,12 +34,7 @@ export const QuizSettings = () => {
 	);
 };
 
-const QuestionItem = ({
-	description,
-	hasChildren,
-	icon: Icon,
-	label,
-}: QuestionSettings) => {
+const QuestionItem = ({ description, hasChildren, icon: Icon, label }: QuestionSettings) => {
 	const [enabled, setEnabled] = React.useState(false);
 
 	return (
@@ -52,9 +47,7 @@ const QuestionItem = ({
 						<Switch checked={enabled} onCheckedChange={setEnabled} />
 					</div>
 					<p className="text-xs text-neutral-400">{description}</p>
-					{hasChildren && enabled && (
-						<div className="h-10 w-full">{items[toKebabCase(label)]}</div>
-					)}
+					{hasChildren && enabled && <div className="h-10 w-full">{items[toKebabCase(label)]}</div>}
 				</div>
 			</div>
 		</div>

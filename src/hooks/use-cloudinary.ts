@@ -13,8 +13,7 @@ export const useCloudinary = () => {
 			}
 
 			const contentDisposition = response.headers.get("Content-Disposition");
-			const fileName =
-				contentDisposition?.split('filename="')[1].split('"')[0] || "document";
+			const fileName = contentDisposition?.split('filename="')[1].split('"')[0] || "document";
 			const blob = await response.blob();
 			const url = window.URL.createObjectURL(blob);
 			const link = document.createElement("a");

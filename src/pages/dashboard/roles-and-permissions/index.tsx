@@ -62,9 +62,7 @@ const Page = () => {
 						<div className="flex w-full items-center justify-between">
 							<p className="">Manage Roles</p>
 							<div className="flex items-center gap-x-3">
-								<Dialog
-									open={open.roles}
-									onOpenChange={(roles) => setOpen({ ...open, roles: roles })}>
+								<Dialog open={open.roles} onOpenChange={(roles) => setOpen({ ...open, roles: roles })}>
 									<DialogTrigger asChild>
 										<Button
 											onClick={() => setOpen({ ...open, roles: true })}
@@ -78,14 +76,9 @@ const Page = () => {
 										<AddRoles setOpen={(roles) => setOpen({ ...open, roles })} />
 									</DialogContent>
 								</Dialog>
-								<Dialog
-									open={open.admin}
-									onOpenChange={(admin) => setOpen({ ...open, admin: admin })}>
+								<Dialog open={open.admin} onOpenChange={(admin) => setOpen({ ...open, admin: admin })}>
 									<DialogTrigger asChild>
-										<Button
-											onClick={() => setOpen({ ...open, admin: true })}
-											size="sm"
-											className="w-fit">
+										<Button onClick={() => setOpen({ ...open, admin: true })} size="sm" className="w-fit">
 											<RiAddLine /> Add Admin
 										</Button>
 									</DialogTrigger>

@@ -54,11 +54,7 @@ const Page = () => {
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
-								<Button
-									onClick={() => router.back()}
-									className="w-fit"
-									size="sm"
-									variant="outline">
+								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
 								<div className="flex items-center gap-x-2">

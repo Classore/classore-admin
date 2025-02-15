@@ -89,8 +89,8 @@ export const Pagination = (props: Props) => {
 		<div className="flex min-h-[70px] w-full items-center justify-between">
 			<div className="flex items-center gap-2">
 				<p className="text-sm font-medium text-neutral-400">
-					Showing results {(current - 1) * pageSize + 1} -{" "}
-					{Math.min(current * pageSize, total)} of {total}
+					Showing results {(current - 1) * pageSize + 1} - {Math.min(current * pageSize, total)} of{" "}
+					{total}
 				</p>
 			</div>
 			<div className="flex items-center gap-2">

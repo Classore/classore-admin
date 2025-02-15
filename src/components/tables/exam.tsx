@@ -38,12 +38,8 @@ export const ExamTable = ({ bundles, onPageChange, page, total, isLoading }: Pro
 						<TableHead className="w-[156px] text-neutral-400">Category</TableHead>
 						<TableHead className="w-[] text-neutral-400">Subcategories</TableHead>
 						<TableHead className="w-[94px] text-center text-neutral-400">Courses</TableHead>
-						<TableHead className="w-[181px] text-center text-neutral-400">
-							Last Updated
-						</TableHead>
-						<TableHead className="w-[110px] text-center text-neutral-400">
-							Amount/Bundle
-						</TableHead>
+						<TableHead className="w-[181px] text-center text-neutral-400">Last Updated</TableHead>
+						<TableHead className="w-[110px] text-center text-neutral-400">Amount/Bundle</TableHead>
 						<TableHead className="w-[120px] text-center text-neutral-400">Ratings</TableHead>
 						<TableHead className="w-[157px] text-center text-neutral-400">Enrolled</TableHead>
 						<TableHead className="w-[61px] text-center text-neutral-400"></TableHead>
@@ -94,15 +90,9 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 
 	return (
 		<TableRow>
-			<TableCell className="text-xs capitalize text-neutral-400">
-				{exam?.examination_name}
-			</TableCell>
-			<TableCell className="text-xs font-medium uppercase">
-				{bundle.examinationbundle_name}
-			</TableCell>
-			<TableCell className="text-center text-xs text-neutral-400">
-				{bundle.subject_count}
-			</TableCell>
+			<TableCell className="text-xs capitalize text-neutral-400">{exam?.examination_name}</TableCell>
+			<TableCell className="text-xs font-medium uppercase">{bundle.examinationbundle_name}</TableCell>
+			<TableCell className="text-center text-xs text-neutral-400">{bundle.subject_count}</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">
 				{bundle.examinationbundle_updatedon
 					? format(new Date(bundle.examinationbundle_updatedon), "MMM dd,yyyy HH:mm a")

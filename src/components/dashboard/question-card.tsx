@@ -20,13 +20,7 @@ import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
 import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface Props {
 	question: QuestionDto;
@@ -234,11 +228,7 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 								value={option.content}
 								autoFocus
 								onChange={(e) =>
-									addOptionContent(
-										question.sequence_number,
-										e.target.value,
-										option.sequence_number
-									)
+									addOptionContent(question.sequence_number, e.target.value, option.sequence_number)
 								}
 								className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 							/>
@@ -250,9 +240,7 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 								)}
 								<button
 									type="button"
-									onClick={() =>
-										setCorrectOption(question.sequence_number, option.sequence_number)
-									}>
+									onClick={() => setCorrectOption(question.sequence_number, option.sequence_number)}>
 									<RiCheckboxCircleFill
 										className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
 									/>

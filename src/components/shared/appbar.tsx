@@ -27,9 +27,7 @@ export const Appbar = () => {
 						<RiNotification4Line size={18} />
 					</button>
 					<div className="h-7 w-[1px] bg-neutral-300"></div>
-					<div
-						onClick={() => setOpen(!open)}
-						className="flex cursor-pointer items-center gap-x-2">
+					<div onClick={() => setOpen(!open)} className="flex cursor-pointer items-center gap-x-2">
 						<Avatar className="size-9">
 							<AvatarImage src="" alt={user?.first_name} />
 							<AvatarFallback className="bg-black text-white">

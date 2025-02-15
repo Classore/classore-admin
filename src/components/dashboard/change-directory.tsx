@@ -10,13 +10,7 @@ import { GetExaminations, GetBundles } from "@/queries";
 import type { ChangeDirectoryDto } from "@/queries";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface Props {
 	courseId: string;
@@ -77,16 +71,12 @@ export const ChangeDirectory = ({
 	});
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="w-full space-y-4 rounded-lg border px-4 pb-4 pt-[59px]">
+		<form onSubmit={handleSubmit} className="w-full space-y-4 rounded-lg border px-4 pb-4 pt-[59px]">
 			<IconLabel icon={RiBookLine} />
 			<DialogTitle className="mb-4">Change Course Directory</DialogTitle>
 			<DialogDescription hidden>Change Course Directory</DialogDescription>
 			<div>
-				<label
-					className="text-xs text-neutral-400 dark:text-neutral-50"
-					htmlFor="examination">
+				<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="examination">
 					Select Category
 				</label>
 				<Select
@@ -111,9 +101,7 @@ export const ChangeDirectory = ({
 				<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="bundle">
 					Select Subcategory
 				</label>
-				<Select
-					value={values.bundle}
-					onValueChange={(value) => setFieldValue("bundle", value)}>
+				<Select value={values.bundle} onValueChange={(value) => setFieldValue("bundle", value)}>
 					<SelectTrigger className="uppercase">
 						<SelectValue placeholder="Select Subategory" />
 					</SelectTrigger>
@@ -125,9 +113,7 @@ export const ChangeDirectory = ({
 						))}
 					</SelectContent>
 				</Select>
-				{errors.bundle && touched.bundle && (
-					<p className="text-xs text-red-500">{errors.bundle}</p>
-				)}
+				{errors.bundle && touched.bundle && <p className="text-xs text-red-500">{errors.bundle}</p>}
 			</div>
 			<div className="flex w-full items-center justify-end gap-x-4">
 				<Button
