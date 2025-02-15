@@ -15,12 +15,13 @@ import { TabPanel } from "../shared";
 
 interface Props {
 	existingChapters: Chapter[];
+	courseName?: string;
 }
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
-export const CreateCourse = ({ existingChapters }: Props) => {
+export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 	const {} = useQuizStore((state) => state.actions);
 	const router = useRouter();
 	const subjectId = router.query.courseId as string;
@@ -202,7 +203,12 @@ export const CreateCourse = ({ existingChapters }: Props) => {
 
 			<div className="h-full w-full flex-1 space-y-3 rounded-lg bg-neutral-100 p-3">
 				<TabPanel selected={tab} value="video" innerClassName="overflow-y-auto">
-					<ModuleCard chapter={chapters[sequence]} index={sequence} module={module} />
+					<ModuleCard
+						chapter={chapters[sequence]}
+						index={sequence}
+						module={module}
+						courseName={courseName}
+					/>
 				</TabPanel>
 
 				<TabPanel selected={tab} value="quiz" innerClassName="overflow-y-auto">

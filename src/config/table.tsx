@@ -11,8 +11,7 @@ export const waitlistColumns: ColumnDef<WaitlistUserProps>[] = [
 		header: ({ table }) => (
 			<Checkbox
 				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && "indeterminate")
+					table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
 				}
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
@@ -31,16 +30,12 @@ export const waitlistColumns: ColumnDef<WaitlistUserProps>[] = [
 	{
 		accessorKey: "waitlists_first_name",
 		header: "First Name",
-		cell: ({ row }) => (
-			<span className="capitalize">{row.original.waitlists_first_name}</span>
-		),
+		cell: ({ row }) => <span className="capitalize">{row.original.waitlists_first_name}</span>,
 	},
 	{
 		accessorKey: "waitlists_last_name",
 		header: "Last Name",
-		cell: ({ row }) => (
-			<span className="capitalize">{row.original.waitlists_last_name}</span>
-		),
+		cell: ({ row }) => <span className="capitalize">{row.original.waitlists_last_name}</span>,
 	},
 	{
 		accessorKey: "waitlists_email",
@@ -55,9 +50,7 @@ export const waitlistColumns: ColumnDef<WaitlistUserProps>[] = [
 	{
 		accessorKey: "waitlists_createdOn",
 		header: "Joined On",
-		cell: ({ row }) => (
-			<span>{format(row.original.waitlists_createdOn, "dd/MM/yyyy")}</span>
-		),
+		cell: ({ row }) => <span>{format(row.original.waitlists_createdOn, "dd/MM/yyyy")}</span>,
 	},
 	{
 		id: "actions",

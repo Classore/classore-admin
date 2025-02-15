@@ -1,11 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import React from "react";
-import {
-	RiBook2Line,
-	RiBookMarkedLine,
-	RiBookOpenLine,
-	RiBookReadLine,
-} from "@remixicon/react";
+import { RiBook2Line, RiBookMarkedLine, RiBookOpenLine, RiBookReadLine } from "@remixicon/react";
 
 import { AddBundle, AddExamination, UserCard } from "@/components/dashboard";
 import { DashboardLayout, Unauthorized } from "@/components/layout";
@@ -69,14 +64,8 @@ const Page = () => {
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
 							<div className="flex items-center gap-x-4">
-								<AddExamination
-									open={open.exam}
-									onOpenChange={(exam) => setOpen({ ...open, exam })}
-								/>
-								<AddBundle
-									open={open.bundle}
-									onOpenChange={(bundle) => setOpen({ ...open, bundle })}
-								/>
+								<AddExamination open={open.exam} onOpenChange={(exam) => setOpen({ ...open, exam })} />
+								<AddBundle open={open.bundle} onOpenChange={(bundle) => setOpen({ ...open, bundle })} />
 							</div>
 						</div>
 						<div className="grid w-full grid-cols-4 gap-x-4">

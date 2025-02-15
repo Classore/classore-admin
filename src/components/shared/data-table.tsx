@@ -24,11 +24,7 @@ interface Props<TData, TValue> {
 	isLoading?: boolean;
 }
 
-export function DataTable<TData, TValue>({
-	columns,
-	data,
-	isLoading,
-}: Props<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, isLoading }: Props<TData, TValue>) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [rowSelection, setRowSelection] = React.useState({});

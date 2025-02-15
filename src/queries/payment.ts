@@ -1,11 +1,6 @@
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
-import type {
-	HttpResponse,
-	PaginatedResponse,
-	PaginationProps,
-	SubscriptionProps,
-} from "@/types";
+import type { HttpResponse, PaginatedResponse, PaginationProps, SubscriptionProps } from "@/types";
 
 interface SubscriptionResponse {
 	data: {
@@ -22,10 +17,7 @@ const GetSubscriptions = async (
 ) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}

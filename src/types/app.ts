@@ -261,9 +261,16 @@ export type ChapterModuleProps = Node & {
 	sequence: number;
 	sequence_number: number;
 	images: string[];
+	video_array: VideoProps[];
 	videos: string[];
 	content: string;
 	tutor: Maybe<AdminProps>;
+};
+
+export type VideoProps = {
+	derived_url: string;
+	duration: number;
+	secure_url: string;
 };
 
 export type QuestionProps = Node & {
@@ -294,9 +301,7 @@ export type AnswerProps = {
 	question_id: string;
 };
 
-export type QuestionTypeProps = OptionalString<
-	"YES_OR_NO" | "MULTICHOICE" | "FILL_IN_THE_GAP"
->;
+export type QuestionTypeProps = OptionalString<"YES_OR_NO" | "MULTICHOICE" | "FILL_IN_THE_GAP">;
 
 export type WaitlistUserProps = {
 	waitlists_createdOn: Date | string;

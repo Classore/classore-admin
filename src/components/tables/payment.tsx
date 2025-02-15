@@ -38,13 +38,7 @@ const status: Record<SubscriptionProps["status"], string> = {
 	SUCCESSFUL: "bg-green-100 text-green-500",
 };
 
-export const PaymentTable = ({
-	onPageChange,
-	page,
-	total,
-	subscriptions,
-	isLoading,
-}: Props) => {
+export const PaymentTable = ({ onPageChange, page, total, subscriptions, isLoading }: Props) => {
 	return (
 		<div>
 			<Table className="font-body">
@@ -54,9 +48,7 @@ export const PaymentTable = ({
 						<TableHead className="w-[210px] text-neutral-400">Bought by</TableHead>
 						<TableHead className="w-[118px] text-center text-neutral-400">Amount</TableHead>
 						<TableHead className="w-[156px] text-center text-neutral-400">Category</TableHead>
-						<TableHead className="w-[186px] text-center text-neutral-400">
-							Date and Time
-						</TableHead>
+						<TableHead className="w-[186px] text-center text-neutral-400">Date and Time</TableHead>
 						<TableHead className="w-[141px] text-center text-neutral-400">Status</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -138,9 +130,7 @@ const LineItem = ({ subscription }: { subscription: SubscriptionProps }) => {
 									</div>
 									<div className="flex h-10 w-full items-center justify-between">
 										<p className="text-xs text-neutral-400">Date and Time</p>
-										<p className="text-xs">
-											{format(subscription.createdOn, "MMM dd, yyyy | HH:mm a")}
-										</p>
+										<p className="text-xs">{format(subscription.createdOn, "MMM dd, yyyy | HH:mm a")}</p>
 									</div>
 									<div className="flex h-10 w-full items-center justify-between">
 										<p className="text-xs text-neutral-400">Category</p>
@@ -152,9 +142,7 @@ const LineItem = ({ subscription }: { subscription: SubscriptionProps }) => {
 									</div>
 									<div className="flex h-10 w-full items-center justify-between">
 										<p className="text-xs text-neutral-400">Amount</p>
-										<p className="text-xs">
-											{formatCurrency(subscription.amount, subscription.currency)}
-										</p>
+										<p className="text-xs">{formatCurrency(subscription.amount, subscription.currency)}</p>
 									</div>
 									<div className="flex h-10 w-full items-center justify-between">
 										<p className="text-xs text-neutral-400">Transaction ID</p>

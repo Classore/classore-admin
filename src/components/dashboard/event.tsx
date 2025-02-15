@@ -13,11 +13,7 @@ import { Button } from "@/components/ui/button";
 import { IconLabel } from "@/components/shared";
 import { queryClient } from "@/providers";
 import { times } from "@/config";
-import type {
-	CourseResponse,
-	ExaminationBundleResponse,
-	ExaminationResponse,
-} from "@/queries";
+import type { CourseResponse, ExaminationBundleResponse, ExaminationResponse } from "@/queries";
 import {
 	Select,
 	SelectContent,
@@ -152,9 +148,7 @@ export const Event = ({ onClose }: Props) => {
 							placeholder="Event title here"
 						/>
 					</div>
-					{errorMessage("title") && (
-						<p className="text-xs text-red-500">{errorMessage("title")}</p>
-					)}
+					{errorMessage("title") && <p className="text-xs text-red-500">{errorMessage("title")}</p>}
 				</div>
 				<div className="grid w-full grid-cols-2 gap-3">
 					<div className="flex flex-col space-y-1">
@@ -191,9 +185,7 @@ export const Event = ({ onClose }: Props) => {
 							</SelectTrigger>
 							<SelectContent>
 								{bundles?.map((bundle) => (
-									<SelectItem
-										key={bundle.examinationbundle_id}
-										value={bundle.examinationbundle_id}>
+									<SelectItem key={bundle.examinationbundle_id} value={bundle.examinationbundle_id}>
 										{bundle.examinationbundle_name.toUpperCase()}
 									</SelectItem>
 								))}
@@ -209,9 +201,7 @@ export const Event = ({ onClose }: Props) => {
 						<label htmlFor="subject" className="text-xs text-neutral-400">
 							Select Subject
 						</label>
-						<Select
-							value={values.subject}
-							onValueChange={(value) => setFieldValue("subject", value)}>
+						<Select value={values.subject} onValueChange={(value) => setFieldValue("subject", value)}>
 							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Subject" />
 							</SelectTrigger>
@@ -223,17 +213,13 @@ export const Event = ({ onClose }: Props) => {
 								))}
 							</SelectContent>
 						</Select>
-						{errorMessage("subject") && (
-							<p className="text-xs text-red-500">{errorMessage("subject")}</p>
-						)}
+						{errorMessage("subject") && <p className="text-xs text-red-500">{errorMessage("subject")}</p>}
 					</div>
 					<div className="flex flex-col space-y-1">
 						<label htmlFor="frequency" className="text-xs text-neutral-400">
 							Frequency
 						</label>
-						<Select
-							value={values.frequency}
-							onValueChange={(value) => setFieldValue("frequency", value)}>
+						<Select value={values.frequency} onValueChange={(value) => setFieldValue("frequency", value)}>
 							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Frequency" />
 							</SelectTrigger>

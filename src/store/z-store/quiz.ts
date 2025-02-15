@@ -64,17 +64,13 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 		},
 		removeQuestion: (id: number) => {
 			set((state) => {
-				const updatedQuestions = state.questions.filter(
-					(question) => question.sequence !== id
-				);
+				const updatedQuestions = state.questions.filter((question) => question.sequence !== id);
 				return { questions: updatedQuestions };
 			});
 		},
 		handleTypeChange: (question_type: QuestionTypeProps, id: number) => {
 			set((state) => {
-				const questionIndex = state.questions.findIndex(
-					(question) => question.sequence_number === id
-				);
+				const questionIndex = state.questions.findIndex((question) => question.sequence_number === id);
 				if (questionIndex === -1) {
 					toast.error(`Question with id ${id} not found`);
 					return state;
@@ -158,9 +154,7 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 		},
 		addOptionContent: (id: number, content: string, option_id: number) => {
 			set((state) => {
-				const questionIndex = state.questions.findIndex(
-					(question) => question.sequence_number === id
-				);
+				const questionIndex = state.questions.findIndex((question) => question.sequence_number === id);
 				if (questionIndex === -1) {
 					toast.error("Question not found");
 					return state;

@@ -76,12 +76,7 @@ const theme: EditorThemeClasses = {
 	},
 };
 
-export const Editor = ({
-	onValueChange,
-	className,
-	defaultValue,
-	size = "md",
-}: EditorProps) => {
+export const Editor = ({ onValueChange, className, defaultValue, size = "md" }: EditorProps) => {
 	return (
 		<LexicalComposer
 			initialConfig={{

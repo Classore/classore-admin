@@ -16,13 +16,7 @@ import { processImageToBase64 } from "@/lib";
 import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
 dayjs.locale("en-gb");
@@ -95,45 +89,37 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 		},
 	});
 
-	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik(
-		{
-			initialValues,
-			validateOnChange: true,
-			validationSchema: Yup.object({
-				allow_extra_subjects: Yup.string()
-					.required("Allow Extra Subjects is required")
-					.oneOf(["YES", "NO"], "Please select an option"),
-				allowed_subjects: Yup.number()
-					.required("Allowed Subjects is required")
-					.min(1, "Allowed Subjects must be at least 1"),
-				amount: Yup.number()
-					.required("Amount is required")
-					.min(1, "Amount must be at least 1"),
-				amount_per_subject: Yup.number()
-					.required("Amount Per Subject is required")
-					.min(1, "Amount Per Subject must be at least 1"),
-				end_date: Yup.string().required("End Date is required"),
-				examination: Yup.string().required("Examination is required"),
-				extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
-					return value === "YES"
-						? Yup.number()
-								.required("Extra Charge is required")
-								.min(1, "Extra Charge must be at least 1")
-						: Yup.number().notRequired();
-				}),
-				max_subjects: Yup.number()
-					.required("Max Subjects is required")
-					.min(1, "Max Subjects must be at least 1"),
-				name: Yup.string().required("Name is required"),
+	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
+		initialValues,
+		validateOnChange: true,
+		validationSchema: Yup.object({
+			allow_extra_subjects: Yup.string()
+				.required("Allow Extra Subjects is required")
+				.oneOf(["YES", "NO"], "Please select an option"),
+			allowed_subjects: Yup.number()
+				.required("Allowed Subjects is required")
+				.min(1, "Allowed Subjects must be at least 1"),
+			amount: Yup.number().required("Amount is required").min(1, "Amount must be at least 1"),
+			amount_per_subject: Yup.number()
+				.required("Amount Per Subject is required")
+				.min(1, "Amount Per Subject must be at least 1"),
+			end_date: Yup.string().required("End Date is required"),
+			examination: Yup.string().required("Examination is required"),
+			extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
+				return value === "YES"
+					? Yup.number().required("Extra Charge is required").min(1, "Extra Charge must be at least 1")
+					: Yup.number().notRequired();
 			}),
-			onSubmit: () => {},
-		}
-	);
+			max_subjects: Yup.number()
+				.required("Max Subjects is required")
+				.min(1, "Max Subjects must be at least 1"),
+			name: Yup.string().required("Name is required"),
+		}),
+		onSubmit: () => {},
+	});
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
+		<form onSubmit={handleSubmit} className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
 			<DialogTitle className="my-4">Edit Subcategory</DialogTitle>
 			<DialogDescription hidden>Edit Subcategory</DialogDescription>
 			<div className="space-y-2">
@@ -184,9 +170,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						name="amount_per_subject"
 						onChange={handleChange}
 						error={
-							errors.amount_per_subject && touched.amount_per_subject
-								? errors.amount_per_subject
-								: ""
+							errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
 						}
 					/>
 					<Input
@@ -199,9 +183,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 				</div>
 				<div className="grid w-full grid-cols-2 gap-x-4">
 					<div>
-						<label
-							className="text-xs text-neutral-400 dark:text-neutral-50"
-							htmlFor="examination">
+						<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="examination">
 							Select Examination
 						</label>
 						<Select
@@ -246,16 +228,12 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 				</div>
 				<div className="grid w-full grid-cols-2 gap-x-4">
 					<div>
-						<label
-							className="text-xs text-neutral-400 dark:text-neutral-50"
-							htmlFor="start_date">
+						<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="start_date">
 							Start Date
 						</label>
 						<DatePicker
 							value={dayjs(values.start_date)}
-							onChange={(date) =>
-								setFieldValue("start_date", date ? new Date(date.toDate()) : new Date())
-							}
+							onChange={(date) => setFieldValue("start_date", date ? new Date(date.toDate()) : new Date())}
 							className="h-10 w-full font-body font-medium focus-within:border-primary-400 hover:border-primary-400"
 							format="DD/MM/YYYY"
 						/>
@@ -281,9 +259,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						name="allowed_subjects"
 						label="Allowed Subjects"
 						onChange={handleChange}
-						error={
-							errors.allowed_subjects && touched.allowed_subjects ? errors.allowed_subjects : ""
-						}
+						error={errors.allowed_subjects && touched.allowed_subjects ? errors.allowed_subjects : ""}
 					/>
 					<Input
 						type="number"
@@ -295,11 +271,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 				</div>
 			</div>
 			<div className="mt-6 flex w-full items-center justify-end gap-x-4">
-				<Button
-					type="button"
-					onClick={() => onOpenChange(false)}
-					className="w-fit"
-					variant="outline">
+				<Button type="button" onClick={() => onOpenChange(false)} className="w-fit" variant="outline">
 					Discard Changes
 				</Button>
 				<Button type="submit" className="w-fit">

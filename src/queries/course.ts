@@ -65,23 +65,16 @@ export type UpdateChapterModuleDto = MakeOptional<
 	| "video_urls"
 >;
 
-export type GetChapterModuleResponse = HttpResponse<
-	PaginatedResponse<CastedChapterModuleProps>
->;
+export type GetChapterModuleResponse = HttpResponse<PaginatedResponse<CastedChapterModuleProps>>;
 
 const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
-		.post<
-			HttpResponse<ChapterProps>
-		>(endpoints(payload.subject_id).school.create_chapter, formData)
+		.post<HttpResponse<ChapterProps>>(endpoints(payload.subject_id).school.create_chapter, formData)
 		.then((res) => res.data);
 };
 
-const CreateChapterModule = async (
-	chapter_id: string,
-	payload: CreateChapterModuleDto
-) => {
+const CreateChapterModule = async (chapter_id: string, payload: CreateChapterModuleDto) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
 		.post<
@@ -96,10 +89,7 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		formData.append(`questions[${index}][sequence]`, question.sequence.toString());
 		formData.append(`questions[${index}][content]`, question.content);
 		formData.append(`questions[${index}][question_type]`, question.question_type);
-		formData.append(
-			`questions[${index}][sequence_number]`,
-			question.sequence_number.toString()
-		);
+		formData.append(`questions[${index}][sequence_number]`, question.sequence_number.toString());
 		question.images.forEach((image, imageIndex) => {
 			formData.append(`questions[${index}][images][${imageIndex}]`, image, image.name);
 		});
@@ -109,10 +99,7 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 				option.sequence_number.toString()
 			);
 			if (option.content) {
-				formData.append(
-					`questions[${index}][options][${optionIndex}][content]`,
-					option.content
-				);
+				formData.append(`questions[${index}][options][${optionIndex}][content]`, option.content);
 			}
 			if (option.is_correct !== undefined) {
 				formData.append(
@@ -130,28 +117,20 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 const GetChapters = async (params?: PaginationProps & {}) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
 	}
 	return axios
-		.get<
-			PaginatedResponse<CastedChapterProps[]>
-		>(endpoints().school.get_chapters, { params })
+		.get<PaginatedResponse<CastedChapterProps[]>>(endpoints().school.get_chapters, { params })
 		.then((res) => res.data);
 };
 
 const GetChapterModules = async (params?: PaginationProps & { chapter_id?: string }) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
@@ -166,10 +145,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
@@ -195,22 +171,16 @@ const GetQuestion = async (id: string) => {
 
 const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
-		.put(endpoints(id).school.update_chapter_module, formData)
-		.then((res) => res.data);
+	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
 const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
-		.put(endpoints(id).school.update_chapter_module, formData)
-		.then((res) => res.data);
+	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
 const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
-	return axios
-		.put(endpoints(id).school.update_chapter_module, payload)
-		.then((res) => res.data);
+	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
 };
 
 const DeleteChapter = async (id: string) => {

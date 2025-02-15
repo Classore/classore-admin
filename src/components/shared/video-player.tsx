@@ -36,7 +36,6 @@ export const VideoPlayer = ({ src }: Props) => {
 	React.useEffect(() => {
 		if (isGoogleDriveUrl(src)) {
 			const fileId = getGoogleDriveId(src);
-			console.log("Google Drive URL detected.", fileId);
 			fetch(`/api/google-drive?fileId=${fileId}`)
 				.then((response) => {
 					if (!response.ok) {
@@ -89,6 +88,12 @@ export const VideoPlayer = ({ src }: Props) => {
 	React.useEffect(() => {
 		if (video.current) {
 			video.current.preload = "metadata";
+		}
+	}, [video]);
+
+	React.useEffect(() => {
+		if (video.current && currentTime === video.current.duration) {
+			setIsPlaying(false);
 		}
 	}, [video]);
 
@@ -191,7 +196,7 @@ export const VideoPlayer = ({ src }: Props) => {
 			ref={container}
 			onMouseMove={handleMouseMove}
 			onMouseLeave={() => setShowControls(false)}
-			className="relative grid size-full place-items-center rounded-lg bg-black">
+			className="relative grid size-full place-items-center rounded-lg border border-neutral-300 bg-black">
 			<div className="relative size-full rounded-lg">
 				<video
 					ref={video}
@@ -217,7 +222,7 @@ export const VideoPlayer = ({ src }: Props) => {
 					</button>
 				)}
 				{(showControls || !isPlaying) && !isLoading && (
-					<div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors hover:bg-black/50">
+					<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30 transition-colors hover:bg-black/50">
 						<button onClick={togglePlay} className="transition-transform hover:scale-110">
 							{isPlaying ? (
 								<RiPauseLargeFill className="text-white" size={64} />
@@ -231,15 +236,13 @@ export const VideoPlayer = ({ src }: Props) => {
 					<div
 						ref={scrub}
 						onClick={handleProgressClick}
-						className="relative flex h-1 w-full cursor-pointer items-center rounded-2xl bg-neutral-200/75">
+						className="relative flex h-1 w-full cursor-pointer items-center rounded-2xl bg-neutral-200/75 shadow">
 						<div
 							style={{ width: `${bufferProgress}%` }}
 							className="absolute h-full rounded-2xl bg-white/30"
 						/>
-						<div
-							style={{ width: `${progress}%` }}
-							className="relative h-full rounded-2xl bg-white">
-							<div className="absolute right-0 top-1/2 size-4 -translate-y-1/2 rounded-full bg-white" />
+						<div style={{ width: `${progress}%` }} className="relative h-full rounded-2xl bg-white">
+							<div className="absolute right-0 top-1/2 size-3 -translate-y-1/2 rounded-full bg-white shadow" />
 						</div>
 					</div>
 					<div className="flex w-full items-center justify-between">
@@ -254,11 +257,7 @@ export const VideoPlayer = ({ src }: Props) => {
 								<RiPictureInPictureLine size={20} />
 							</button>
 							<button onClick={toggleFullscreen} className="transition-all duration-500">
-								{isFullscreen ? (
-									<RiFullscreenExitLine size={20} />
-								) : (
-									<RiFullscreenLine size={20} />
-								)}
+								{isFullscreen ? <RiFullscreenExitLine size={20} /> : <RiFullscreenLine size={20} />}
 							</button>
 						</div>
 					</div>

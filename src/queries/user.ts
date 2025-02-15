@@ -12,15 +12,10 @@ interface UsersResponse {
 	users: PaginatedResponse<CastedUserProps>;
 }
 
-const GetUsers = async (
-	params?: PaginationProps & { user_type?: string; sort_by?: string }
-) => {
+const GetUsers = async (params?: PaginationProps & { user_type?: string; sort_by?: string }) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
@@ -31,9 +26,7 @@ const GetUsers = async (
 };
 
 const GetUser = async (id: string) => {
-	return axios
-		.get<HttpResponse<UserProps>>(endpoints(id).users.one)
-		.then((res) => res.data);
+	return axios.get<HttpResponse<UserProps>>(endpoints(id).users.one).then((res) => res.data);
 };
 
 export { GetUsers, GetUser };

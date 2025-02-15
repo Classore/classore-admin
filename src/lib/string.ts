@@ -47,17 +47,7 @@ const defaultOptions: SanitizeOptions = {
 		"pre",
 		"code",
 	],
-	ALLOWED_ATTR: [
-		"id",
-		"class",
-		"style",
-		"align",
-		"dir",
-		"colspan",
-		"rowspan",
-		"aria-label",
-		"role",
-	],
+	ALLOWED_ATTR: ["id", "class", "style", "align", "dir", "colspan", "rowspan", "aria-label", "role"],
 	ALLOW_DATA_ATTR: true,
 	USE_PROFILES: {
 		html: true,
@@ -165,14 +155,9 @@ export const encodeQueryParams = (params: QueryParamsProps) => {
 	return Object.keys(params)
 		.filter(
 			(key) =>
-				params[key as Key] !== null &&
-				params[key as Key] !== undefined &&
-				params[key as Key] !== ""
+				params[key as Key] !== null && params[key as Key] !== undefined && params[key as Key] !== ""
 		)
-		.map(
-			(key) =>
-				`${encodeURIComponent(key)}=${encodeURIComponent(params[key as Key] as string)}`
-		)
+		.map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key as Key] as string)}`)
 		.join("&");
 };
 

@@ -4,15 +4,7 @@ export const ForgotPasswordGraphic = (props: SVGProps<SVGSVGElement>) => (
 	<svg xmlns="http://www.w3.org/2000/svg" width={76} height={76} fill="none" {...props}>
 		<g filter="url(#a)">
 			<g clipPath="url(#b)">
-				<rect
-					width={64}
-					height={64}
-					x={6}
-					y={4}
-					fill="url(#c)"
-					rx={32}
-					shapeRendering="crispEdges"
-				/>
+				<rect width={64} height={64} x={6} y={4} fill="url(#c)" rx={32} shapeRendering="crispEdges" />
 				<path
 					stroke="url(#d)"
 					strokeWidth={0.75}

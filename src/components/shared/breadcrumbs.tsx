@@ -74,9 +74,7 @@ export const Breadcrumbs = ({
 										</DialogContent>
 									</Dialog>
 								) : (
-									<span className={`capitalize ${variants[link.variant || "default"]}`}>
-										{link.label}
-									</span>
+									<span className={`capitalize ${variants[link.variant || "default"]}`}>{link.label}</span>
 								)}
 							</>
 						)}

@@ -1,9 +1,4 @@
-import {
-	RiAddLine,
-	RiBookMarkedLine,
-	RiCameraLine,
-	RiLoaderLine,
-} from "@remixicon/react";
+import { RiAddLine, RiBookMarkedLine, RiCameraLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import { addDays } from "date-fns";
@@ -28,13 +23,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
 dayjs.locale("en-gb");
@@ -105,42 +94,36 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		},
 	});
 
-	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik(
-		{
-			initialValues,
-			validateOnChange: true,
-			validationSchema: Yup.object({
-				allow_extra_subjects: Yup.string()
-					.required("Allow Extra Subjects is required")
-					.oneOf(["YES", "NO"], "Please select an option"),
-				allowed_subjects: Yup.number()
-					.required("Allowed Subjects is required")
-					.min(1, "Allowed Subjects must be at least 1"),
-				amount: Yup.number()
-					.required("Amount is required")
-					.min(1, "Amount must be at least 1"),
-				amount_per_subject: Yup.number()
-					.required("Amount Per Subject is required")
-					.min(1, "Amount Per Subject must be at least 1"),
-				end_date: Yup.string().required("End Date is required"),
-				examination: Yup.string().required("Examination is required"),
-				extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
-					return value === "YES"
-						? Yup.number()
-								.required("Extra Charge is required")
-								.min(1, "Extra Charge must be at least 1")
-						: Yup.number().notRequired();
-				}),
-				max_subjects: Yup.number()
-					.required("Max Subjects is required")
-					.min(1, "Max Subjects must be at least 1"),
-				name: Yup.string().required("Name is required"),
+	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
+		initialValues,
+		validateOnChange: true,
+		validationSchema: Yup.object({
+			allow_extra_subjects: Yup.string()
+				.required("Allow Extra Subjects is required")
+				.oneOf(["YES", "NO"], "Please select an option"),
+			allowed_subjects: Yup.number()
+				.required("Allowed Subjects is required")
+				.min(1, "Allowed Subjects must be at least 1"),
+			amount: Yup.number().required("Amount is required").min(1, "Amount must be at least 1"),
+			amount_per_subject: Yup.number()
+				.required("Amount Per Subject is required")
+				.min(1, "Amount Per Subject must be at least 1"),
+			end_date: Yup.string().required("End Date is required"),
+			examination: Yup.string().required("Examination is required"),
+			extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
+				return value === "YES"
+					? Yup.number().required("Extra Charge is required").min(1, "Extra Charge must be at least 1")
+					: Yup.number().notRequired();
 			}),
-			onSubmit: (values) => {
-				mutate(values);
-			},
-		}
-	);
+			max_subjects: Yup.number()
+				.required("Max Subjects is required")
+				.min(1, "Max Subjects must be at least 1"),
+			name: Yup.string().required("Name is required"),
+		}),
+		onSubmit: (values) => {
+			mutate(values);
+		},
+	});
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>
@@ -202,9 +185,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 									name="amount_per_subject"
 									onChange={handleChange}
 									error={
-										errors.amount_per_subject && touched.amount_per_subject
-											? errors.amount_per_subject
-											: ""
+										errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
 									}
 								/>
 								<Input
@@ -217,9 +198,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 							</div>
 							<div className="grid w-full grid-cols-2 gap-x-4">
 								<div>
-									<label
-										className="text-xs text-neutral-400 dark:text-neutral-50"
-										htmlFor="examination">
+									<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="examination">
 										Select Examination
 									</label>
 									<Select
@@ -264,9 +243,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 							</div>
 							<div className="grid w-full grid-cols-2 gap-x-4">
 								<div>
-									<label
-										className="text-xs text-neutral-400 dark:text-neutral-50"
-										htmlFor="start_date">
+									<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="start_date">
 										Start Date
 									</label>
 									<DatePicker
@@ -279,18 +256,13 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 									/>
 								</div>
 								<div>
-									<label
-										className="text-xs text-neutral-400 dark:text-neutral-50"
-										htmlFor="end_date">
+									<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="end_date">
 										End Date
 									</label>
 									<DatePicker
 										value={dayjs(values.end_date)}
 										onChange={(date) =>
-											setFieldValue(
-												"end_date",
-												date ? new Date(date.toDate()) : addDays(new Date(), 1)
-											)
+											setFieldValue("end_date", date ? new Date(date.toDate()) : addDays(new Date(), 1))
 										}
 										className="h-10 w-full font-body font-medium focus-within:border-primary-400 hover:border-primary-400"
 										format="DD/MM/YYYY"
@@ -304,11 +276,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 									name="allowed_subjects"
 									label="Allowed Subjects"
 									onChange={handleChange}
-									error={
-										errors.allowed_subjects && touched.allowed_subjects
-											? errors.allowed_subjects
-											: ""
-									}
+									error={errors.allowed_subjects && touched.allowed_subjects ? errors.allowed_subjects : ""}
 								/>
 								<Input
 									type="number"

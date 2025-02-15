@@ -33,15 +33,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-const daysOfWeek = [
-	"Sunday",
-	"Monday",
-	"Tuesday",
-	"Wednesday",
-	"Thursday",
-	"Friday",
-	"Saturday",
-];
+const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const calendarUtils = {
 	getDaysInMonth: (year: number, month: number) => new Date(year, month + 1, 0).getDate(),
@@ -89,9 +81,7 @@ const Page = () => {
 		const month = currentDate.getMonth();
 		const year = currentDate.getFullYear();
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
-		return Array.from({ length: daysInMonth }, (_, i) =>
-			new Date(year, month, i + 1).toString()
-		);
+		return Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1).toString());
 	}, [currentDate]);
 
 	const calendarDays = React.useMemo(() => {
@@ -147,16 +137,8 @@ const Page = () => {
 								value={data?.calendar.upcoming ?? 0}
 								label="Upcoming"
 							/>
-							<CalendarCard
-								icon={RiCalendarEventLine}
-								value={data?.calendar.live ?? 0}
-								label="Live"
-							/>
-							<CalendarCard
-								icon={RiCalendarCheckLine}
-								value={data?.calendar.ended ?? 0}
-								label="Ended"
-							/>
+							<CalendarCard icon={RiCalendarEventLine} value={data?.calendar.live ?? 0} label="Live" />
+							<CalendarCard icon={RiCalendarCheckLine} value={data?.calendar.ended ?? 0} label="Ended" />
 						</div>
 					</div>
 					<div className="flex w-full flex-col gap-y-2 rounded-lg bg-white p-5">
@@ -211,8 +193,7 @@ const Page = () => {
 											</div>
 											<div className="mt-1 flex flex-col gap-y-1 overflow-y-auto">
 												{events.map((event, index) => {
-													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } =
-														dayUtils(event);
+													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } = dayUtils(event);
 
 													return (
 														<div key={index} className="space-y-1">

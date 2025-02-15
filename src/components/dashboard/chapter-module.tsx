@@ -20,13 +20,7 @@ import { useQuizStore } from "@/store/z-store/quiz";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { Editor } from "../shared";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetTitle,
-	SheetTrigger,
-} from "../ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { AddAttachment } from "./add-attachment";
 import { DeleteLesson } from "./delete-lesson";
 
@@ -89,8 +83,7 @@ export const ChapterModule = ({
 	};
 
 	const { isPending, mutate } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) =>
-			CreateChapterModule(chapter_id, module),
+		mutationFn: ({ chapter_id, module }: UseMutationProps) => CreateChapterModule(chapter_id, module),
 		mutationKey: ["create-chapter-module"],
 		onSuccess: (data) => {
 			toast.success(data.message);
@@ -129,9 +122,7 @@ export const ChapterModule = ({
 			<div
 				onClick={() => onSelectModule(module)}
 				className={`w-full space-y-3 rounded-lg border p-3 ${
-					isSelected && isSelectedChapter
-						? "border-primary-400 bg-primary-100"
-						: "border-neutral-400"
+					isSelected && isSelectedChapter ? "border-primary-400 bg-primary-100" : "border-neutral-400"
 				}`}>
 				<div className="flex h-6 w-full items-center justify-between gap-x-1">
 					<div className="flex flex-1 items-center gap-x-1">
@@ -199,10 +190,7 @@ export const ChapterModule = ({
 									className="h-[75vh] w-full"
 								/>
 								<div className="flex w-full items-center justify-end">
-									<Button
-										className="w-32"
-										onClick={() => setOpen({ ...open, content: false })}
-										size="sm">
+									<Button className="w-32" onClick={() => setOpen({ ...open, content: false })} size="sm">
 										Save
 									</Button>
 								</div>
@@ -217,9 +205,7 @@ export const ChapterModule = ({
 						<RiUploadCloud2Line size={14} /> Upload Video
 					</button>
 
-					<Dialog
-						open={open.attachment}
-						onOpenChange={(attachment) => setOpen({ ...open, attachment })}>
+					<Dialog open={open.attachment} onOpenChange={(attachment) => setOpen({ ...open, attachment })}>
 						<DialogTrigger asChild>
 							<button
 								type="button"
@@ -256,9 +242,7 @@ export const ChapterModule = ({
 					</button>
 				)}
 				{module.id && (
-					<Dialog
-						open={open.delete}
-						onOpenChange={(value) => setOpen({ ...open, delete: value })}>
+					<Dialog open={open.delete} onOpenChange={(value) => setOpen({ ...open, delete: value })}>
 						<DialogTrigger asChild>
 							<button
 								type="button"
@@ -267,10 +251,7 @@ export const ChapterModule = ({
 							</button>
 						</DialogTrigger>
 						<DialogContent className="w-[400px] p-1">
-							<DeleteLesson
-								lessonId={module.id}
-								onClose={() => setOpen({ ...open, delete: false })}
-							/>
+							<DeleteLesson lessonId={module.id} onClose={() => setOpen({ ...open, delete: false })} />
 						</DialogContent>
 					</Dialog>
 				)}

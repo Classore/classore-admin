@@ -47,9 +47,7 @@ export const MultiSelect = ({ label, placeholder, options }: MultiSelectProps) =
 
 	return (
 		<label className="flex flex-col gap-1.5 font-body">
-			{label ? (
-				<p className="text-sm text-neutral-400 dark:text-neutral-50">{label}</p>
-			) : null}
+			{label ? <p className="text-sm text-neutral-400 dark:text-neutral-50">{label}</p> : null}
 
 			<Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
 				<PopoverTrigger asChild>
