@@ -1,10 +1,4 @@
-import type {
-	ChapterProps,
-	ChapterModuleProps,
-	CourseProps,
-	MakeOptional,
-	Maybe,
-} from "@/types";
+import type { ChapterProps, ChapterModuleProps, CourseProps, MakeOptional, Maybe } from "@/types";
 import { createReportableStore } from "../middleware";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;

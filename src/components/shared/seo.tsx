@@ -61,11 +61,7 @@ export function Seo({
 				<meta key="twitter:site" name="twitter:site" content={twitterHandle} />
 				<meta key="twitter:creator" name="twitter:creator" content={twitterHandle} />
 				<meta key="twitter:title" property="twitter:title" content={title} />
-				<meta
-					key="twitter:description"
-					property="twitter:description"
-					content={description}
-				/>
+				<meta key="twitter:description" property="twitter:description" content={description} />
 				<meta key="twitter:domain" name="twitter:domain" content={APP_URL} />
 
 				<link rel="shortcut icon" href="/favicon.ico" />

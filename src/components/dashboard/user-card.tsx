@@ -17,13 +17,7 @@ const variants: Record<string, string> = {
 	success: "bg-green-100 text-green-400",
 };
 
-export const UserCard = ({
-	icon: Icon,
-	label,
-	percentage,
-	value,
-	variant = "success",
-}: Props) => {
+export const UserCard = ({ icon: Icon, label, percentage, value, variant = "success" }: Props) => {
 	return (
 		<div className="flex aspect-[1.84/1] w-full flex-col gap-y-4 rounded-xl border px-5 py-[15px]">
 			<div className="grid size-8 place-items-center rounded-full border">

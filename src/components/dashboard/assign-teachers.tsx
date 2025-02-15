@@ -5,19 +5,8 @@ import React from "react";
 
 import { useCourseStore } from "@/store/z-store";
 import { Textarea } from "../ui/textarea";
-import {
-	GetChapterModules,
-	GetRolesQuery,
-	GetStaffs,
-	UpdateChapterModule,
-} from "@/queries";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { GetChapterModules, GetRolesQuery, GetStaffs, UpdateChapterModule } from "@/queries";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type {
 	GetChapterModuleResponse,
 	GetStaffsResponse,
@@ -85,9 +74,7 @@ export const AssignTeachers = () => {
 
 	const tutor = React.useMemo(() => {
 		if (modules) {
-			const mod = modules.find(
-				(module) => module.chapter_module_id === String(chapterModule?.id)
-			);
+			const mod = modules.find((module) => module.chapter_module_id === String(chapterModule?.id));
 			if (mod) {
 				return mod.chapter_module_tutor?.id ?? "";
 			}

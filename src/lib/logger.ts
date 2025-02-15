@@ -15,10 +15,7 @@ export class Logger {
 		SUCCESS: "color: #4caf50",
 	};
 
-	private static LogColor(
-		level: keyof typeof Logger.LogLevel,
-		message: string
-	): [string, string] {
+	private static LogColor(level: keyof typeof Logger.LogLevel, message: string): [string, string] {
 		const style = this.LogStyles[level] || "";
 		return [`%c${message}`, style];
 	}

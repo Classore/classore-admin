@@ -1,10 +1,5 @@
 import React from "react";
-import {
-	RiDeleteBin6Line,
-	RiEditLine,
-	RiForbid2Line,
-	RiInformationLine,
-} from "@remixicon/react";
+import { RiDeleteBin6Line, RiEditLine, RiForbid2Line, RiInformationLine } from "@remixicon/react";
 
 import type { CastedUserProps } from "@/types/casted-types";
 import { Button } from "../ui/button";
@@ -40,13 +35,9 @@ export const UserActions = ({ user }: Props) => {
 						<RiInformationLine size={18} /> View Details
 					</button>
 				</DialogTrigger>
-				<DialogContent
-					animate={false}
-					className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
+				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
 					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
-						<DialogTitle className="capitalize">
-							{user.user_user_type.toLowerCase()} Details
-						</DialogTitle>
+						<DialogTitle className="capitalize">{user.user_user_type.toLowerCase()} Details</DialogTitle>
 						<DialogDescription hidden>User Details</DialogDescription>
 						<div className="w-full">
 							<div className="w-full"></div>
@@ -75,9 +66,7 @@ export const UserActions = ({ user }: Props) => {
 						<RiEditLine size={18} /> Edit Details
 					</button>
 				</DialogTrigger>
-				<DialogContent
-					animate={false}
-					className="top-4 w-[550px] -translate-y-0 translate-x-[42%] p-1">
+				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[42%] p-1">
 					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 						<DialogTitle>User Details</DialogTitle>
 						<DialogDescription hidden>User Details</DialogDescription>
@@ -129,9 +118,7 @@ export const UserActions = ({ user }: Props) => {
 					</div>
 				</DialogContent>
 			</Dialog>
-			<Dialog
-				open={open.delete}
-				onOpenChange={(value) => setOpen({ ...open, delete: value })}>
+			<Dialog open={open.delete} onOpenChange={(value) => setOpen({ ...open, delete: value })}>
 				<DialogTrigger asChild>
 					<button
 						onClick={() => setOpen({ ...open, delete: true })}
@@ -144,9 +131,7 @@ export const UserActions = ({ user }: Props) => {
 						<IconLabel icon={RiDeleteBin6Line} variant="destructive" />
 						<div className="my-4 space-y-2">
 							<DialogTitle>Delete User Account</DialogTitle>
-							<DialogDescription>
-								Are you sure you want to delete this user account?
-							</DialogDescription>
+							<DialogDescription>Are you sure you want to delete this user account?</DialogDescription>
 						</div>
 						<div className="flex w-full items-center justify-end gap-x-4">
 							<Button

@@ -34,12 +34,8 @@ export const CourseTable = ({ courses, onPageChange, page, total, isLoading }: P
 				<TableHeader className="rounded-t-lg bg-neutral-50">
 					<TableRow className="rounded-t-lg text-xs">
 						<TableHead className="w-[] text-neutral-400">Subcategories</TableHead>
-						<TableHead className="w-[118px] text-center text-neutral-400">
-							Amount/Course
-						</TableHead>
-						<TableHead className="w-[236px] text-center text-neutral-400">
-							Last Updated
-						</TableHead>
+						<TableHead className="w-[118px] text-center text-neutral-400">Amount/Course</TableHead>
+						<TableHead className="w-[236px] text-center text-neutral-400">Last Updated</TableHead>
 						<TableHead className="w-[236px] text-center text-neutral-400">Media</TableHead>
 						<TableHead className="w-[154px] text-center text-neutral-400">Status</TableHead>
 						<TableHead className="w-[61px] text-center text-neutral-400"></TableHead>

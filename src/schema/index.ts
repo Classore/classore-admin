@@ -1,9 +1,7 @@
 import * as Yup from "yup";
 
 export const createAdminSchema = Yup.object({
-	email: Yup.string()
-		.email("Please enter a valid email!")
-		.required("Your email is required!"),
+	email: Yup.string().email("Please enter a valid email!").required("Your email is required!"),
 	first_name: Yup.string().required("First name is required!"),
 	last_name: Yup.string().required("Last name is required!"),
 	password: Yup.string()
@@ -17,9 +15,7 @@ export const createAdminSchema = Yup.object({
 });
 
 export const signinSchema = Yup.object({
-	email: Yup.string()
-		.email("Please enter a valid email!")
-		.required("Your email is required!"),
+	email: Yup.string().email("Please enter a valid email!").required("Your email is required!"),
 	password: Yup.string()
 		.required("Password is required!")
 		.matches(

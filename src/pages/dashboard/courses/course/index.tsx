@@ -12,6 +12,7 @@ import { DeleteAction } from "@/components/actions";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
+import { capitalize } from "@/lib";
 
 const Page = () => {
 	const [tab, setTab] = React.useState("course");
@@ -50,17 +51,13 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title="New Course" />
+			<Seo title={capitalize(course?.data.name ?? "New Course")} />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
-								<Button
-									onClick={() => router.back()}
-									className="w-fit"
-									size="sm"
-									variant="outline">
+								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
 								<div className="flex items-center gap-x-2">
@@ -103,7 +100,7 @@ const Page = () => {
 						</div>
 
 						<p className="mx-auto rounded-md bg-orange-100 p-2 text-center text-xs text-orange-600">
-							NB: Pls make sure there is a chapter saved before trying to add lessons under that
+							NB: Please make sure there is a chapter saved before trying to add lessons under that
 							chapter.
 						</p>
 
@@ -112,7 +109,10 @@ const Page = () => {
 								{isCoursePending ? (
 									<Spinner variant="primary" />
 								) : (
-									<CreateCourse existingChapters={course?.data.chapters ?? []} />
+									<CreateCourse
+										existingChapters={course?.data.chapters ?? []}
+										courseName={course?.data.name}
+									/>
 								)}
 							</TabPanel>
 							<TabPanel selected={tab} value="quiz">

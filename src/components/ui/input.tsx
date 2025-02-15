@@ -40,9 +40,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 							onClick={() => setTogglePassword(!togglePassword)}>
 							{!togglePassword ? <Eye /> : <EyeSlash />}
 
-							<span className="sr-only">
-								{togglePassword ? "show password" : "hide password"}
-							</span>
+							<span className="sr-only">{togglePassword ? "show password" : "hide password"}</span>
 						</button>
 					) : null}
 				</div>

@@ -60,9 +60,7 @@ export type ExaminationResponse = HttpResponse<PaginatedResponse<CastedExamTypeP
 export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
 export type BundlesResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;
 export type BundleResponse = HttpResponse<ExamBundleResponse>;
-export type ExaminationBundleResponse = HttpResponse<
-	PaginatedResponse<CastedExamBundleProps>
->;
+export type ExaminationBundleResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;
 
 const CreateExamination = async (payload: CreateExaminationDto) => {
 	return axios
@@ -90,15 +88,10 @@ const GetExaminations = async (params?: PaginationProps & { search?: string }) =
 		.then((res) => res.data);
 };
 
-const GetBundles = async (
-	params?: PaginationProps & { examination?: string; search?: string }
-) => {
+const GetBundles = async (params?: PaginationProps & { examination?: string; search?: string }) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
@@ -120,10 +113,7 @@ const GetBundle = async (
 ) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}
@@ -142,10 +132,7 @@ const GetSubjects = async (
 ) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}

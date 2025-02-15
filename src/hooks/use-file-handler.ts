@@ -88,9 +88,7 @@ export const useFileHandler = ({
 
 			const validFiles = newFiles.filter((file) => {
 				if (rules.maxSize && file.size > rules.maxSize) {
-					onError?.(
-						`File ${file.name} is larger than ${(rules.maxSize / (1024 * 1024)).toFixed(2)}MB`
-					);
+					onError?.(`File ${file.name} is larger than ${(rules.maxSize / (1024 * 1024)).toFixed(2)}MB`);
 					return false;
 				}
 

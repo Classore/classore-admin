@@ -12,19 +12,13 @@ export const getUserPermissions = (user: AdminOneProps) => {
 	return permissions;
 };
 
-export const hasPermission = (
-	user: AdminOneProps | null,
-	permissions: PermissionKey[]
-) => {
+export const hasPermission = (user: AdminOneProps | null, permissions: PermissionKey[]) => {
 	if (!user) return false;
 	const userPermissions = getUserPermissions(user);
 	return permissions.every((permission) => userPermissions.includes(permission));
 };
 
-export const hasAllPermissions = (
-	user: AdminOneProps | null,
-	permissions: PermissionKey[]
-) => {
+export const hasAllPermissions = (user: AdminOneProps | null, permissions: PermissionKey[]) => {
 	if (!user) return false;
 	const userPermissions = getUserPermissions(user);
 	return permissions.every((permission) => userPermissions.includes(permission));

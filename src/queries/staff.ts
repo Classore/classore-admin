@@ -1,11 +1,6 @@
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
-import type {
-	AdminProps,
-	HttpResponse,
-	PaginatedResponse,
-	PaginationProps,
-} from "@/types";
+import type { AdminProps, HttpResponse, PaginatedResponse, PaginationProps } from "@/types";
 
 interface AdminResponse {
 	admins: PaginatedResponse<AdminProps>;
@@ -17,15 +12,10 @@ interface AdminResponse {
 
 export type GetStaffsResponse = HttpResponse<AdminResponse>;
 
-const GetStaffs = async (
-	params: PaginationProps & { admin_role?: string; search?: string }
-) => {
+const GetStaffs = async (params: PaginationProps & { admin_role?: string; search?: string }) => {
 	if (params) {
 		for (const key in params) {
-			if (
-				!params[key as keyof typeof params] ||
-				params[key as keyof typeof params] === undefined
-			) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
 				delete params[key as keyof typeof params];
 			}
 		}

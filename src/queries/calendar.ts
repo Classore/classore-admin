@@ -39,9 +39,7 @@ const GetCalendarEvents = async (params?: PaginationProps & { month: number }) =
 };
 
 const GetCalendarEvent = async (id: string) => {
-	return axios
-		.get<HttpResponse<EventProps>>(endpoints(id).calendar.one)
-		.then((res) => res.data);
+	return axios.get<HttpResponse<EventProps>>(endpoints(id).calendar.one).then((res) => res.data);
 };
 
 const UpdateCalendarEvent = async (id: string, payload: Partial<CreateEventDto>) => {

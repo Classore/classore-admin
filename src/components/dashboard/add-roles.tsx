@@ -61,9 +61,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 					delete values[key as keyof CreateRoleDto];
 				}
 			}
-			const isEmpty = permissions.some(
-				(key) => values[key as keyof CreateRoleDto] === "YES"
-			);
+			const isEmpty = permissions.some((key) => values[key as keyof CreateRoleDto] === "YES");
 			if (!isEmpty) {
 				toast.error("Please select at least one permission");
 				return;
@@ -81,9 +79,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 			<IconLabel icon={RiUserAddLine} />
 			<div className="my-4 w-full">
 				<DialogTitle>Add New Role</DialogTitle>
-				<DialogDescription hidden>
-					Enter the details of the new role you want to add.
-				</DialogDescription>
+				<DialogDescription hidden>Enter the details of the new role you want to add.</DialogDescription>
 			</div>
 			<form onSubmit={handleSubmit} className="flex w-full flex-col gap-y-5">
 				<Input label="Role Name" name="name" onChange={handleChange} error={errors.name} />
@@ -93,9 +89,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="student_read"
 							name="student_read"
 							checked={values.student_read === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("student_read", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("student_read", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="student_read" className="text-sm font-medium leading-none">
 							Student Read
@@ -106,9 +100,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="student_write"
 							name="student_write"
 							checked={values.student_write === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("student_write", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("student_write", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="student_write" className="text-sm font-medium leading-none">
 							Student Write
@@ -163,9 +155,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="transactions_read"
 							name="transactions_read"
 							checked={values.transactions_read === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("transactions_read", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("transactions_read", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="transactions_read" className="text-sm font-medium leading-none">
 							Transaction Read
@@ -176,9 +166,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="transactions_write"
 							name="transactions_write"
 							checked={values.transactions_write === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("transactions_write", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("transactions_write", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="transactions_write" className="text-sm font-medium leading-none">
 							Transaction Write
@@ -200,9 +188,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="videos_write"
 							name="videos_write"
 							checked={values.videos_write === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("videos_write", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("videos_write", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="videos_write" className="text-sm font-medium leading-none">
 							Courses Write
@@ -213,9 +199,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="waitlist_read"
 							name="waitlist_read"
 							checked={values.waitlist_read === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("waitlist_read", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("waitlist_read", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="waitlist_read" className="text-sm font-medium leading-none">
 							Waitlist Read
@@ -226,9 +210,7 @@ export const AddRoles = ({ setOpen }: Props) => {
 							id="waitlist_write"
 							name="waitlist_write"
 							checked={values.waitlist_write === "YES"}
-							onCheckedChange={(checked) =>
-								setFieldValue("waitlist_write", checked ? "YES" : "NO")
-							}
+							onCheckedChange={(checked) => setFieldValue("waitlist_write", checked ? "YES" : "NO")}
 						/>
 						<label htmlFor="waitlist_write" className="text-sm font-medium leading-none">
 							Waitlist Write

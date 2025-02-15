@@ -14,12 +14,7 @@ import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Input } from "../ui/input";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 type Mode = "initial" | "select" | "create";
 
@@ -148,12 +143,7 @@ const Initial = (props: InnerProps) => {
 			<DialogTitle>Add New Course</DialogTitle>
 			<DialogDescription hidden>Add New Course</DialogDescription>
 			<div className="w-full space-y-4">
-				<Input
-					label="Enter course title"
-					name="name"
-					value={values.name}
-					onChange={handleChange}
-				/>
+				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
 				<Textarea
 					label="Describe what the students will learn"
 					name="description"

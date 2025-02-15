@@ -14,13 +14,7 @@ import { getFileExtension, shortenFileName } from "@/lib";
 // import { CloudinaryFileItem } from "../dynamic";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-	DialogTrigger,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 interface Props {
 	attachment: string;
@@ -47,12 +41,7 @@ const fileIcon = (extension: string): RemixiconComponentType => {
 	}
 };
 
-export const AttachmentItem = ({
-	attachment,
-	onDragEnd,
-	onDragOver,
-	onDragStart,
-}: Props) => {
+export const AttachmentItem = ({ attachment, onDragEnd, onDragOver, onDragStart }: Props) => {
 	const [isGrabbing, setIsGrabbing] = React.useState(false);
 	const [open, setOpen] = React.useState(false);
 
@@ -98,11 +87,7 @@ export const AttachmentItem = ({
 								</DialogDescription>
 							</div>
 							<div className="flex w-full items-center justify-end gap-x-4">
-								<Button
-									className="w-fit"
-									type="button"
-									onClick={() => setOpen(false)}
-									variant="outline">
+								<Button className="w-fit" type="button" onClick={() => setOpen(false)} variant="outline">
 									Cancel
 								</Button>
 								<Button className="w-fit" type="button" variant="destructive">

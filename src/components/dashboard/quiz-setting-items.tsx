@@ -1,13 +1,7 @@
 import { useFormik } from "formik";
 import React from "react";
 
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export const Attempts = () => {
 	const { setFieldValue, values } = useFormik({
@@ -22,9 +16,7 @@ export const Attempts = () => {
 
 	return (
 		<div className="flex h-10 items-center">
-			<Select
-				value={values.attempt}
-				onValueChange={(value) => setFieldValue("attempt", value)}>
+			<Select value={values.attempt} onValueChange={(value) => setFieldValue("attempt", value)}>
 				<SelectTrigger className="w-[119px] rounded-r-none bg-neutral-200 text-xs">
 					<SelectValue placeholder="Select attempts" />
 				</SelectTrigger>
@@ -36,9 +28,7 @@ export const Attempts = () => {
 					))}
 				</SelectContent>
 			</Select>
-			<Select
-				value={values.frequency}
-				onValueChange={(value) => setFieldValue("frequency", value)}>
+			<Select value={values.frequency} onValueChange={(value) => setFieldValue("frequency", value)}>
 				<SelectTrigger className="w-[119px] rounded-l-none text-xs">
 					<SelectValue placeholder="Select frequuency" />
 				</SelectTrigger>
@@ -73,9 +63,7 @@ export const PassMark = () => {
 
 	return (
 		<div className="h-10">
-			<Select
-				value={values.passmark}
-				onValueChange={(value) => setFieldValue("passmark", value)}>
+			<Select value={values.passmark} onValueChange={(value) => setFieldValue("passmark", value)}>
 				<SelectTrigger className="w-[119px] bg-neutral-200 text-xs">
 					<SelectValue placeholder="Select pass mark" />
 				</SelectTrigger>
@@ -116,9 +104,7 @@ export const Timer = () => {
 					))}
 				</SelectContent>
 			</Select>
-			<Select
-				value={values.minutes}
-				onValueChange={(value) => setFieldValue("minutes", value)}>
+			<Select value={values.minutes} onValueChange={(value) => setFieldValue("minutes", value)}>
 				<SelectTrigger className="w-[119px] rounded-l-none text-xs">
 					<SelectValue placeholder="Select minutes" />
 				</SelectTrigger>

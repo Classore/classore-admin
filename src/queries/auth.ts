@@ -63,9 +63,7 @@ const CreateRoleMutation = async (payload: CreateRoleDto) => {
 
 const GetRolesQuery = async (params?: PaginationProps) => {
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<PaginatedRoleProps>>
-		>(endpoints().auth.get_roles, { params })
+		.get<HttpResponse<PaginatedResponse<PaginatedRoleProps>>>(endpoints().auth.get_roles, { params })
 		.then((res) => res.data);
 };
 
@@ -80,17 +78,13 @@ const GetWaitlistQuery = async ({
 }) => {
 	const params = role ? { limit, page, role, search } : { limit, page, search };
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<WaitlistUserProps>>
-		>(endpoints().waitlist.get, { params })
+		.get<HttpResponse<PaginatedResponse<WaitlistUserProps>>>(endpoints().waitlist.get, { params })
 		.then((res) => res.data);
 };
 
 const DeleteWaitlistUser = async (id: string) => {
 	return axios
-		.put<
-			HttpResponse<WaitlistUserProps>
-		>(endpoints().auth.delete_entity, { id, type: "WAITLIST" })
+		.put<HttpResponse<WaitlistUserProps>>(endpoints().auth.delete_entity, { id, type: "WAITLIST" })
 		.then((res) => res.data);
 };
 

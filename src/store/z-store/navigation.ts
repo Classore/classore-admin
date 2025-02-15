@@ -18,24 +18,21 @@ const initialState: NavigationStore = {
 	setIds: () => {},
 };
 
-const useNavigationStore = createPersistMiddleware<NavigationStore>(
-	"navigation",
-	(set) => ({
-		...initialState,
-		onNavigate: () => {
-			set((state) => {
-				const currentIndex = state.ids.indexOf(state.current);
-				const nextId = state.ids[currentIndex + 1];
-				if (!nextId) {
-					toast.error("No more pages to navigate to");
-					return state;
-				}
-				return { ...state, current: nextId || state.ids[0] };
-			});
-		},
-		setIds: (ids) => set({ ids }),
-		getCurrent: () => initialState.current,
-	})
-);
+const useNavigationStore = createPersistMiddleware<NavigationStore>("navigation", (set) => ({
+	...initialState,
+	onNavigate: () => {
+		set((state) => {
+			const currentIndex = state.ids.indexOf(state.current);
+			const nextId = state.ids[currentIndex + 1];
+			if (!nextId) {
+				toast.error("No more pages to navigate to");
+				return state;
+			}
+			return { ...state, current: nextId || state.ids[0] };
+		});
+	},
+	setIds: (ids) => set({ ids }),
+	getCurrent: () => initialState.current,
+}));
 
 export { useNavigationStore };
