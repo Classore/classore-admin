@@ -12,7 +12,13 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 
-import { CreateChapter, DeleteChapter, GetChapterModules, type CreateChapterDto } from "@/queries";
+import {
+	CreateChapter,
+	DeleteChapter,
+	GetChapterModules,
+	UpdateChapter,
+	type CreateChapterDto,
+} from "@/queries";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IsHttpError, httpErrorhandler } from "@/lib";
 import { ChapterModule } from "./chapter-module";
@@ -23,6 +29,10 @@ import { useDrag } from "@/hooks";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
+type UpdateMutation = {
+	id: string;
+	payload: CreateChapterDto;
+};
 
 interface CardProps {
 	addChapter: () => void;
@@ -216,6 +226,27 @@ export const CourseCard = ({
 		},
 	});
 
+	const { isPending: isUpdating, mutate: update } = useMutation({
+		mutationFn: ({ id, payload }: UpdateMutation) => UpdateChapter(id, payload),
+		mutationKey: ["create-chapter"],
+		onSuccess: () => {
+			toast.success("Chapter created successfully");
+			queryClient
+				.invalidateQueries({ queryKey: ["get-subject", "get-modules"] })
+				.then(() => addChapter());
+		},
+		onError: (error) => {
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
+		},
+	});
+
 	const { isPending: isDeleting } = useMutation({
 		mutationFn: (id: string) => DeleteChapter(id),
 		mutationKey: ["delete-chapter"],
@@ -252,6 +283,8 @@ export const CourseCard = ({
 		}
 	};
 
+	const isExistingChapter = Boolean(chapter.id);
+
 	const { handleChange, handleSubmit, values } = useFormik({
 		initialValues,
 		onSubmit: (values) => {
@@ -263,7 +296,15 @@ export const CourseCard = ({
 				toast.error("Please fill all fields");
 				return;
 			}
-			create(values);
+			if (isExistingChapter) {
+				if (!chapter.id) {
+					toast.error("Cannot find Chapter ID");
+					return;
+				}
+				update({ id: chapter.id, payload: values });
+			} else {
+				create(values);
+			}
 		},
 	});
 
@@ -278,7 +319,7 @@ export const CourseCard = ({
 						<button
 							key={i}
 							onClick={() => handleCourseAction(label)}
-							disabled={isCreating || isDeleting}
+							disabled={isCreating || isUpdating || isDeleting}
 							className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
 							<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 						</button>
@@ -315,9 +356,13 @@ export const CourseCard = ({
 						<div className="flex items-center gap-2 py-2">
 							<button
 								type="submit"
-								disabled={isCreating}
+								disabled={isCreating || isUpdating}
 								className="rounded-lg bg-primary-400 px-4 py-1.5 text-sm text-white disabled:opacity-50">
-								{isCreating ? <RiLoaderLine className="size-4 animate-spin" /> : "Save Chapter"}
+								{isCreating || isUpdating ? (
+									<RiLoaderLine className="size-4 animate-spin" />
+								) : (
+									"Save Chapter"
+								)}
 							</button>
 							<p className="text-xs text-neutral-400">NB: Please save chapter before adding modules</p>
 						</div>
