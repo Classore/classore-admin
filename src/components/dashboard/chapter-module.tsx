@@ -12,17 +12,18 @@ import {
 	RiUploadCloud2Line,
 } from "@remixicon/react";
 
-import { CreateChapterModule, type CreateChapterModuleDto } from "@/queries";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { CreateChapterModule, UpdateChapterModule } from "@/queries";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import { convertHTmlToMd, convertMdToHtml, sanitize } from "@/lib";
 import type { ChapterModuleProps, MakeOptional } from "@/types";
+import { convertHTmlToMd, convertMdToHtml } from "@/lib";
+import type { CreateChapterModuleDto } from "@/queries";
 import { useQuizStore } from "@/store/z-store/quiz";
+import { AddAttachment } from "./add-attachment";
+import { DeleteLesson } from "./delete-lesson";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { Editor } from "../shared";
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "../ui/sheet";
-import { AddAttachment } from "./add-attachment";
-import { DeleteLesson } from "./delete-lesson";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 
@@ -95,6 +96,21 @@ export const ChapterModule = ({
 		},
 	});
 
+	const { isPending: isUpdating, mutateAsync } = useMutation({
+		mutationFn: ({ chapter_id, module }: UseMutationProps) => UpdateChapterModule(chapter_id, module),
+		mutationKey: ["create-chapter-module"],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] }).then(() => {});
+		},
+		onError: (error) => {
+			console.log(error);
+			toast.error("Failed to create module");
+		},
+	});
+
+	const isExistingModule = Boolean(module.id && module.title);
+
 	const { handleChange, handleSubmit, values, setFieldValue } = useFormik({
 		initialValues,
 		enableReinitialize: true,
@@ -107,15 +123,22 @@ export const ChapterModule = ({
 				toast.error("Title and content are required");
 				return;
 			}
+			const content = convertHTmlToMd(values.content);
 			const payload = {
 				...values,
-				content: sanitize(convertHTmlToMd(values.content)),
+				content,
 			};
-			mutate({ chapter_id, module: payload });
+			if (isExistingModule) {
+				mutateAsync({ chapter_id, module: payload });
+			} else {
+				mutate({ chapter_id, module: payload });
+			}
 		},
 	});
 
-	const isExistingModule = Boolean(module.id && module.title);
+	const html = React.useMemo(() => {
+		return convertMdToHtml(values.content || "");
+	}, [values.content]);
 
 	return (
 		<form onSubmit={handleSubmit} className="w-full" {...rest}>
@@ -159,7 +182,7 @@ export const ChapterModule = ({
 						<button
 							onClick={() => onDelete(module)}
 							type="button"
-							disabled={isPending}
+							disabled={isPending || isUpdating}
 							className="grid size-7 place-items-center rounded-md border hover:bg-neutral-50 disabled:cursor-not-allowed">
 							<RiDeleteBin6Line size={16} className="text-red-400" />
 						</button>
@@ -185,7 +208,7 @@ export const ChapterModule = ({
 							<div className="space-y-4">
 								<Editor
 									onValueChange={(value) => setFieldValue("content", value)}
-									defaultValue={convertMdToHtml(values.content)}
+									defaultValue={html}
 									size="md"
 									className="h-[75vh] w-full"
 								/>
@@ -238,7 +261,11 @@ export const ChapterModule = ({
 					<button
 						type="submit"
 						className="flex items-center gap-x-1 rounded bg-primary-400 px-3 py-1.5 text-xs capitalize text-white hover:bg-primary-500">
-						{isPending ? <RiLoaderLine size={16} className="animate-spin" /> : "Save Lesson"}
+						{isPending || isUpdating ? (
+							<RiLoaderLine size={16} className="animate-spin" />
+						) : (
+							"Save Lesson"
+						)}
 					</button>
 				)}
 				{module.id && (

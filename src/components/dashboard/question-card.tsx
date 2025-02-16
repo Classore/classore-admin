@@ -15,19 +15,21 @@ import {
 	RiQuestionLine,
 } from "@remixicon/react";
 
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
 import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface Props {
+	chapterId: string;
+	moduleId: string;
+	onDelete: (sequence: number) => void;
+	onDuplicate: (sequence: number) => void;
+	onReorder: (sequence: number, direction: "up" | "down") => void;
 	question: QuestionDto;
-	// onDelete: (sequence: number) => void;
-	// onDuplicate: (sequence: number) => void;
-	// onReorder: (sequence: number, direction: "up" | "down") => void;
-	// onUpdateQuestions: (question: CreateQuestionDto) => void;
+	// onUpdateQuestions: (question: QuestionDto) => void;
 }
 
 const question_types = [
@@ -43,18 +45,18 @@ const question_actions = [
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
-export const QuestionCard = ({ question }: Props) => {
+export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 	const {
 		handleTypeChange,
 		addQuestionContent,
 		removeQuestion,
 		addImagesToQuestion,
 		removeImageFromQuestion,
-	} = useQuizStore((state) => state.actions);
+	} = useQuizStore();
 
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
-			addImagesToQuestion(question.sequence_number, files);
+			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
 		},
 		fileType: "image",
 		onError: (error) => {
@@ -78,7 +80,9 @@ export const QuestionCard = ({ question }: Props) => {
 				<div className="flex items-center gap-x-2">
 					<Select
 						value={question.question_type}
-						onValueChange={(value) => handleTypeChange(value, question.sequence_number)}>
+						onValueChange={(value) =>
+							handleTypeChange(value, chapterId, moduleId, question.sequence_number)
+						}>
 						<SelectTrigger className="h-7 w-40 text-xs">
 							<SelectValue placeholder="Select a type" />
 						</SelectTrigger>
@@ -96,10 +100,11 @@ export const QuestionCard = ({ question }: Props) => {
 					<div className="flex items-center">
 						{question_actions.map(({ icon: Icon, label }, index) => (
 							<button
+								type="button"
 								key={index}
 								onClick={() => {
 									if (label === "delete") {
-										removeQuestion(question.sequence_number);
+										removeQuestion(chapterId, moduleId, question.sequence_number);
 									}
 								}}
 								className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
@@ -113,7 +118,9 @@ export const QuestionCard = ({ question }: Props) => {
 			<div className="relative flex flex-col gap-2">
 				<Textarea
 					value={question.content}
-					onChange={(e) => addQuestionContent(question.sequence_number, e.target.value)}
+					onChange={(e) =>
+						addQuestionContent(chapterId, moduleId, question.sequence_number, e.target.value)
+					}
 					className="h-44 w-full md:text-sm"
 				/>
 
@@ -146,7 +153,7 @@ export const QuestionCard = ({ question }: Props) => {
 								<button
 									type="button"
 									onClick={() => {
-										removeImageFromQuestion(question.sequence_number, index);
+										removeImageFromQuestion(chapterId, moduleId, question.sequence_number, index);
 										handleRemoveFile(image);
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
@@ -183,7 +190,7 @@ export const QuestionCard = ({ question }: Props) => {
 			{question.question_type === "MULTICHOICE" && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
-					<OptionItem question={question} />
+					<OptionItem chapterId={chapterId} moduleId={moduleId} question={question} />
 				</div>
 			)}
 
@@ -191,7 +198,7 @@ export const QuestionCard = ({ question }: Props) => {
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
 					<div className="w-full space-y-2">
-						<OptionItem question={question} />
+						<OptionItem chapterId={chapterId} moduleId={moduleId} question={question} />
 					</div>
 				</div>
 			)}
@@ -199,7 +206,7 @@ export const QuestionCard = ({ question }: Props) => {
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
 					<div className="w-full space-y-2">
-						<OptionItem question={question} />
+						<OptionItem chapterId={chapterId} moduleId={moduleId} question={question} />
 					</div>
 				</div>
 			)}
@@ -207,10 +214,16 @@ export const QuestionCard = ({ question }: Props) => {
 	);
 };
 
-const OptionItem = ({ question }: { question: QuestionDto }) => {
-	const { addOptionContent, addOption, setCorrectOption, removeOption } = useQuizStore(
-		(state) => state.actions
-	);
+const OptionItem = ({
+	chapterId,
+	moduleId,
+	question,
+}: {
+	chapterId: string;
+	moduleId: string;
+	question: QuestionDto;
+}) => {
+	const { addOptionContent, addOption, setCorrectOption, removeOption } = useQuizStore();
 
 	return (
 		<>
@@ -228,7 +241,13 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 								value={option.content}
 								autoFocus
 								onChange={(e) =>
-									addOptionContent(question.sequence_number, e.target.value, option.sequence_number)
+									addOptionContent(
+										chapterId,
+										moduleId,
+										question.sequence_number,
+										e.target.value,
+										option.sequence_number
+									)
 								}
 								className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 							/>
@@ -240,7 +259,9 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 								)}
 								<button
 									type="button"
-									onClick={() => setCorrectOption(question.sequence_number, option.sequence_number)}>
+									onClick={() =>
+										setCorrectOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
+									}>
 									<RiCheckboxCircleFill
 										className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
 									/>
@@ -250,7 +271,9 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 
 						{question.question_type !== "YES_OR_NO" && (
 							<button
-								onClick={() => removeOption(question.sequence_number, option.sequence_number)}
+								onClick={() =>
+									removeOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
+								}
 								className="grid size-6 place-items-center rounded-md border">
 								<RiDeleteBin6Line className="size-4 text-neutral-400" />
 							</button>
@@ -272,7 +295,7 @@ const OptionItem = ({ question }: { question: QuestionDto }) => {
 							toast.error("Options can only be added to multiple choice questions");
 							return;
 						}
-						addOption(question.sequence_number);
+						addOption(chapterId, moduleId, question.sequence_number);
 					}}
 					className="w-fit focus:border-primary-300"
 					size="xs"
