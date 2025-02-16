@@ -6,6 +6,7 @@ import type {
 	CastedExamTypeProps,
 	ChapterProps,
 	CourseProps,
+	EntityTypeProps,
 	ExamProps,
 	ExamBundleProps,
 	HttpResponse,
@@ -150,10 +151,15 @@ const GetSubject = async (id: string) => {
 		.then((res) => res.data);
 };
 
+const DeleteEntity = async (entity: EntityTypeProps, ids: string[]) => {
+	return axios.delete(endpoints().school.delete, { params: { entity, ids } });
+};
+
 export {
 	CreateBundle,
 	CreateExamination,
 	CreateSubject,
+	DeleteEntity,
 	GetBundles,
 	GetBundle,
 	GetExaminations,
