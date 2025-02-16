@@ -11,6 +11,7 @@ import {
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import type { UpdateChapterModuleDto } from "@/queries";
+import { createVideoUploadSocket } from "@/lib/socket";
 import { axios, embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
 import { IconLabel, VideoPlayer } from "../shared";
@@ -52,6 +53,8 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		video: false,
 	});
 
+	const moduleId = String(module?.id || "");
+
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ module, module_id }: UseMutationProps) => {
 			const formData = new FormData();
@@ -91,10 +94,11 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		},
 		mutationKey: ["update-chapter-module"],
 		onSuccess: (data) => {
-			setOpen({ ...open, paste: false });
 			setUploadProgress(0);
-			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] }).then(() => {
+				setOpen({ ...open, paste: false });
+				toast.success(data.message);
+			});
 		},
 		onError: (error) => {
 			if (error.message !== "Upload cancelled") {
@@ -104,6 +108,14 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			setUploadProgress(0);
 		},
 	});
+
+	React.useEffect(() => {
+		const socket = createVideoUploadSocket({ moduleId });
+
+		return () => {
+			socket.disconnect();
+		};
+	}, [moduleId]);
 
 	const handleCancelUpload = () => {
 		if (abortController.current) {
