@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
@@ -228,7 +230,7 @@ const HtmlPlugin = ({ initialHtml, onHtmlChanged }: HtmlPluginProps) => {
 				console.error("Error parsing initial HTML:", error);
 			}
 		});
-	}, []);
+	}, [editor, initialHtml]);
 
 	return (
 		<OnChangePlugin
@@ -266,3 +268,5 @@ const ActionButton = React.memo(
 		</button>
 	)
 );
+
+ActionButton.displayName = "ActionButton";
