@@ -289,14 +289,14 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	);
 };
 
-const PasteLink = ({
-	module,
+export const PasteLink = ({
 	open,
+	sequence,
 	setOpen,
 	disabled,
 }: {
-	module: ChapterModule | null;
 	open: boolean;
+	sequence: number;
 	setOpen: (open: boolean) => void;
 	disabled?: boolean;
 }) => {
@@ -342,7 +342,7 @@ const PasteLink = ({
 		video_urls.push(url);
 		mutate({
 			module_id: String(module?.id),
-			module: { sequence: Number(module?.sequence), video_urls },
+			module: { sequence, video_urls },
 		});
 	};
 
@@ -499,7 +499,12 @@ const VideoUploadLabel = ({
 							Cancel Upload
 						</Button>
 					)}
-					<PasteLink module={module} open={open} setOpen={setOpen} disabled={isPending} />
+					<PasteLink
+						open={open}
+						sequence={Number(module?.sequence)}
+						setOpen={setOpen}
+						disabled={isPending}
+					/>
 				</div>
 				<Progress progress={uploadProgress} showLabel={true} />
 			</div>

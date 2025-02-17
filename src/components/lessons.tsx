@@ -4,12 +4,14 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
-import { Editor, Spinner, TabPanel } from "./shared";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { Editor, Progress, Spinner, TabPanel } from "./shared";
+import { PasteLink } from "./dashboard/module-card";
 import { Button } from "@/components/ui/button";
+import { endpoints } from "@/config";
 import {
-	CreateChapterModule,
 	type CreateChapterModuleDto,
 	GetChapterModules,
 	GetStaffs,
@@ -49,13 +51,23 @@ interface UseMutationProps {
 // this is the tutor role id. It should come from the api but
 const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
 export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
+	const abortController = React.useRef<AbortController | null>(null);
+	const ref = React.useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
+
+	const handleClick = () => {
+		if (ref.current) {
+			ref.current.click();
+		}
+	};
 
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
+	const [progress, setProgress] = React.useState(0);
+	const [open, setOpen] = React.useState(false);
 
 	const { data: course } = useQuery({
 		queryKey: ["get-subject", courseId],
@@ -97,16 +109,51 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 	}, [chapter?.sequence, data]);
 
 	const { isPending, mutate } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) => CreateChapterModule(chapter_id, module),
+		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
+			const formData = new FormData();
+			module.videos?.forEach((video) => {
+				formData.append("videos", video);
+			});
+			module.attachments.forEach((attachment) => {
+				formData.append("attachments", attachment);
+			});
+			formData.append("sequence", module.sequence.toString());
+			formData.append("tutor", module.tutor);
+			formData.append("title", module.title);
+			formData.append("content", module.content);
+			abortController.current = new AbortController();
+			try {
+				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
+					endpoints(chapter_id).school.create_chapter_module,
+					formData,
+					{
+						onUploadProgress: (e) => {
+							const progress = Math.round((e.loaded * 100) / (e.total ?? e.loaded));
+							setProgress(progress);
+						},
+						signal: abortController.current.signal,
+						timeout: 1000 * 60 * 2,
+						headers: {
+							"Content-Type": "multipart/form-data",
+						},
+						maxBodyLength: Infinity,
+						maxContentLength: Infinity,
+					}
+				);
+				return res.data;
+			} catch (error) {}
+		},
 		mutationKey: ["create-chapter-module"],
 		onSuccess: () => {
 			toast.success("Chapter module created successfully!");
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+			setProgress(0);
 		},
 		onError: (error) => {
 			console.log(error);
 			toast.error("Failed to create module");
+			setProgress(0);
 		},
 	});
 
@@ -224,7 +271,7 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
 					size="md"
-					className="h-[500px]"
+					className="h-[400px]"
 				/>
 
 				{/* <textarea
@@ -258,20 +305,29 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 								url = embedUrl(video);
 							}
 							return (
-								<div key={index} className="relative">
-									<video src={url} id="videoPlayer" className="rounded-md" width="640" height="360" controls>
-										Your browser does not support the video tag.
-									</video>
+								<div key={index} className="space-y-4">
+									<div className="relative">
+										<video
+											src={url}
+											id="videoPlayer"
+											className="rounded-md"
+											width="640"
+											height="360"
+											controls>
+											Your browser does not support the video tag.
+										</video>
 
-									<button
-										onClick={() => {
-											URL.revokeObjectURL(url);
-											removeLessonVideo(lesson.sequence, lesson.chapter_sequence);
-										}}
-										type="button"
-										className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
-										<RiDeleteBin5Line className="size-4" />
-									</button>
+										<button
+											onClick={() => {
+												URL.revokeObjectURL(url);
+												removeLessonVideo(lesson.sequence, lesson.chapter_sequence);
+											}}
+											type="button"
+											className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
+											<RiDeleteBin5Line className="size-4" />
+										</button>
+									</div>
+									{progress > 0 && <Progress progress={progress} />}
 								</div>
 							);
 						})
@@ -285,6 +341,7 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 								id="video-upload"
 								accept="video/*"
 								multiple={false}
+								ref={ref}
 								onChange={(e) => {
 									const files = Array.from(e.target.files ?? []);
 									addLessonVideo(lesson.sequence, files, lesson.chapter_sequence);
@@ -306,15 +363,10 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 
 								<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
 								<div className="flex items-center justify-center gap-x-4">
-									<Button className="w-fit" size="sm" variant="invert-outline">
+									<Button onClick={handleClick} className="w-fit" size="sm" variant="invert-outline">
 										<RiUploadCloud2Line size={14} /> Upload Video
 									</Button>
-									{/* <PasteLink
-													module={module}
-													open={open.paste}
-													setOpen={(paste) => setOpen({ ...open, paste })}
-													disabled={isPending}
-												/> */}
+									<PasteLink open={open} sequence={lesson.sequence} setOpen={setOpen} disabled={isPending} />
 								</div>
 							</div>
 						</label>
