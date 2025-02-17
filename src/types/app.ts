@@ -132,11 +132,18 @@ export type Node = {
 };
 
 export type EntityTypeProps =
+	| "USER"
+	| "ADMIN"
 	| "CHAPTER"
 	| "CHAPTER_MODULE"
+	| "COURSE"
 	| "EXAM_BUNDLE"
 	| "EXAMINATION"
+	| "OPTION"
 	| "QUESTION"
+	| "QUIZ"
+	| "ROLE"
+	| "SCORE"
 	| "SUBJECT";
 
 export type PaginatedRoleProps = {

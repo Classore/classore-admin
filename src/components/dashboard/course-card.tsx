@@ -12,6 +12,15 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
+import { IsHttpError, httpErrorhandler } from "@/lib";
+import { ChapterModule } from "./chapter-module";
+import { queryClient } from "@/providers";
+import { useRouter } from "next/router";
+import { Button } from "../ui/button";
+import { IconLabel } from "../shared";
+import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	DeleteChapter,
@@ -19,13 +28,6 @@ import {
 	UpdateChapter,
 	type CreateChapterDto,
 } from "@/queries";
-import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { IsHttpError, httpErrorhandler } from "@/lib";
-import { ChapterModule } from "./chapter-module";
-import { queryClient } from "@/providers";
-import { useRouter } from "next/router";
-import { Button } from "../ui/button";
-import { useDrag } from "@/hooks";
 
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
@@ -60,6 +62,7 @@ export const CourseCard = ({
 	addChapter,
 	chapter,
 	index,
+	isPending,
 	isSelected,
 	lesson,
 	onDelete,
@@ -69,6 +72,7 @@ export const CourseCard = ({
 	onSelectModule,
 	setTab,
 }: CardProps) => {
+	const [open, setOpen] = React.useState(false);
 	const router = useRouter();
 	const subjectId = router.query.courseId as string;
 
@@ -278,7 +282,7 @@ export const CourseCard = ({
 				onDuplicate(chapter.sequence);
 				break;
 			case "delete":
-				onDelete(chapter);
+				setOpen(true);
 				break;
 		}
 	};
@@ -309,88 +313,111 @@ export const CourseCard = ({
 	});
 
 	return (
-		<div
-			onClick={() => onSelectChapter(index)}
-			className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
-			<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
-				<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
-				<div className="flex items-center">
-					{course_actions.map(({ icon: Icon, label }, i) => (
-						<button
-							key={i}
-							onClick={() => handleCourseAction(label)}
-							disabled={isCreating || isUpdating || isDeleting}
-							className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
-							<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
-						</button>
-					))}
-				</div>
-			</div>
-
-			<div className="flex w-full flex-col items-center space-y-3 px-4 py-5">
-				<form onSubmit={handleSubmit} className="w-full space-y-2">
-					<div className="w-full rounded-lg border">
-						<div className="flex h-10 w-full items-center gap-x-1.5 px-3 py-2.5">
-							<RiFolderVideoLine className="size-5 text-neutral-400" />
-							<input
-								type="text"
-								name="name"
-								defaultValue={chapter.name}
-								onChange={handleChange}
-								className="h-full w-full border-0 p-0 text-sm outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
-								placeholder="Input title 'e.g. Introduction to Algebra'"
-							/>
+		<>
+			<Dialog onOpenChange={setOpen} open={open}>
+				<DialogContent className="w-[400px] p-1">
+					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
+						<IconLabel icon={RiDeleteBin6Line} variant="destructive" />
+						<div className="my-7 space-y-2">
+							<DialogTitle>Delete Chapter</DialogTitle>
+							<DialogDescription>
+								Are you sure you want to delete this chapter? This action cannot be undone.
+							</DialogDescription>
 						</div>
-						<hr />
-						<div className="flex h-32 w-full items-center px-3 py-2.5">
-							<textarea
-								name="content"
-								defaultValue={chapter.content}
-								onChange={handleChange}
-								className="h-full w-full resize-none border-0 p-0 text-xs outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
-								placeholder="Chapter Summary"
-							/>
+						<div className="flex w-full items-center justify-end gap-x-4">
+							<Button className="w-fit" onClick={() => setOpen(false)} variant="outline">
+								Cancel
+							</Button>
+							<Button onClick={() => onDelete(chapter)} className="w-fit" variant="destructive">
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Delete Lesson"}
+							</Button>
 						</div>
 					</div>
-					{values.name && values.content && (
-						<div className="flex items-center gap-2 py-2">
+				</DialogContent>
+			</Dialog>
+			<div
+				onClick={() => onSelectChapter(index)}
+				className={`w-full rounded-lg border bg-white transition-all duration-500 ${isSelected ? "border-primary-500" : "border-transparent"}`}>
+				<div className="flex w-full items-center justify-between rounded-t-lg border-b px-4 py-3">
+					<p className="text-xs font-medium text-neutral-400">CHAPTER {index + 1}</p>
+					<div className="flex items-center">
+						{course_actions.map(({ icon: Icon, label }, i) => (
 							<button
-								type="submit"
-								disabled={isCreating || isUpdating}
-								className="rounded-lg bg-primary-400 px-4 py-1.5 text-sm text-white disabled:opacity-50">
-								{isCreating || isUpdating ? (
-									<RiLoaderLine className="size-4 animate-spin" />
-								) : (
-									"Save Chapter"
-								)}
+								key={i}
+								onClick={() => handleCourseAction(label)}
+								disabled={isCreating || isUpdating || isDeleting}
+								className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+								<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 							</button>
-							<p className="text-xs text-neutral-400">NB: Please save chapter before adding modules</p>
-						</div>
-					)}
-				</form>
-
-				<div className="w-full space-y-1.5">
-					{modules.map((module, index) => (
-						<ChapterModule
-							{...getDragProps(index)}
-							key={`${chapter.id}-module-${index}`}
-							chapter_id={chapter.id}
-							index={index}
-							isSelected={index === lesson?.sequence}
-							isSelectedChapter={isSelected}
-							module={module}
-							onDelete={deleteModule}
-							onSelectModule={onSelectModule}
-							setTab={setTab}
-						/>
-					))}
+						))}
+					</div>
 				</div>
 
-				<Button onClick={addNewModule} className="max-w-[250px]" size="sm" variant="invert-outline">
-					<RiAddLine size={16} />
-					Add New Lesson
-				</Button>
+				<div className="flex w-full flex-col items-center space-y-3 px-4 py-5">
+					<form onSubmit={handleSubmit} className="w-full space-y-2">
+						<div className="w-full rounded-lg border">
+							<div className="flex h-10 w-full items-center gap-x-1.5 px-3 py-2.5">
+								<RiFolderVideoLine className="size-5 text-neutral-400" />
+								<input
+									type="text"
+									name="name"
+									defaultValue={chapter.name}
+									onChange={handleChange}
+									className="h-full w-full border-0 p-0 text-sm outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
+									placeholder="Input title 'e.g. Introduction to Algebra'"
+								/>
+							</div>
+							<hr />
+							<div className="flex h-32 w-full items-center px-3 py-2.5">
+								<textarea
+									name="content"
+									defaultValue={chapter.content}
+									onChange={handleChange}
+									className="h-full w-full resize-none border-0 p-0 text-xs outline-0 ring-0 focus:border-0 focus:outline-0 focus:ring-0"
+									placeholder="Chapter Summary"
+								/>
+							</div>
+						</div>
+						{values.name && values.content && (
+							<div className="flex items-center gap-2 py-2">
+								<button
+									type="submit"
+									disabled={isCreating || isUpdating}
+									className="rounded-lg bg-primary-400 px-4 py-1.5 text-sm text-white disabled:opacity-50">
+									{isCreating || isUpdating ? (
+										<RiLoaderLine className="size-4 animate-spin" />
+									) : (
+										"Save Chapter"
+									)}
+								</button>
+								<p className="text-xs text-neutral-400">NB: Please save chapter before adding modules</p>
+							</div>
+						)}
+					</form>
+
+					<div className="w-full space-y-1.5">
+						{modules.map((module, index) => (
+							<ChapterModule
+								{...getDragProps(index)}
+								key={`${chapter.id}-module-${index}`}
+								chapter_id={chapter.id}
+								index={index}
+								isSelected={index === lesson?.sequence}
+								isSelectedChapter={isSelected}
+								module={module}
+								onDelete={deleteModule}
+								onSelectModule={onSelectModule}
+								setTab={setTab}
+							/>
+						))}
+					</div>
+
+					<Button onClick={addNewModule} className="max-w-[250px]" size="sm" variant="invert-outline">
+						<RiAddLine size={16} />
+						Add New Lesson
+					</Button>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };

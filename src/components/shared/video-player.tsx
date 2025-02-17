@@ -13,10 +13,11 @@ import {
 import { getGoogleDriveId, isGoogleDriveUrl } from "@/lib";
 
 interface Props {
+	moduleId: string;
 	src: string;
 }
 
-export const VideoPlayer = ({ src }: Props) => {
+export const VideoPlayer = ({ moduleId, src }: Props) => {
 	const container = React.useRef<HTMLDivElement>(null)!;
 	const video = React.useRef<HTMLVideoElement>(null)!;
 	const scrub = React.useRef<HTMLDivElement>(null)!;
@@ -56,6 +57,14 @@ export const VideoPlayer = ({ src }: Props) => {
 			setVideoUrl(src);
 		}
 	}, [src]);
+
+	React.useEffect(() => {
+		if (moduleId && video.current) {
+			video.current.currentTime = 0;
+			setProgress(0);
+			setIsPlaying(false);
+		}
+	}, [moduleId, video]);
 
 	const formatTime = (time: number) => {
 		const minutes = Math.floor(time / 60);
