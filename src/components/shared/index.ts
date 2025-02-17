@@ -5,6 +5,7 @@ export * from "./icon-label";
 export * from "./editor";
 export * from "./loader";
 export * from "./pagination";
+export * from "./progress";
 export * from "./radio";
 export * from "./search-input";
 export * from "./seo";

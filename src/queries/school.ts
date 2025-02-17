@@ -151,8 +151,10 @@ const GetSubject = async (id: string) => {
 		.then((res) => res.data);
 };
 
-const DeleteEntity = async (entity: EntityTypeProps, ids: string[]) => {
-	return axios.delete(endpoints().school.delete, { params: { entity, ids } });
+const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
+	return axios
+		.delete<HttpResponse<string>>(endpoints().school.delete, { data: { ids, model_type } })
+		.then((res) => res.data);
 };
 
 export {

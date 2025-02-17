@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { type Socket, io } from "socket.io-client";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -10,11 +11,10 @@ import {
 } from "@remixicon/react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { IconLabel, Progress, VideoPlayer } from "../shared";
 import type { UpdateChapterModuleDto } from "@/queries";
-import { createVideoUploadSocket } from "@/lib/socket";
 import { axios, embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
-import { IconLabel, VideoPlayer } from "../shared";
 import { useDrag, useFileHandler } from "@/hooks";
 import { AddAttachment } from "./add-attachment";
 import { UpdateChapterModule } from "@/queries";
@@ -44,16 +44,45 @@ interface UseMutationProps {
 	module: UpdateChapterModuleDto;
 }
 
+const url = process.env.NEXT_PUBLIC_API_URL;
+
 export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const abortController = React.useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = React.useState(0);
+	const websocket = React.useRef<Socket | null>(null);
 	const [open, setOpen] = React.useState({
 		attachment: false,
 		paste: false,
 		video: false,
 	});
 
+	const hasVideo = Boolean(module?.video_array.length && module.video_array.length > 0);
+
 	const moduleId = String(module?.id || "");
+
+	React.useEffect(() => {
+		if (moduleId) {
+			websocket.current = io(url, {
+				transports: ["websocket"],
+			});
+			websocket.current.on("connect", () => {
+				console.log("Connected to websocket");
+			});
+			websocket.current.on("disconnect", () => {
+				console.log("Disconnected from websocket");
+			});
+			websocket.current.on("connect_error", (error) => {
+				console.log("Connection error", error);
+			});
+			websocket.current.on(`video_upload_status.${moduleId}`, (data) => {
+				setUploadProgress(data.progress);
+			});
+
+			return () => {
+				websocket.current?.disconnect();
+			};
+		}
+	}, [moduleId]);
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ module, module_id }: UseMutationProps) => {
@@ -73,12 +102,14 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 							setUploadProgress(progress);
 						},
 						signal: abortController.current.signal,
+						timeout: 1000 * 60 * 2,
+						headers: {
+							"Content-Type": "multipart/form-data",
+						},
+						maxBodyLength: Infinity,
+						maxContentLength: Infinity,
 					}
 				);
-
-				if (response.status.toString().startsWith("2")) {
-					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-				}
 				return response.data;
 			} catch (error: unknown) {
 				const {
@@ -93,6 +124,14 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			}
 		},
 		mutationKey: ["update-chapter-module"],
+		onMutate: () => {
+			setUploadProgress(0);
+			return { cancelMutation: () => abortController.current?.abort() };
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			clearFiles();
+		},
 		onSuccess: (data) => {
 			setUploadProgress(0);
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] }).then(() => {
@@ -108,23 +147,6 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			setUploadProgress(0);
 		},
 	});
-
-	React.useEffect(() => {
-		const socket = createVideoUploadSocket({ moduleId });
-
-		return () => {
-			socket.disconnect();
-		};
-	}, [moduleId]);
-
-	const handleCancelUpload = () => {
-		if (abortController.current) {
-			abortController.current.abort();
-			setUploadProgress(0);
-			toast.info("Upload cancelled");
-		}
-		clearFiles();
-	};
 
 	const handleFiles = (file: File) => {
 		if (!module?.id) {
@@ -170,7 +192,40 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		},
 	});
 
-	const hasVideo = Boolean(module?.videos.length && module.videos.length > 0);
+	const handleCancelUpload = React.useCallback(() => {
+		if (abortController.current) {
+			abortController.current.abort();
+			setUploadProgress(0);
+			toast.info("Upload cancelled");
+		}
+		clearFiles();
+	}, [clearFiles]);
+
+	React.useEffect(() => {
+		if (hasVideo && isPending) {
+			toast.loading("Uploading video", {
+				description: (
+					<div className="space-y-2">
+						<p className="text-xs text-neutral-400">Please hold on while we upload your video</p>
+						<Progress progress={uploadProgress} />
+					</div>
+				),
+				duration: Infinity,
+				id: moduleId,
+				action: {
+					label: "Cancel",
+					onClick: handleCancelUpload,
+				},
+				actionButtonStyle: {
+					background: "red",
+					color: "white",
+					borderRadius: "8px",
+					padding: "4px 8px",
+					fontSize: "12px",
+				},
+			});
+		}
+	}, [handleCancelUpload, hasVideo, isPending, moduleId, uploadProgress]);
 
 	return (
 		<div className="w-full space-y-4">
@@ -185,9 +240,24 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 					</div>
 				)}
 				{hasVideo && (
-					<button className="flex items-center gap-x-2 rounded-md bg-white px-2 py-1.5 text-sm font-medium">
-						Change Video
-					</button>
+					<label htmlFor="video-upload">
+						<input
+							disabled={isPending || !module}
+							ref={inputRef}
+							type="file"
+							className="sr-only hidden"
+							id="video-upload"
+							onChange={handleFileChange}
+							accept="video/*"
+							multiple={false}
+						/>
+						<button
+							type="button"
+							onClick={handleClick}
+							className="flex items-center gap-x-2 rounded-lg border bg-white px-2 py-1.5 text-sm font-medium">
+							Change Video {isPending && <RiLoaderLine className="size-4 animate-spin" />}
+						</button>
+					</label>
 				)}
 			</div>
 			{module && module.video_array?.length ? (
@@ -212,7 +282,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 					module={module}
 					open={open.paste}
 					setOpen={(paste) => setOpen({ ...open, paste })}
-					uploadProgess={uploadProgress}
+					uploadProgress={uploadProgress}
 				/>
 			)}
 		</div>
@@ -353,7 +423,7 @@ const VideoUploadLabel = ({
 	module,
 	open,
 	setOpen,
-	uploadProgess,
+	uploadProgress,
 }: {
 	handleCancelUpload: () => void;
 	handleClick: () => void;
@@ -368,7 +438,7 @@ const VideoUploadLabel = ({
 	module: ChapterModule | null;
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	uploadProgess: number;
+	uploadProgress: number;
 }) => {
 	return (
 		<label
@@ -431,11 +501,7 @@ const VideoUploadLabel = ({
 					)}
 					<PasteLink module={module} open={open} setOpen={setOpen} disabled={isPending} />
 				</div>
-				<div className="flex h-1 w-full items-center rounded-2xl bg-neutral-200">
-					<div
-						style={{ width: `${uploadProgess}%` }}
-						className={`h-full rounded-2xl bg-green-400 ${uploadProgess < 100 ? "animate-pulse" : ""}`}></div>
-				</div>
+				<Progress progress={uploadProgress} showLabel={true} />
 			</div>
 		</label>
 	);
@@ -460,7 +526,7 @@ const UploadVideoRenderer = ({
 }) => {
 	return (
 		<div className="w-full space-y-4">
-			<VideoPlayer src={embedUrl(module.video_array[0].secure_url)} />
+			<VideoPlayer src={embedUrl(module.video_array[0].secure_url)} moduleId={module.id} />
 			<div className="w-full space-y-3 bg-white px-3">
 				<div className="flex h-[52px] w-full items-center justify-between">
 					<p className="text-sm font-medium">File Attachments</p>
