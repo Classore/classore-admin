@@ -71,6 +71,13 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 				sequence: prev.length,
 				subject_id: subjectId,
 				videos: [],
+				attempt_limit: 0,
+				attempt_reset: 0,
+				bench_mark: "",
+				shuffle_questions: "",
+				skip_questions: "",
+				timer_hour: 0,
+				timer_minute: 0,
 			};
 			return [...prev, newChapter];
 		});

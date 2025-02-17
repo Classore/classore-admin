@@ -24,16 +24,16 @@ export interface CreateChapterDto {
 }
 
 export interface CreateChapterModuleDto {
-	attachments: File[];
-	attachment_urls: string[];
-	content: string;
-	images: File[];
-	image_urls: string[];
-	sequence: number;
 	title: string;
-	videos: File[];
-	video_urls: string[];
+	content: string;
+	sequence: number;
 	tutor: string;
+	attachment_urls: string[];
+	videos: (File | string)[];
+	images: (File | string)[];
+	attachments: (File | string)[];
+	image_urls: string[];
+	video_urls: string[];
 }
 
 export interface CreateQuestionDto {
@@ -114,7 +114,12 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		.then((res) => res.data);
 };
 
-const GetChapters = async (params?: PaginationProps & {}) => {
+type GetChaptersParams = Partial<
+	PaginationProps & {
+		subject_id: string;
+	}
+>;
+const GetChapters = async (params?: GetChaptersParams) => {
 	if (params) {
 		for (const key in params) {
 			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
@@ -175,7 +180,26 @@ const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => 
 };
 
 const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
-	const formData = createFormDataFromObject(payload);
+	const formData = new FormData();
+	if (payload.title) formData.append("title", payload.title);
+	if (payload.content) formData.append("content", payload.content);
+	if (payload.sequence) formData.append("sequence", String(payload.sequence));
+	if (payload.tutor) formData.append("tutor", payload.tutor);
+	if (payload.attachments?.length) {
+		payload.attachments.forEach((attachment) => {
+			formData.append("attachments[]", attachment);
+		});
+	}
+	if (payload.images?.length) {
+		payload.images.forEach((image) => {
+			formData.append("images[]", image);
+		});
+	}
+	if (payload.videos?.length) {
+		payload.videos.forEach((video) => {
+			formData.append("videos[]", video);
+		});
+	}
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
@@ -195,12 +219,38 @@ const DeleteQuestion = async (id: string) => {
 	return id;
 };
 
+export type UpdateQuizSettingsPayload = {
+	bench_mark: number;
+	shuffle_questions: string;
+	skip_questions: string;
+	timer_minute: number;
+	timer_hour: number;
+	attempt_limit: number;
+	attempt_reset: number;
+};
+const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload) => {
+	return axios.put(endpoints(id).school.update_quiz_settings, payload).then((res) => res.data);
+};
+
+export type DeleteEntitiesPayload = {
+	ids: string[];
+	model_type: "CHAPTER" | "CHAPTER_MODULE" | "QUESTION" | "EXAM_BUNDLE" | "EXAMINATION" | "SUBJECT";
+};
+const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
+	return axios
+		.delete(endpoints().school.delete_entities, {
+			data: payload,
+		})
+		.then((res) => res.data);
+};
+
 export {
 	CreateChapter,
 	CreateChapterModule,
 	CreateQuestions,
 	DeleteChapter,
 	DeleteChapterModule,
+	DeleteEntities,
 	DeleteQuestion,
 	GetChapter,
 	GetChapterModule,
@@ -211,4 +261,5 @@ export {
 	UpdateChapter,
 	UpdateChapterModule,
 	UpdateQuestion,
+	UpdateQuizSettings,
 };

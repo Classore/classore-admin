@@ -1,0 +1,257 @@
+import {
+	RiAddLine,
+	RiArrowDownLine,
+	RiArrowUpLine,
+	RiDeleteBin6Line,
+	RiDeleteBinLine,
+	RiDraggable,
+	RiFileCopyLine,
+	RiFolderVideoLine,
+} from "@remixicon/react";
+import { Field, FieldArray, Form, Formik } from "formik";
+
+const question_actions = [
+	{ label: "up", icon: RiArrowUpLine },
+	{ label: "down", icon: RiArrowDownLine },
+	{ label: "duplicate", icon: RiFileCopyLine },
+	{ label: "delete", icon: RiDeleteBin6Line },
+];
+
+const initialValues = {
+	chapters: [
+		{
+			name: "",
+			content: "",
+			sequence: 1,
+		},
+	],
+};
+
+export const Chapters = () => {
+	return (
+		<Formik
+			initialValues={initialValues}
+			onSubmit={async (values) => {
+				await new Promise((r) => setTimeout(r, 500));
+				alert(JSON.stringify(values, null, 2));
+			}}>
+			{({ values }) => (
+				<Form className="col-span-3">
+					<FieldArray name="chapters">
+						{({ insert, remove, push }) => (
+							<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
+								<div className="flex items-center justify-between gap-2">
+									<p className="text-xs uppercase tracking-widest">All chapters</p>
+
+									<button
+										type="button"
+										onClick={() => push({ name: "", sequence: values.chapters.length + 1 })}
+										className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
+										<RiAddLine className="size-4" />
+										<span>Add New Chapter</span>
+									</button>
+								</div>
+
+								{/* chapters */}
+								<div className="flex flex-col gap-4">
+									{values.chapters.map((chapter, index) => (
+										<div key={chapter.sequence} className="rounded-md bg-white">
+											<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
+												<p className="text-xs uppercase tracking-widest">
+													Chapter {chapter.sequence}
+												</p>
+
+												<div className="flex items-center">
+													{question_actions.map(({ icon: Icon, label }, index) => (
+														<button
+															type="button"
+															key={index}
+															onClick={() => remove(index)}
+															className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+															<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
+														</button>
+													))}
+												</div>
+											</div>
+
+											<div className="flex flex-col gap-2 p-5">
+												<div>
+													<div className="relative">
+														<RiFolderVideoLine className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+														<Field
+															type="text"
+															name={`chapters.${index}.name`}
+															placeholder="Enter chapter title"
+															className="w-full rounded-t-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm text-neutral-600 outline-0 ring-0 placeholder:text-neutral-300 focus:ring-0"
+														/>
+													</div>
+													<textarea
+														name={`chapters.${index}.content`}
+														placeholder="Enter chapter summary"
+														className="flex h-44 w-full resize-none rounded-b-md border border-t-0 border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-300 focus:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+													/>
+												</div>
+
+												<ul>
+													<li className="flex items-center gap-x-3 rounded-md border border-neutral-200 bg-white p-2 text-sm text-neutral-500">
+														<RiDraggable className="size-4" />
+														<p>Lesson One</p>
+
+														<button
+															type="button"
+															className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+															<RiDeleteBinLine className="size-4" />
+														</button>
+													</li>
+												</ul>
+
+												<button
+													type="button"
+													className="mx-auto flex w-52 items-center justify-center gap-1 rounded-md border border-dotted border-neutral-200 bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200">
+													<RiAddLine className="size-4" />
+													<span>Add new Lesson</span>
+												</button>
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</FieldArray>
+				</Form>
+			)}
+		</Formik>
+	);
+};
+
+
+import { RiArrowLeftSLine, RiEyeLine } from "@remixicon/react";
+import { useQueries } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import React from "react";
+
+import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { Breadcrumbs, Seo, Spinner, TabPanel } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { create_course_tabs } from "@/config";
+import { GetSubject } from "@/queries";
+
+const Page = () => {
+	const [tab, setTab] = React.useState("course");
+	const router = useRouter();
+	const courseId = router.query.courseId as string;
+
+	const [{ data: course, isPending: isCoursePending }] = useQueries({
+		queries: [
+			{
+				queryKey: ["get-subject", courseId],
+				queryFn: () => GetSubject(courseId),
+				enabled: !!courseId,
+			},
+		],
+	});
+
+	const breadcrumbs: BreadcrumbItemProps[] = [
+		{ label: "Manage Courses", href: "/dashboard/courses" },
+		{
+			label: `${course?.data.examination.name}`,
+			href: `/dashboard/courses/`,
+		},
+		{
+			label: `${course?.data.examination_bundle.name?.toUpperCase()}`,
+			href: `/dashboard/courses/${course?.data.examination_bundle.id}`,
+		},
+		{
+			label: "change directory",
+			href: `/dashboard/courses/course?courseId=${courseId}`,
+			change_directory: true,
+			variant: "warning",
+		},
+	];
+
+	return (
+		<>
+			<Seo title="New Course" />
+			<DashboardLayout>
+				<div className="flex w-full flex-col gap-y-6">
+					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
+						<div className="flex flex-col gap-y-2">
+							<div className="flex items-center gap-x-4">
+								<Button
+									onClick={() => router.back()}
+									className="w-fit"
+									size="sm"
+									variant="outline">
+									<RiArrowLeftSLine className="text-neutral-400" /> Back
+								</Button>
+								<div className="flex items-center gap-x-2">
+									<h3 className="text-lg font-medium capitalize">{course?.data.name}</h3>
+								</div>
+							</div>
+							<Breadcrumbs
+								courseId={courseId}
+								currentCategory={String(course?.data.examination.id)}
+								currentSubcategory={String(course?.data.examination_bundle.id)}
+								links={breadcrumbs}
+							/>
+						</div>
+						<div className="flex items-center gap-x-2">
+							<Button className="w-fit" size="sm" variant="destructive-outline">
+								Delete
+							</Button>
+							<Button className="w-fit" size="sm" variant="outline">
+								Save and Exit
+							</Button>
+							<Button className="w-fit" size="sm">
+								Next <RiArrowLeftSLine className="rotate-180" />
+							</Button>
+						</div>
+					</div>
+
+					<div className="flex h-[calc(100vh-268px)] w-full flex-col gap-y-6 overflow-y-auto rounded-lg bg-white p-5">
+						<div className="flex h-10 w-full items-center justify-between border-b">
+							<div className="flex items-center gap-x-6">
+								{create_course_tabs.map(({ action, icon: Icon, label }) => (
+									<button
+										key={action}
+										onClick={() => setTab(action)}
+										className={`relative flex h-10 items-center gap-x-1 text-sm capitalize transition-all duration-500 before:absolute before:bottom-0 before:left-0 before:h-0.5 before:bg-primary-400 ${action === tab ? "text-primary-400 before:w-full" : "text-neutral-400"}`}>
+										<Icon size={16} /> {label}
+									</button>
+								))}
+							</div>
+							<button className="flex items-center gap-x-1 text-sm text-neutral-400">
+								<RiEyeLine size={16} /> Preview
+							</button>
+						</div>
+
+						<p className="mx-auto rounded-md bg-orange-100 p-2 text-center text-xs text-orange-600">
+							NB: Pls make sure there is a chapter saved before trying to add lessons under that
+							chapter.
+						</p>
+
+						<div className="h-full max-h-[calc(100vh-372px)] w-full">
+							<TabPanel selected={tab} value="course">
+								{isCoursePending ? (
+									<Spinner variant="primary" />
+								) : (
+									<CreateCourse existingChapters={course?.data.chapters ?? []} />
+								)}
+							</TabPanel>
+							<TabPanel selected={tab} value="quiz">
+								<QuizSettings />
+							</TabPanel>
+							<TabPanel selected={tab} value="teacher">
+								<AssignTeachers />
+							</TabPanel>
+						</div>
+					</div>
+				</div>
+			</DashboardLayout>
+		</>
+	);
+};
+
+export default Page;

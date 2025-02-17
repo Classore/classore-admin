@@ -1,4 +1,4 @@
-import type { AdminProps, Maybe, OptionsProps, QuestionTypeProps, VideoProps } from ".";
+import type { Maybe, OptionsProps, QuestionTypeProps, VideoProps } from ".";
 
 export type CastedExamTypeProps = {
 	examination_id: string;
@@ -79,7 +79,7 @@ export type CastedChapterModuleProps = {
 	chapter_module_video_array: VideoProps[];
 	chapter_module_videos: string[];
 	chapter_module_content: string;
-	chapter_module_tutor: Maybe<AdminProps>;
+	chapter_module_tutor: string;
 };
 
 export type CastedQuestionProps = {
