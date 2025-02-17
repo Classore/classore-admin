@@ -95,7 +95,7 @@ export const VideoPlayer = ({ src }: Props) => {
 		if (video.current && currentTime === video.current.duration) {
 			setIsPlaying(false);
 		}
-	}, [video]);
+	}, [currentTime, video]);
 
 	const toggleMute = () => {
 		if (video.current) {

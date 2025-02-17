@@ -11,6 +11,7 @@ import {
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import type { UpdateChapterModuleDto } from "@/queries";
+import { createVideoUploadSocket } from "@/lib/socket";
 import { axios, embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
 import { IconLabel, VideoPlayer } from "../shared";
@@ -44,12 +45,15 @@ interface UseMutationProps {
 }
 
 export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
+	const abortController = React.useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = React.useState(0);
 	const [open, setOpen] = React.useState({
 		attachment: false,
 		paste: false,
 		video: false,
 	});
+
+	const moduleId = String(module?.id || "");
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ module, module_id }: UseMutationProps) => {
@@ -58,8 +62,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 				formData.append("videos", video);
 			});
 			formData.append("sequence", module.sequence.toString());
-			const controller = new AbortController();
-			const signal = controller.signal;
+			abortController.current = new AbortController();
 			try {
 				const response = await axios.put<HttpResponse<string>>(
 					endpoints(module_id).school.update_chapter_module,
@@ -69,17 +72,20 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 							const progress = Math.round((e.loaded * 100) / (e.total ?? e.loaded));
 							setUploadProgress(progress);
 						},
-						signal,
+						signal: abortController.current.signal,
 					}
 				);
 
+				if (response.status.toString().startsWith("2")) {
+					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+				}
 				return response.data;
 			} catch (error: unknown) {
 				const {
 					response: { data },
 				} = error as HttpError;
-				if (signal.aborted) {
-					throw new Error("Upload aborted");
+				if (abortController.current.signal.aborted) {
+					throw new Error("Upload cancelled");
 				}
 				clearFiles();
 				const message = Array.isArray(data.message) ? data.message[0] : data.message;
@@ -88,18 +94,37 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		},
 		mutationKey: ["update-chapter-module"],
 		onSuccess: (data) => {
-			setOpen({ ...open, paste: false });
 			setUploadProgress(0);
-			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] }).then(() => {
+				setOpen({ ...open, paste: false });
+				toast.success(data.message);
+			});
 		},
 		onError: (error) => {
-			console.log(error);
-			toast.error("Failed to update module");
+			if (error.message !== "Upload cancelled") {
+				console.log(error);
+				toast.error("Failed to update module");
+			}
 			setUploadProgress(0);
-			clearFiles();
 		},
 	});
+
+	React.useEffect(() => {
+		const socket = createVideoUploadSocket({ moduleId });
+
+		return () => {
+			socket.disconnect();
+		};
+	}, [moduleId]);
+
+	const handleCancelUpload = () => {
+		if (abortController.current) {
+			abortController.current.abort();
+			setUploadProgress(0);
+			toast.info("Upload cancelled");
+		}
+		clearFiles();
+	};
 
 	const handleFiles = (file: File) => {
 		if (!module?.id) {
@@ -129,7 +154,9 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	} = useFileHandler({
 		onValueChange: (files) => {
 			const file = files[0];
-			handleFiles(file);
+			if (file) {
+				handleFiles(file);
+			}
 		},
 		fileType: "video",
 		validationRules: {
@@ -172,6 +199,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 				/>
 			) : (
 				<VideoUploadLabel
+					handleCancelUpload={handleCancelUpload}
 					handleClick={handleClick}
 					handleDragEnter={handleDragEnter}
 					handleDragLeave={handleDragLeave}
@@ -312,6 +340,7 @@ const PasteLink = ({
 };
 
 const VideoUploadLabel = ({
+	handleCancelUpload,
 	handleClick,
 	handleDragEnter,
 	handleDragLeave,
@@ -326,6 +355,7 @@ const VideoUploadLabel = ({
 	setOpen,
 	uploadProgess,
 }: {
+	handleCancelUpload: () => void;
 	handleClick: () => void;
 	handleDragEnter: (e: React.DragEvent<HTMLLabelElement>) => void;
 	handleDragLeave: (e: React.DragEvent<HTMLLabelElement>) => void;
@@ -387,6 +417,18 @@ const VideoUploadLabel = ({
 						<RiUploadCloud2Line size={14} /> Upload Video
 						{isPending && <RiLoaderLine className="animate-spin" />}
 					</Button>
+					{isPending && (
+						<Button
+							onClick={(e) => {
+								e.preventDefault();
+								handleCancelUpload();
+							}}
+							className="w-fit"
+							size="sm"
+							variant="destructive">
+							Cancel Upload
+						</Button>
+					)}
 					<PasteLink module={module} open={open} setOpen={setOpen} disabled={isPending} />
 				</div>
 				<div className="flex h-1 w-full items-center rounded-2xl bg-neutral-200">

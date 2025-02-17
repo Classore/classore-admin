@@ -31,7 +31,7 @@ export type Exact<T extends { [key: string]: unknown }> = {
  * @example
  * interface Person { name: string; age: number; }
  * type OptionalAgePerson = MakeOptional<Person, 'age'>;
- * // { name: string; age?: number | null; }
+ * { name: string; age?: number | null; }
  */
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
 	[SubKey in K]?: Maybe<T[SubKey]>;
@@ -44,7 +44,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
  * @example
  * interface Person { name: string; age: number; }
  * type NullableAgePerson = MakeMaybe<Person, 'age'>;
- * // { name: string; age: number | null; }
+ * { name: string; age: number | null; }
  */
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
 	[SubKey in K]: Maybe<T[SubKey]>;
@@ -130,6 +130,14 @@ export type Node = {
 	updatedBy?: Maybe<string>;
 	updatedOn?: Maybe<Date | string>;
 };
+
+export type EntityTypeProps =
+	| "CHAPTER"
+	| "CHAPTER_MODULE"
+	| "EXAM_BUNDLE"
+	| "EXAMINATION"
+	| "QUESTION"
+	| "SUBJECT";
 
 export type PaginatedRoleProps = {
 	role_id: string;
@@ -280,6 +288,7 @@ export type QuestionProps = Node & {
 	options: OptionsProps[];
 	question_type: QuestionTypeProps;
 	sequence: number;
+	sequence_number: number;
 };
 
 export type OptionsProps = Node & {
@@ -288,10 +297,10 @@ export type OptionsProps = Node & {
 	content: string;
 	images: string[];
 	is_correct: "YES" | "NO";
+	module: string;
 	question: string;
 	sequence_number: number;
 	subject: string;
-	videos: string[];
 };
 
 //

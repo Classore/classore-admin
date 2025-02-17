@@ -1,8 +1,6 @@
 import TurndownService from "turndown";
-// import gfm from "turndown-plugin-gfm";
 
 export interface HTMLToMarkdownOptions {
-	useGFM?: boolean;
 	customRules?: {
 		[key: string]: (node: HTMLElement) => string;
 	};
@@ -52,7 +50,6 @@ export const convertHTmlToMd = (html: string, options: HTMLToMarkdownOptions = {
 };
 
 export interface MarkdownToHTMLOptions {
-	useGFM?: boolean;
 	customRules?: {
 		[key: string]: (content: string) => string;
 	};
@@ -81,4 +78,20 @@ export const convertMdToHtml = (markdown: string, options: MarkdownToHTMLOptions
 		console.error("Markdown to HTML conversion failed:", error);
 		return "";
 	}
+};
+
+export const isHTMLString = (str: string): boolean => {
+	if (!str || typeof str !== "string") return false;
+
+	const htmlRegex = /<[^>]*>/;
+	const strictHtmlRegex = /^(?:<[^>]+>|[^<]*)*$/;
+	const htmlEntities = /&[a-z]+;|&#\d+;/i;
+
+	if (!htmlRegex.test(str)) return false;
+
+	return (
+		strictHtmlRegex.test(str) ||
+		htmlEntities.test(str) ||
+		str.toLowerCase().includes("<!doctype html>")
+	);
 };
