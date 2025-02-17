@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { useCourseStore, useQuizStore } from "@/store/z-store";
-import { DeleteChapter, GetQuestions } from "@/queries";
+import { DeleteEntity, GetQuestions } from "@/queries";
 import { httpErrorhandler, IsHttpError } from "@/lib";
 import { CourseCard } from "./course-card";
 import { ModuleCard } from "./module-card";
@@ -41,13 +41,13 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 	});
 
 	const {} = useQuery({
-		queryKey: ["get-questions", chapters[sequence].id, sequence],
+		queryKey: ["get-questions", chapters[sequence]?.id, sequence],
 		queryFn: () => GetQuestions({ chapter_id: chapters[sequence].id, limit: 100, page: 1 }),
-		enabled: !!chapters[sequence].id,
+		enabled: !!chapters[sequence]?.id,
 	});
 
 	const { isPending, mutateAsync } = useMutation({
-		mutationFn: (id: string) => DeleteChapter(id),
+		mutationFn: (id: string) => DeleteEntity("CHAPTER", [id]),
 		mutationKey: ["delete-chapter"],
 		onError: (error) => {
 			const isHttpError = IsHttpError(error);
@@ -83,7 +83,7 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 			return;
 		}
 
-		if (chapter.id !== "") {
+		if (chapter.id) {
 			mutateAsync(chapter.id).then(() => {
 				setChapters((prev) => {
 					const newChapters = prev
