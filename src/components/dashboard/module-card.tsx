@@ -11,16 +11,16 @@ import {
 } from "@remixicon/react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IconLabel, Progress, VideoPlayer } from "../shared";
 import type { UpdateChapterModuleDto } from "@/queries";
+import { embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
 import { useDrag, useFileHandler } from "@/hooks";
 import { AddAttachment } from "./add-attachment";
 import { UpdateChapterModule } from "@/queries";
-import { embedUrl, validateUrl } from "@/lib";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -53,23 +53,63 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const hasVideo = Boolean(module?.video_array.length && module.video_array.length > 0);
 	const moduleId = String(module?.id || "");
 
-	React.useEffect(() => {
-		if (moduleId) {
-			const ws = new WebSocket(url);
-			ws.onmessage = (event) => {
-				const data = JSON.parse(event.data);
-				if (data.event === `video_upload_status.${moduleId}`) {
-					console.log("Video upload status:", data);
-				}
-			};
-			socket.current = ws;
+	const uploadChunk = async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
+		const chunkSize = 1024 * 1024 * 2;
+		const start = chunkNumber * chunkSize;
+		const end = Math.min(start + chunkSize, file.size);
+		const chunk = file.slice(start, end);
+		const formData = new FormData();
 
-			return () => {
-				ws.close();
-				socket.current = null;
-			};
+		const totalChunks = Math.ceil(file.size / chunkSize);
+		const chunkBlob = new Blob([chunk], { type: file.type });
+		formData.append("videos", chunkBlob, `${file.name}.part${chunkNumber}`);
+		formData.append("sequence", sequence.toString());
+		formData.append("chunkNumber", chunkNumber.toString());
+		formData.append("totalChunks", totalChunks.toString());
+		formData.append("totalSize", file.size.toString());
+		formData.append("chunkSize", chunkSize.toString());
+		formData.append("originalName", file.name);
+
+		try {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+			console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
+				start,
+				end,
+				size: chunk.size,
+				type: file.type,
+			});
+
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
+				{
+					method: "PUT",
+					body: formData,
+					headers: {
+						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+						Accept: "application/json",
+					},
+					signal: controller.signal,
+				}
+			);
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
+
+			setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
+		} catch (error) {
+			console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
+			throw error;
 		}
-	}, [moduleId]);
+	};
 
 	const uploader = async (file: File, moduleId: string, sequence: number) => {
 		if (!file) {
@@ -77,54 +117,76 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			return;
 		}
 
-		const chunkSize = 5 * 1024 * 1024;
+		if (!moduleId) {
+			toast.error("Invalid module ID");
+			return;
+		}
+
+		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
+		if (!token) {
+			toast.error("Authentication token missing");
+			return;
+		}
+
+		const chunkSize = 2 * 1024 * 1024; // 2MB chunks
 		const totalChunks = Math.ceil(file.size / chunkSize);
-		const chunkProgress = 100 / totalChunks;
 
 		try {
 			setIsLoading(true);
+			abortController.current = new AbortController();
+
+			console.log("Starting chunked upload:", {
+				fileName: file.name,
+				fileSize: file.size,
+				totalChunks,
+				chunkSize,
+			});
+
 			for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
-				const start = chunkNumber * chunkSize;
-				const end = Math.min(start + chunkSize, file.size);
-				const chunk = file.slice(start, end);
-
-				const formData = new FormData();
-				formData.append("videos", chunk);
-				formData.append("sequence", sequence.toString());
-
-				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
-					{
-						method: "PUT",
-						body: formData,
-						headers: {
-							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-						},
-						keepalive: true,
-						signal: abortController.current?.signal,
-					}
-				);
-
-				const data = await response.json();
-				setUploadProgress(Number((chunkNumber + 1) * chunkProgress));
-
-				if (!response.ok) {
-					toast.error("Upload failed");
-					throw new Error(data.message || "Upload failed");
+				if (abortController.current?.signal.aborted) {
+					throw new Error("Upload cancelled");
 				}
+				await uploadChunk(chunkNumber, file, sequence);
 			}
 
 			setUploadProgress(100);
-			setIsLoading(false);
-			clearFiles();
 			toast.success("File upload completed");
 		} catch (error) {
-			console.error("Error uploading chunk:", error);
+			console.error("Upload failed:", error);
+			toast.error(error instanceof Error ? error.message : "Upload failed");
+		} finally {
 			setIsLoading(false);
 			setUploadProgress(0);
 			clearFiles();
+			abortController.current = null;
 		}
 	};
+
+	React.useEffect(() => {
+		if (isLoading && moduleId) {
+			const ws = new WebSocket(url);
+			ws.onopen = () => {
+				console.log("WebSocket connected");
+			};
+			ws.onerror = (error) => {
+				console.error("WebSocket error:", error);
+			};
+			ws.onclose = () => {
+				console.log("WebSocket closed");
+			};
+			ws.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				if (data.event === `video_upload_status.${moduleId}`) {
+					console.log("Video upload status:", data);
+				}
+			};
+			socket.current = ws;
+			return () => {
+				ws.close();
+				socket.current = null;
+			};
+		}
+	}, [isLoading, moduleId]);
 
 	const handleFiles = React.useCallback(
 		(file: File) => {
