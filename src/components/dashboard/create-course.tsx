@@ -179,7 +179,7 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 				</div>
 
 				<div
-					className={`h-full w-full space-y-4 overflow-y-auto ${chapters.length > 1 ? "pb-10" : ""}`}>
+					className={`h-full w-full space-y-4 overflow-y-auto ${chapters.length > 0 ? "pb-10" : ""}`}>
 					{chapters.map((chapter, index) => (
 						<CourseCard
 							key={`${chapter.id}-${index}`}

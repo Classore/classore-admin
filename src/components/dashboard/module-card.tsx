@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { type Socket, io } from "socket.io-client";
+import Cookies from "js-cookie";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -11,23 +11,16 @@ import {
 } from "@remixicon/react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
+import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
 import { IconLabel, Progress, VideoPlayer } from "../shared";
 import type { UpdateChapterModuleDto } from "@/queries";
-import { axios, embedUrl, validateUrl } from "@/lib";
 import { AttachmentItem } from "./attachment-item";
 import { useDrag, useFileHandler } from "@/hooks";
 import { AddAttachment } from "./add-attachment";
 import { UpdateChapterModule } from "@/queries";
+import { embedUrl, validateUrl } from "@/lib";
 import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
-import { endpoints } from "@/config";
-import type {
-	ChapterModuleProps,
-	ChapterProps,
-	HttpError,
-	HttpResponse,
-	MakeOptional,
-} from "@/types";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;
@@ -49,7 +42,8 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const abortController = React.useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = React.useState(0);
-	const websocket = React.useRef<Socket | null>(null);
+	const [isLoading, setIsLoading] = React.useState(false);
+	const socket = React.useRef<WebSocket | null>(null);
 	const [open, setOpen] = React.useState({
 		attachment: false,
 		paste: false,
@@ -57,106 +51,94 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	});
 
 	const hasVideo = Boolean(module?.video_array.length && module.video_array.length > 0);
-
 	const moduleId = String(module?.id || "");
 
 	React.useEffect(() => {
 		if (moduleId) {
-			websocket.current = io(url, {
-				transports: ["websocket"],
-			});
-			websocket.current.on("connect", () => {
-				console.log("Connected to websocket");
-			});
-			websocket.current.on("disconnect", () => {
-				console.log("Disconnected from websocket");
-			});
-			websocket.current.on("connect_error", (error) => {
-				console.log("Connection error", error);
-			});
-			websocket.current.on(`video_upload_status.${moduleId}`, (data) => {
-				setUploadProgress(data.progress);
-			});
+			const ws = new WebSocket(url);
+			ws.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				if (data.event === `video_upload_status.${moduleId}`) {
+					console.log("Video upload status:", data);
+				}
+			};
+			socket.current = ws;
 
 			return () => {
-				websocket.current?.disconnect();
+				ws.close();
+				socket.current = null;
 			};
 		}
 	}, [moduleId]);
 
-	const { isPending, mutate } = useMutation({
-		mutationFn: async ({ module, module_id }: UseMutationProps) => {
-			const formData = new FormData();
-			module.videos?.forEach((video) => {
-				formData.append("videos", video);
-			});
-			formData.append("sequence", module.sequence.toString());
-			abortController.current = new AbortController();
-			try {
-				const response = await axios.put<HttpResponse<string>>(
-					endpoints(module_id).school.update_chapter_module,
-					formData,
-					{
-						onUploadProgress: (e) => {
-							const progress = Math.round((e.loaded * 100) / (e.total ?? e.loaded));
-							setUploadProgress(progress);
-						},
-						signal: abortController.current.signal,
-						timeout: 1000 * 60 * 2,
-						headers: {
-							"Content-Type": "multipart/form-data",
-						},
-						maxBodyLength: Infinity,
-						maxContentLength: Infinity,
-					}
-				);
-				return response.data;
-			} catch (error: unknown) {
-				const {
-					response: { data },
-				} = error as HttpError;
-				if (abortController.current.signal.aborted) {
-					throw new Error("Upload cancelled");
-				}
-				clearFiles();
-				const message = Array.isArray(data.message) ? data.message[0] : data.message;
-				throw new Error(message ?? "Failed to upload video");
-			}
-		},
-		mutationKey: ["update-chapter-module"],
-		onMutate: () => {
-			setUploadProgress(0);
-			return { cancelMutation: () => abortController.current?.abort() };
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			clearFiles();
-		},
-		onSuccess: (data) => {
-			setUploadProgress(0);
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] }).then(() => {
-				setOpen({ ...open, paste: false });
-				toast.success(data.message);
-			});
-		},
-		onError: (error) => {
-			if (error.message !== "Upload cancelled") {
-				console.log(error);
-				toast.error("Failed to update module");
-			}
-			setUploadProgress(0);
-		},
-	});
-
-	const handleFiles = (file: File) => {
-		if (!module?.id) {
-			toast.error("This module does not exist");
+	const uploader = async (file: File, moduleId: string, sequence: number) => {
+		if (!file) {
+			toast.error("No file selected");
 			return;
 		}
-		const videos: File[] = [];
-		videos.push(file);
-		mutate({ module_id: module.id, module: { sequence: module.sequence, videos } });
+
+		const chunkSize = 5 * 1024 * 1024;
+		const totalChunks = Math.ceil(file.size / chunkSize);
+		const chunkProgress = 100 / totalChunks;
+
+		try {
+			setIsLoading(true);
+			for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
+				const start = chunkNumber * chunkSize;
+				const end = Math.min(start + chunkSize, file.size);
+				const chunk = file.slice(start, end);
+
+				const formData = new FormData();
+				formData.append("videos", chunk);
+				formData.append("sequence", sequence.toString());
+
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
+					{
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+						},
+						keepalive: true,
+						signal: abortController.current?.signal,
+					}
+				);
+
+				const data = await response.json();
+				setUploadProgress(Number((chunkNumber + 1) * chunkProgress));
+
+				if (!response.ok) {
+					toast.error("Upload failed");
+					throw new Error(data.message || "Upload failed");
+				}
+			}
+
+			setUploadProgress(100);
+			setIsLoading(false);
+			clearFiles();
+			toast.success("File upload completed");
+		} catch (error) {
+			console.error("Error uploading chunk:", error);
+			setIsLoading(false);
+			setUploadProgress(0);
+			clearFiles();
+		}
 	};
+
+	const handleFiles = React.useCallback(
+		(file: File) => {
+			if (!module?.id) {
+				toast.error("This module does not exist");
+				return;
+			}
+			// const videos: File[] = [];
+			// videos.push(file);
+			// mutate({ module_id: module.id, module: { sequence: module.sequence, videos } });
+			uploader(file, module.id, module.sequence);
+		},
+		[module]
+	);
 
 	const { getDragProps } = useDrag({
 		items: module?.attachments ?? [],
@@ -202,7 +184,8 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	}, [clearFiles]);
 
 	React.useEffect(() => {
-		if (hasVideo && isPending) {
+		if (hasVideo && isLoading) {
+			const toastId = moduleId;
 			toast.loading("Uploading video", {
 				description: (
 					<div className="space-y-2">
@@ -211,7 +194,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 					</div>
 				),
 				duration: Infinity,
-				id: moduleId,
+				id: toastId,
 				action: {
 					label: "Cancel",
 					onClick: handleCancelUpload,
@@ -224,8 +207,12 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 					fontSize: "12px",
 				},
 			});
+
+			return () => {
+				toast.dismiss(toastId);
+			};
 		}
-	}, [handleCancelUpload, hasVideo, isPending, moduleId, uploadProgress]);
+	}, [handleCancelUpload, hasVideo, isLoading, moduleId, uploadProgress]);
 
 	return (
 		<div className="w-full space-y-4">
@@ -242,7 +229,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 				{hasVideo && (
 					<label htmlFor="video-upload">
 						<input
-							disabled={isPending || !module}
+							disabled={isLoading || !module}
 							ref={inputRef}
 							type="file"
 							className="sr-only hidden"
@@ -255,7 +242,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 							type="button"
 							onClick={handleClick}
 							className="flex items-center gap-x-2 rounded-lg border bg-white px-2 py-1.5 text-sm font-medium">
-							Change Video {isPending && <RiLoaderLine className="size-4 animate-spin" />}
+							Change Video {isLoading && <RiLoaderLine className="size-4 animate-spin" />}
 						</button>
 					</label>
 				)}
@@ -278,7 +265,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 					handleFileChange={handleFileChange}
 					inputRef={inputRef}
 					isDragging={isDragging}
-					isPending={isPending}
+					isPending={isLoading}
 					module={module}
 					open={open.paste}
 					setOpen={(paste) => setOpen({ ...open, paste })}
@@ -501,7 +488,7 @@ const VideoUploadLabel = ({
 					)}
 					<PasteLink module={module} open={open} setOpen={setOpen} disabled={isPending} />
 				</div>
-				<Progress progress={uploadProgress} showLabel={true} />
+				{uploadProgress > 0 && <Progress progress={uploadProgress} showLabel={true} />}
 			</div>
 		</label>
 	);
