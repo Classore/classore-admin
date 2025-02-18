@@ -54,7 +54,7 @@ const Page = () => {
 			<Seo title={capitalize(course?.data.name ?? "New Course")} />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
-					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
+					<div className="flex w-full items-center justify-between rounded-lg bg-white">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
 								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
@@ -82,7 +82,7 @@ const Page = () => {
 						</div>
 					</div>
 
-					<div className="flex h-[calc(100vh-268px)] w-full flex-col gap-y-6 overflow-y-auto rounded-lg bg-white p-5">
+					<div className="flex h-[calc(100vh-228px)] w-full flex-col gap-y-3 overflow-y-auto bg-white">
 						<div className="flex h-10 w-full items-center justify-between border-b">
 							<div className="flex items-center gap-x-6">
 								{create_course_tabs.map(({ action, icon: Icon, label }) => (
@@ -104,7 +104,7 @@ const Page = () => {
 							chapter.
 						</p>
 
-						<div className="h-full max-h-[calc(100vh-372px)] w-full">
+						<div className="h-full max-h-[calc(100vh-332px)] w-full">
 							<TabPanel selected={tab} value="course">
 								{isCoursePending ? (
 									<Spinner variant="primary" />
