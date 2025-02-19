@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
 import type {
@@ -30,7 +32,7 @@ export interface CreateBundleDto {
 	allow_extra_subjects: "YES" | "NO";
 	amount: number;
 	amount_per_subject: number;
-	cover_image: File | null;
+	banner: File | null;
 	end_date: Date;
 	examination: string;
 	extra_charge: number;
@@ -70,8 +72,20 @@ const CreateExamination = async (payload: CreateExaminationDto) => {
 };
 
 const CreateBundle = async (payload: CreateBundleDto) => {
+	const formData = new FormData();
+	formData.append("allow_extra_subjects", payload.allow_extra_subjects);
+	formData.append("allowed_subjects", payload.allowed_subjects.toString());
+	formData.append("amount", payload.amount.toString());
+	formData.append("amount_per_subject", payload.amount_per_subject.toString());
+	formData.append("banner", payload.banner as File);
+	formData.append("end_date", format(payload.end_date, "MM/dd/yyyy"));
+	formData.append("examination", payload.examination);
+	formData.append("extra_charge", payload.extra_charge.toString());
+	formData.append("max_subjects", payload.max_subjects.toString());
+	formData.append("name", payload.name);
+	formData.append("start_date", format(payload.start_date, "MM/dd/yyyy"));
 	return axios
-		.post<HttpResponse<ExamBundleProps>>(endpoints().school.create_exam_bundle, payload)
+		.post<HttpResponse<ExamBundleProps>>(endpoints().school.create_exam_bundle, formData)
 		.then((res) => res.data);
 };
 

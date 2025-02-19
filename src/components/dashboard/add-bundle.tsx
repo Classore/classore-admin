@@ -39,11 +39,12 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 	const { isPending, mutate } = useMutation({
 		mutationFn: (data: CreateBundleDto) => CreateBundle(data),
 		onSuccess: () => {
-			console.log("Examination bundle created successfully");
+			toast.success("Examination bundle created successfully");
 			onOpenChange(false);
 		},
 		onError: (error) => {
 			console.error(error);
+			toast.error("Failed to create examination bundle");
 		},
 	});
 
@@ -66,18 +67,20 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		allowed_subjects: 0,
 		amount: 0,
 		amount_per_subject: 0,
-		cover_image: null,
 		end_date: addDays(new Date(), 1),
 		examination: "",
 		extra_charge: 0,
 		max_subjects: 0,
 		name: "",
 		start_date: new Date(),
+		banner: null,
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
-			processImageToBase64(files[0]).then((base64) => {
+			const file = files[0];
+			setFieldValue("banner", file);
+			processImageToBase64(file).then((base64) => {
 				setPreviewUrl(base64);
 			});
 			setFieldValue("cover_image", files[0]);
@@ -139,10 +142,10 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 						<DialogDescription hidden>Add New subcategory</DialogDescription>
 						<form onSubmit={handleSubmit} className="w-full space-y-4">
 							<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
-								{values.cover_image ? (
+								{values.banner ? (
 									<Image
 										src={previewUrl}
-										alt={values.cover_image.name}
+										alt={values.banner.name}
 										fill
 										sizes="100%"
 										className="rounded-md object-cover object-center"
