@@ -13,18 +13,22 @@ export type CastedExamTypeProps = {
 };
 
 export type CastedExamBundleProps = {
-	examinationbundle_id: string;
-	examinationbundle_createdon: Date;
-	examinationbundle_updatedon: Maybe<Date>;
-	examinationbundle_updatedby: Maybe<string>;
-	examinationbundle_isdeleted: boolean;
-	examinationbundle_isblocked: boolean;
-	examinationbundle_examination: string;
-	examinationbundle_name: string;
 	examinationbundle_amount: number;
-	examinationbundle_start_date: Date;
+	examinationbundle_amount_per_subject: number;
+	examinationbundle_banner: string;
+	examinationbundle_createdon: Date;
+	examinationbundle_examination: string;
+	examinationbundle_extra_charge: number;
 	examinationbundle_end_date: Date;
+	examinationbundle_id: string;
+	examinationbundle_isblocked: boolean;
+	examinationbundle_isdeleted: boolean;
 	examinationbundle_max_subjects: number;
+	examinationbundle_name: string;
+	examinationbundle_rating: number;
+	examinationbundle_start_date: Date;
+	examinationbundle_updatedby: Maybe<string>;
+	examinationbundle_updatedon: Maybe<Date>;
 	examination_name: string;
 	subject_count: number;
 	enrolled: number;
