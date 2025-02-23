@@ -3,7 +3,7 @@ import { RiArrowLeftSLine } from "@remixicon/react";
 import { toast } from "sonner";
 
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
 import { CreateQuestions, GetQuestions } from "@/queries";
 import { QuestionCard } from "./question-card";
 import { Button } from "../ui/button";
@@ -26,11 +26,11 @@ interface QuizProps {
 }
 
 export const QuizCard = ({ chapter, module }: QuizProps) => {
-	const { addQuestion, removeQuestion } = useQuizStore((state) => state.actions);
-	const { questions } = useQuizStore();
+	const { addQuestion, duplicateQuestion, questions, removeQuestion, reorderQuestion } =
+		useQuizStore();
 
 	const chapterId = chapter.id;
-	// const moduleId = String(module?.id);
+	const moduleId = String(module?.id);
 
 	const {} = useQuery({
 		queryKey: ["get-questions"],
@@ -49,20 +49,19 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		},
 	});
 
-	// const questions = React.useMemo(() => {
-	// 	if (moduleId) {
-	// 		return questions[chapterId]?.[moduleId];
-	// 	}
-	// 	return [];
-	// }, [chapterId, moduleId, questions]);
+	const moduleQuestions = React.useMemo(() => {
+		if (moduleId) {
+			return questions[chapterId]?.[moduleId];
+		}
+		return [];
+	}, [chapterId, moduleId, questions]);
 
 	const handleAddQuestion = () => {
 		if (!module?.id) {
 			toast.error("Please select a valid module");
 			return;
 		}
-		// addQuestion(chapterId, String(module?.id));
-		addQuestion();
+		addQuestion(chapterId, String(module?.id));
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,24 +70,24 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			toast.error("Please select a valid module");
 			return;
 		}
-		if (!questions) {
+		if (!moduleQuestions) {
 			toast.error("No questions provided");
 			return;
 		}
-		if (questions?.length === 0) {
+		if (moduleQuestions?.length === 0) {
 			toast.error("At least one question is required");
 			return;
 		}
-		if (questions?.some((question) => question.content === "")) {
+		if (moduleQuestions?.some((question) => question.content === "")) {
 			toast.error("All questions must have content");
 			return;
 		}
-		if (questions?.some((question) => question.question_type === "")) {
+		if (moduleQuestions?.some((question) => question.question_type === "")) {
 			toast.error("All questions must have a type");
 			return;
 		}
 		if (
-			questions?.some(
+			moduleQuestions?.some(
 				(question) => question.question_type === "MULTICHOICE" && question.options.length !== 4
 			)
 		) {
@@ -96,7 +95,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			return;
 		}
 		if (
-			questions?.some((question) =>
+			moduleQuestions?.some((question) =>
 				question.options.some(
 					(option) => question.question_type !== "FILL_IN_THE_GAP" && option.content === ""
 				)
@@ -106,7 +105,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			return;
 		}
 		if (
-			questions?.some(
+			moduleQuestions?.some(
 				(question) =>
 					(question.question_type === "MULTICHOICE" || question.question_type === "YES_OR_NO") &&
 					question.options.every((option) => option.is_correct !== "YES")
@@ -117,7 +116,7 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		}
 		const payload: UseMutationProps = {
 			module_id: String(module?.id),
-			questions: questions?.map((question, index) => ({
+			questions: moduleQuestions?.map((question, index) => ({
 				...question,
 				sequence: index,
 			})),
@@ -150,18 +149,16 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 			</div>
 
 			<div className="w-full space-y-2">
-				{questions?.map((question, index) => (
+				{moduleQuestions?.map((question, index) => (
 					<QuestionCard
 						key={index}
 						chapterId={chapterId}
 						moduleId={String(module?.id)}
-						// onDelete={(sequence) => removeQuestion(chapterId, String(module?.id), sequence)}
-						onDelete={(sequence) => removeQuestion(sequence)}
-						// onDuplicate={(sequence) => duplicateQuestion(chapterId, String(module?.id), sequence)}
-						// onReorder={(sequence, direction) =>
-						// 	reorderQuestion(chapterId, String(module?.id), sequence, direction)
-						// }
-
+						onDelete={(sequence) => removeQuestion(chapterId, String(module?.id), sequence)}
+						onDuplicate={(sequence) => duplicateQuestion(chapterId, String(module?.id), sequence)}
+						onReorder={(sequence, direction) =>
+							reorderQuestion(chapterId, String(module?.id), sequence, direction)
+						}
 						question={question}
 					/>
 				))}
