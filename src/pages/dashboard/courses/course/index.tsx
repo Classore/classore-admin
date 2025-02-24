@@ -1,17 +1,18 @@
 import { RiArrowLeftSLine, RiEyeLine } from "@remixicon/react";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
-import * as React from "react";
+import React from "react";
 
 import { CreateCourseTabPanel } from "@/components/create-course";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import { chapterActions } from "@/store/z-store/chapter";
 import { DashboardLayout } from "@/components/layout";
-import { Seo, Spinner } from "@/components/shared";
+
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
+import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
-import { capitalize } from "@/lib";
+import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 
@@ -20,16 +21,33 @@ const Page = () => {
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
-	const {
-		data: course,
-		isPending,
-		isError,
-	} = useQuery({
-		queryKey: ["get-subject", courseId],
-		queryFn: courseId ? () => GetSubject(courseId) : skipToken,
-		staleTime: Infinity,
-		gcTime: Infinity,
+	const [{ data: course, isError, isPending }] = useQueries({
+		queries: [
+			{
+				queryKey: ["get-subject", courseId],
+				queryFn: () => GetSubject(courseId),
+				enabled: !!courseId,
+			},
+		],
 	});
+
+	const breadcrumbs: BreadcrumbItemProps[] = [
+		{ label: "Manage Courses", href: "/dashboard/courses" },
+		{
+			label: `${course?.data.examination.name}`,
+			href: `/dashboard/courses/`,
+		},
+		{
+			label: `${course?.data.examination_bundle.name?.toUpperCase()}`,
+			href: `/dashboard/courses/${course?.data.examination_bundle.id}`,
+		},
+		{
+			label: "change directory",
+			href: `/dashboard/courses/course?courseId=${courseId}`,
+			change_directory: true,
+			variant: "warning",
+		},
+	];
 
 	React.useEffect(() => {
 		if (course) {
@@ -68,10 +86,10 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title={capitalize(course?.data.name ?? "New Course")} />
+			<Seo title="New Course" />
 			<DashboardLayout>
-				<div className="flex w-full flex-col gap-y-6">
-					<div className="flex w-full items-center justify-between rounded-lg bg-white">
+				<div className="flex w-full flex-col gap-y-2">
+					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
 								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
@@ -88,35 +106,26 @@ const Page = () => {
 								links={breadcrumbs}
 							/>
 						</div>
+						<div className="flex items-center gap-x-2">
+							<Button className="w-fit" size="sm" variant="destructive-outline">
+								Delete
+							</Button>
+							<Button className="w-fit" size="sm" variant="outline">
+								Save and Exit
+							</Button>
+							<Button className="w-fit" size="sm">
+								Next <RiArrowLeftSLine className="rotate-180" />
+							</Button>
+						</div>
 					</div>
-
-					<div className="flex items-center gap-x-2">
-						<Button
-							className="w-fit border-none bg-transparent shadow-none hover:bg-transparent"
-							size="sm"
-							variant="destructive-outline">
-							Delete
-						</Button>
-						<Button
-							className="w-fit border-none bg-primary-100 text-primary-300 hover:bg-primary-200 hover:text-primary-300"
-							size="sm"
-							variant="outline">
-							Save and Exit
-						</Button>
-						<Button className="w-24" size="sm">
-							Next <RiArrowLeftSLine className="rotate-180" />
-						</Button>
-					</div>
-				</header>
-
-					<div className="flex h-[calc(100vh-228px)] w-full flex-col gap-y-3 overflow-y-auto bg-white">
+					<section className="mt-2 rounded-md bg-white p-6">
 						<div className="flex h-10 w-full items-center justify-between border-b">
 							<div className="flex items-center gap-x-6">
 								{create_course_tabs.map(({ action, icon: Icon, label }) => (
 									<button
 										key={action}
 										onClick={() => setTab(action)}
-										className={`relative flex h-10 items-center gap-x-1 text-sm capitalize transition-all duration-500 before:absolute before:bottom-0 before:left-0 before:h-0.5 before:bg-primary-400 ${action === tab ? "text-primary-400 before:w-full" : "text-neutral-400"}`}>
+										className={`relative flex h-10 items-center gap-x-1 px-4 text-sm capitalize transition-all duration-500 before:absolute before:bottom-0 before:left-0 before:h-0.5 before:bg-primary-400 ${action === tab ? "text-primary-400 before:w-full" : "text-neutral-400"}`}>
 										<Icon size={16} /> {label}
 									</button>
 								))}
@@ -125,35 +134,14 @@ const Page = () => {
 								<RiEyeLine size={16} /> Preview
 							</button>
 						</div>
-
-						<p className="mx-auto rounded-md bg-orange-100 p-2 text-center text-xs text-orange-600">
-							NB: Please make sure there is a chapter saved before trying to add lessons under that
-							chapter.
-						</p>
-
-						<div className="h-full max-h-[calc(100vh-332px)] w-full">
-							<TabPanel selected={tab} value="course">
-								{isCoursePending ? (
-									<Spinner variant="primary" />
-								) : (
-									<CreateCourse
-										existingChapters={course?.data.chapters ?? []}
-										courseName={course?.data.name}
-									/>
-								)}
-							</TabPanel>
-							<TabPanel selected={tab} value="quiz">
-								<QuizSettings />
-							</TabPanel>
-							<TabPanel selected={tab} value="teacher">
-								<AssignTeachers />
-							</TabPanel>
-						</div>
-					</div>
-				</section>
+					</section>
+				</div>
+				<div className="w-full">
+					<CreateCourseTabPanel tab={tab} />
+					<QuizSettingsTab tab={tab} />
+				</div>
 			</DashboardLayout>
 		</>
 	);
 };
-
 export default Page;

@@ -1,6 +1,7 @@
-import { convertNumberToWord } from "@/lib";
-import { DeleteEntities, type DeleteEntitiesPayload } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import { toast } from "sonner";
+import * as React from "react";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -10,10 +11,20 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiFolderVideoLine,
+	RiLoaderLine,
 } from "@remixicon/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import * as React from "react";
+
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError, Maybe } from "@/types";
+import { convertNumberToWord } from "@/lib";
+import { queryClient } from "@/providers";
 import { Button } from "./ui/button";
+import {
+	CreateChapter,
+	type CreateChapterDto,
+	DeleteEntities,
+	type DeleteEntitiesPayload,
+} from "@/queries";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -27,20 +38,54 @@ const { addChapter, removeChapter, addChapterName, addChapterContent, removeLess
 
 type ChaptersProps = {
 	lessonTab: string;
-	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
+	chapterId?: string;
 	onChapterIdChange?: (chapterId: string | undefined) => void;
+	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
 };
 
-export const Chapters = ({ setLessonTab, lessonTab, onChapterIdChange }: ChaptersProps) => {
-	const queryClient = useQueryClient();
+export const Chapters = ({
+	chapterId,
+	setLessonTab,
+	lessonTab,
+	onChapterIdChange,
+}: ChaptersProps) => {
+	const [current, setCurrent] = React.useState<Maybe<number>>(null);
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
+	const router = useRouter();
+	const courseId = router.query.courseId as string;
 
-	const { mutate } = useMutation({
+	const { isPending, mutate } = useMutation({
+		mutationFn: (payload: CreateChapterDto) => CreateChapter(payload),
+		mutationKey: ["create-chapter"],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+		},
+		onError: (error: HttpError) => {
+			const { message } = error.response.data;
+			const err = Array.isArray(message) ? message[0] : message;
+			toast.error(err);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+		},
+	});
+
+	const { mutateAsync } = useMutation({
 		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
 		mutationKey: ["delete-entities"],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+		},
+		onError: (error: HttpError) => {
+			const { message } = error.response.data;
+			const err = Array.isArray(message) ? message[0] : message;
+			toast.error(err);
+		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 		},
 	});
 
@@ -51,6 +96,54 @@ export const Chapters = ({ setLessonTab, lessonTab, onChapterIdChange }: Chapter
 			onChapterIdChange(chapterWithId?.id);
 		}
 	}, [chapters, onChapterIdChange]);
+
+	const currentChapter = React.useMemo(() => {
+		if (current === null) return;
+		return chapters[current];
+	}, [chapters, current]);
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (!currentChapter) return;
+
+		const payload: CreateChapterDto = {
+			name: currentChapter.name,
+			sequence: currentChapter.sequence,
+			content: currentChapter.content,
+			images: [],
+			subject_id: courseId,
+			videos: [],
+		};
+		mutate(payload);
+	};
+
+	const handleActions = (action: string, sequence: number) => {
+		if (!chapterId) {
+			toast.error("Please select a chapter");
+			return;
+		}
+
+		switch (action) {
+			case "up":
+				console.log("up");
+				break;
+			case "down":
+				console.log("down");
+				break;
+			case "duplicate":
+				console.log("duplicate");
+				break;
+			case "delete":
+				mutateAsync({ ids: [chapterId], model_type: "CHAPTER" }).then(() => {
+					removeChapter(sequence);
+					setCurrent(null);
+				});
+				break;
+			default:
+				return;
+		}
+	};
 
 	return (
 		<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
@@ -67,22 +160,21 @@ export const Chapters = ({ setLessonTab, lessonTab, onChapterIdChange }: Chapter
 			</div>
 
 			{/* chapters */}
-			<div className="flex flex-col gap-4">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 				{chapters.map((chapter) => (
-					<div key={chapter.sequence} className="rounded-md bg-white">
+					<div
+						key={chapter.id}
+						onClick={() => onChapterIdChange?.(chapter.id)}
+						className={`"rounded-md border bg-white ${chapterId === chapter.id ? "border-primary-400" : ""}`}>
 						<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
 							<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
 
 							<div className="flex items-center">
 								{question_actions.map(({ icon: Icon, label }, index) => (
 									<button
+										type="button"
 										key={index}
-										onClick={() => {
-											if (label === "delete") {
-												removeChapter(chapter.sequence);
-												return;
-											}
-										}}
+										onClick={() => handleActions(label, chapter.sequence)}
 										className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
 										<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 									</button>
@@ -128,7 +220,7 @@ export const Chapters = ({ setLessonTab, lessonTab, onChapterIdChange }: Chapter
 													setLessonTab("");
 													if (lesson.lesson_chapter) {
 														// delete the data immediately and send the request in the background
-														mutate({
+														mutateAsync({
 															ids: [lesson.id],
 															model_type: "CHAPTER_MODULE",
 														});
@@ -152,12 +244,14 @@ export const Chapters = ({ setLessonTab, lessonTab, onChapterIdChange }: Chapter
 									<span>Add new Lesson</span>
 								</button>
 							) : (
-								<Button className="w-40 text-sm font-medium">Save Chapter</Button>
+								<Button type="submit" className="w-40 text-sm font-medium">
+									{isPending ? <RiLoaderLine className="size-6 animate-spin" /> : "Save Chapter"}
+								</Button>
 							)}
 						</div>
 					</div>
 				))}
-			</div>
+			</form>
 		</div>
 	);
 };

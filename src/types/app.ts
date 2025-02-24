@@ -396,3 +396,7 @@ export type RatingProps = {
 	review: string;
 	user_id: string;
 };
+
+export type TestCenterProps = Node & {
+	__typename?: "TestCenter";
+};
