@@ -120,7 +120,9 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					}
 				);
 				return res.data;
-			} catch (error) {}
+			} catch (error) {
+				console.log(error);
+			}
 		},
 		mutationKey: ["create-chapter-module"],
 		onSuccess: () => {

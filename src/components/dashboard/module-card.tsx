@@ -194,12 +194,9 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 				toast.error("This module does not exist");
 				return;
 			}
-			// const videos: File[] = [];
-			// videos.push(file);
-			// mutate({ module_id: module.id, module: { sequence: module.sequence, videos } });
 			uploader(file, module.id, module.sequence);
 		},
-		[module]
+		[module, uploader]
 	);
 
 	const { getDragProps } = useDrag({
