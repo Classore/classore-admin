@@ -194,12 +194,9 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 				toast.error("This module does not exist");
 				return;
 			}
-			// const videos: File[] = [];
-			// videos.push(file);
-			// mutate({ module_id: module.id, module: { sequence: module.sequence, videos } });
 			uploader(file, module.id, module.sequence);
 		},
-		[module]
+		[module, uploader]
 	);
 
 	const { getDragProps } = useDrag({
@@ -338,14 +335,14 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	);
 };
 
-const PasteLink = ({
-	module,
+export const PasteLink = ({
 	open,
+	sequence,
 	setOpen,
 	disabled,
 }: {
-	module: ChapterModule | null;
 	open: boolean;
+	sequence: number;
 	setOpen: (open: boolean) => void;
 	disabled?: boolean;
 }) => {
@@ -391,7 +388,7 @@ const PasteLink = ({
 		video_urls.push(url);
 		mutate({
 			module_id: String(module?.id),
-			module: { sequence: Number(module?.sequence), video_urls },
+			module: { sequence, video_urls },
 		});
 	};
 
@@ -548,7 +545,12 @@ const VideoUploadLabel = ({
 							Cancel Upload
 						</Button>
 					)}
-					<PasteLink module={module} open={open} setOpen={setOpen} disabled={isPending} />
+					<PasteLink
+						open={open}
+						sequence={Number(module?.sequence)}
+						setOpen={setOpen}
+						disabled={isPending}
+					/>
 				</div>
 				{uploadProgress > 0 && <Progress progress={uploadProgress} showLabel={true} />}
 			</div>

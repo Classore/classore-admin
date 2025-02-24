@@ -40,6 +40,7 @@ export const endpoints = (id?: string) => {
 			get_chapters: "/admin/learning/chapter/fetch-all",
 			get_chapter_modules: "/admin/learning/chapter-modules/fetch-all",
 			get_questions: "/admin/learning/question/fetch-all",
+			add_video: `/admin/learning/chunk_uploads/${id}`,
 			update_exam: `${id}`,
 			update_exam_bundle: `${id}`,
 			update_class: `${id}`,
@@ -48,6 +49,8 @@ export const endpoints = (id?: string) => {
 			update_chapter_module: `admin/learning/chapter-module/update-one/${id}`,
 			update_question: `${id}`,
 			delete: "/admin/learning/delete-entities",
+			delete_entities: "admin/learning/delete-entities",
+			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
 		},
 		users: {
 			all: "/admin/user/get-all",

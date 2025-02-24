@@ -190,6 +190,7 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 					}
 					return question;
 				});
+
 				return { questions: updatedQuestions };
 			});
 		},

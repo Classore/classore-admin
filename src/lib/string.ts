@@ -239,8 +239,12 @@ export const getGoogleDriveId = (url: string) => {
 	return url;
 };
 
-export const embedUrl = (url: string) => {
+export const embedUrl = (url: string | File) => {
 	if (!url) return "";
+
+	if (url instanceof File) {
+		return URL.createObjectURL(url);
+	}
 
 	if (isGoogleDriveUrl(url)) {
 		const videoId = getGoogleDriveId(url);
@@ -261,3 +265,59 @@ export const toKebabCase = (value: string) => {
 export const fromKebabCase = (value: string) => {
 	return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 };
+
+//  number to words
+const numberToWords: { [key: number]: string } = {
+	0: "zero",
+	1: "one",
+	2: "two",
+	3: "three",
+	4: "four",
+	5: "five",
+	6: "six",
+	7: "seven",
+	8: "eight",
+	9: "nine",
+	10: "ten",
+	11: "eleven",
+	12: "twelve",
+	13: "thirteen",
+	14: "fourteen",
+	15: "fifteen",
+	16: "sixteen",
+	17: "seventeen",
+	18: "eighteen",
+	19: "nineteen",
+	20: "twenty",
+	30: "thirty",
+	40: "forty",
+	50: "fifty",
+	60: "sixty",
+	70: "seventy",
+	80: "eighty",
+	90: "ninety",
+};
+
+export const convertNumberToWord = (num: number) => {
+	if (num in numberToWords) {
+		return numberToWords[num];
+	}
+
+	if (num >= 21 && num <= 99) {
+		const tens = Math.floor(num / 10) * 10;
+		const units = num % 10;
+		return `${numberToWords[tens]}-${numberToWords[units]}`;
+	}
+
+	throw new Error(`Number ${num} is not supported.`);
+};
+
+export function formatFileSize(bytes: number): string {
+	if (bytes === 0) return "0 Bytes";
+
+	const units = ["Bytes", "KB", "MB", "GB", "TB"];
+	const i = Math.floor(Math.log(bytes) / Math.log(1024));
+	const size = parseFloat((bytes / Math.pow(1024, i)).toFixed(2));
+
+	return `${size} ${units[i]}`;
+}

@@ -26,7 +26,7 @@ import {
 } from "lexical";
 
 import { alignment_types, format_types, heading_types, list_types } from "@/config";
-import { capitalize, cn } from "@/lib";
+import { capitalize, cn, convertMdToHtml } from "@/lib";
 
 interface EditorProps {
 	onValueChange: (value: string) => void;
@@ -83,6 +83,12 @@ export const Editor = React.memo(
 			}),
 			[]
 		);
+
+		const html = React.useMemo(() => {
+			if (!defaultValue) return "";
+			return convertMdToHtml(defaultValue);
+		}, [defaultValue]);
+
 		return (
 			<LexicalComposer
 				initialConfig={{
@@ -115,7 +121,7 @@ export const Editor = React.memo(
 						}
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
-					<HtmlPlugin initialHtml={defaultValue} onHtmlChanged={onValueChange} />
+					<HtmlPlugin initialHtml={html} onHtmlChanged={onValueChange} />
 					<HistoryPlugin />
 				</div>
 			</LexicalComposer>
