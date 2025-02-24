@@ -104,7 +104,7 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 			<TableCell className="text-center text-xs text-neutral-400">
 				<div className="flex items-center justify-center gap-x-1">
 					<RiStarFill className="size-4 text-amber-500" />
-					{/* {aggregate(bundle.rating)} ({bundle.rating.length}) */}
+					<span>{bundle.examinationbundle_rating}</span>
 				</div>
 			</TableCell>
 			<TableCell className="text-center text-xs text-neutral-400">

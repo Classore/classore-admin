@@ -61,7 +61,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 		allowed_subjects: 0,
 		amount: 0,
 		amount_per_subject: 0,
-		cover_image: null,
+		banner: null,
 		end_date: addDays(new Date(), 1),
 		examination: "",
 		extra_charge: 0,
@@ -75,7 +75,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 			processImageToBase64(files[0]).then((base64) => {
 				setPreviewUrl(base64);
 			});
-			setFieldValue("cover_image", files[0]);
+			setFieldValue("banner", files[0]);
 		},
 		fileType: "image",
 		validationRules: {
@@ -124,10 +124,10 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 			<DialogDescription hidden>Edit Subcategory</DialogDescription>
 			<div className="space-y-2">
 				<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
-					{values.cover_image ? (
+					{values.banner ? (
 						<Image
 							src={previewUrl}
-							alt={values.cover_image.name}
+							alt={values.banner.name}
 							fill
 							sizes="100%"
 							className="rounded-md object-cover object-center"

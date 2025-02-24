@@ -80,6 +80,9 @@ export const CourseCard = ({
 		queryKey: ["get-modules", chapter.id],
 		queryFn: () => GetChapterModules({ chapter_id: chapter.id }),
 		enabled: !!chapter.id,
+		refetchIntervalInBackground: true,
+		refetchInterval: 1000 * 60 * 5,
+		staleTime: 1000 * 60 * 1,
 	});
 
 	const existingModules: ChapterModule[] = React.useMemo(() => {
