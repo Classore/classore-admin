@@ -151,7 +151,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			}
 			uploader(file, moduleId, sequence);
 		},
-		[module]
+		[module, moduleId, sequence, uploader]
 	);
 
 	const {
