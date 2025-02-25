@@ -7,13 +7,13 @@ import * as Yup from "yup";
 import React from "react";
 import dayjs from "dayjs";
 
+import type { CourseResponse, ExaminationBundleResponse, ExaminationResponse } from "@/queries";
 import { type CreateEventDto, CreateCalendarEvent } from "@/queries/calendar";
 import { GetBundles, GetExaminations, GetSubjects } from "@/queries";
 import { Button } from "@/components/ui/button";
 import { IconLabel } from "@/components/shared";
 import { queryClient } from "@/providers";
-import { times } from "@/config";
-import type { CourseResponse, ExaminationBundleResponse, ExaminationResponse } from "@/queries";
+import { TIME_OPTIONS } from "@/config";
 import {
 	Select,
 	SelectContent,
@@ -126,10 +126,10 @@ export const Event = ({ onClose }: Props) => {
 
 	const endTimes = React.useMemo(() => {
 		if (values.start_hour) {
-			const startIndex = times.findIndex(
+			const startIndex = TIME_OPTIONS.findIndex(
 				(time) => time.value.toString() === values.start_hour.toString()
 			);
-			return times.slice(startIndex + 1);
+			return TIME_OPTIONS.slice(startIndex + 1);
 		}
 		return [];
 	}, [values.start_hour]);
@@ -179,7 +179,8 @@ export const Event = ({ onClose }: Props) => {
 						</label>
 						<Select
 							value={values.sub_category}
-							onValueChange={(value) => setFieldValue("sub_category", value)}>
+							onValueChange={(value) => setFieldValue("sub_category", value)}
+							disabled={!values.category_id}>
 							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Subcategory" />
 							</SelectTrigger>
@@ -201,7 +202,10 @@ export const Event = ({ onClose }: Props) => {
 						<label htmlFor="subject" className="text-xs text-neutral-400">
 							Select Subject
 						</label>
-						<Select value={values.subject} onValueChange={(value) => setFieldValue("subject", value)}>
+						<Select
+							value={values.subject}
+							onValueChange={(value) => setFieldValue("subject", value)}
+							disabled={!values.sub_category}>
 							<SelectTrigger className="h-11 border capitalize">
 								<SelectValue placeholder="Select Subject" />
 							</SelectTrigger>
@@ -257,7 +261,7 @@ export const Event = ({ onClose }: Props) => {
 									<SelectValue placeholder="Start Time" />
 								</SelectTrigger>
 								<SelectContent>
-									{times.map((time) => (
+									{TIME_OPTIONS.map((time) => (
 										<SelectItem key={time.value} value={time.value.toString()}>
 											{time.label}
 										</SelectItem>

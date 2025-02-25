@@ -1,17 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
+import { RiBook2Line, RiBookMarkedLine, RiBookOpenLine, RiBookReadLine } from "@remixicon/react";
 
 import { DashboardLayout, Unauthorized } from "@/components/layout";
+import { SearchInput, Seo } from "@/components/shared";
 import { TestCenterTable } from "@/components/tables";
 import { AddTest } from "@/components/dashboard";
 import { hasPermission } from "@/lib/permission";
+import { Card } from "@/components/test-center";
 import { useUserStore } from "@/store/z-store";
-import { Seo } from "@/components/shared";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 const statuses = ["all", "published", "unpublished"];
 
 const Page = () => {
-	const [current, setCurrent] = React.useState("all");
+	const [current, setCurrent] = React.useState(statuses[0]);
 	const [page, setPage] = React.useState(1);
 	const { user } = useUserStore();
 
@@ -35,9 +44,10 @@ const Page = () => {
 							<AddTest />
 						</div>
 						<div className="grid grid-cols-4 gap-x-4">
-							{[...Array(4)].map((_, index) => (
-								<div key={index} className="h-[140px] rounded-2xl border border-neutral-400"></div>
-							))}
+							<Card icon={RiBookMarkedLine} label="Total Categories" value={0} />
+							<Card icon={RiBook2Line} label="All Courses" value={0} />
+							<Card icon={RiBookReadLine} label="Published Courses" value={0} />
+							<Card icon={RiBookOpenLine} label="Unpublished Courses" value={0} />
 						</div>
 					</div>
 					<div className="w-full space-y-4 rounded-2xl bg-white p-5">
@@ -52,6 +62,17 @@ const Page = () => {
 										{status}
 									</button>
 								))}
+							</div>
+							<div className="flex items-center gap-x-4">
+								<SearchInput />
+								<Select defaultValue="all">
+									<SelectTrigger className="h-8 w-[90px] text-xs">
+										<SelectValue placeholder="Sort by" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 						<div className="w-full">
