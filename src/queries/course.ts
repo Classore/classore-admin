@@ -91,7 +91,9 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		formData.append(`questions[${index}][question_type]`, question.question_type);
 		formData.append(`questions[${index}][sequence_number]`, question.sequence_number.toString());
 		question.images.forEach((image, imageIndex) => {
-			formData.append(`questions[${index}][images][${imageIndex}]`, image, image.name);
+			if (image instanceof File) {
+				formData.append(`questions[${index}][images][${imageIndex}]`, image, image.name);
+			}
 		});
 		question.options?.forEach((option, optionIndex) => {
 			formData.append(

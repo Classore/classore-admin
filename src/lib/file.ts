@@ -83,8 +83,11 @@ export const createDownload = async (url: string) => {
 	link.remove();
 };
 
-export const processImageToBase64 = (file: File): Promise<string> => {
+export const processImageToBase64 = (file?: File): Promise<string> => {
 	return new Promise((resolve, reject) => {
+		if (!file) {
+			return;
+		}
 		const reader = new FileReader();
 		reader.onload = () => {
 			const base64String = reader.result as string;
