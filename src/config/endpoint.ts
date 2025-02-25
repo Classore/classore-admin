@@ -52,6 +52,14 @@ export const endpoints = (id?: string) => {
 			delete_entities: "admin/learning/delete-entities",
 			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
 		},
+		test_center: {
+			create: "",
+			all: "",
+			one: ``,
+			update: ``,
+			update_settings: ``,
+			delete: ``,
+		},
 		users: {
 			all: "/admin/user/get-all",
 			one: `/admin/user/view-one/${id}`,

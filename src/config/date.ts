@@ -1,4 +1,6 @@
-export const times = [
+export const TIME_OPTIONS = [
+	{ label: "06:00 AM", value: 6 },
+	{ label: "07:00 AM", value: 7 },
 	{ label: "08:00 AM", value: 8 },
 	{ label: "09:00 AM", value: 9 },
 	{ label: "10:00 AM", value: 10 },
@@ -10,4 +12,9 @@ export const times = [
 	{ label: "04:00 PM", value: 16 },
 	{ label: "05:00 PM", value: 17 },
 	{ label: "06:00 PM", value: 18 },
+	{ label: "07:00 PM", value: 19 },
+	{ label: "08:00 PM", value: 20 },
+	{ label: "09:00 PM", value: 21 },
+	{ label: "10:00 PM", value: 22 },
+	{ label: "11:00 PM", value: 23 },
 ];

@@ -1,6 +1,7 @@
-import { RiAddLine, RiSpeedUpLine } from "@remixicon/react";
+import { RiAddLine, RiLoaderLine, RiSpeedUpLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import * as Yup from "yup";
 import React from "react";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +20,7 @@ import {
 export const AddTest = () => {
 	const [open, setOpen] = React.useState(false);
 
-	const {} = useMutation({
+	const { isPending } = useMutation({
 		mutationKey: ["add-test"],
 		onSuccess: (data) => {
 			console.log(data);
@@ -28,10 +29,20 @@ export const AddTest = () => {
 		onError: (error) => {
 			console.error(error);
 		},
+		onSettled: () => {
+			setOpen(false);
+		},
 	});
 
-	const { handleSubmit } = useFormik({
+	const { errors, handleChange, handleSubmit, touched } = useFormik({
 		initialValues: { title: "", description: "" },
+		enableReinitialize: true,
+		validationSchema: Yup.object({
+			title: Yup.string().required("Title is required").min(5, "Title is too short"),
+			description: Yup.string()
+				.required("Description is required")
+				.min(100, "Description is too short"),
+		}),
 		onSubmit: (values) => {
 			console.log(values);
 			setOpen(false);
@@ -53,15 +64,30 @@ export const AddTest = () => {
 						<DialogDescription hidden>add New Test</DialogDescription>
 					</div>
 					<form onSubmit={handleSubmit} className="w-full space-y-4">
-						<Input label="Enter Test Title" />
-						<Textarea label="Enter Test Description" name="description" className="h-28" />
+						<Input
+							label="Enter Test Title"
+							name="title"
+							onChange={handleChange}
+							error={touched.title && errors.title ? errors.title : ""}
+						/>
+						<Textarea
+							label="Enter Test Description"
+							name="description"
+							className="h-28"
+							error={touched.description && errors.description ? errors.description : ""}
+						/>
 						<hr />
 						<div className="flex w-full items-center justify-end gap-x-4">
-							<Button className="w-fit" type="button" size="sm" variant="outline">
+							<Button
+								onClick={() => setOpen(false)}
+								className="w-fit"
+								type="button"
+								size="sm"
+								variant="outline">
 								Cancel
 							</Button>
 							<Button className="w-fit" type="submit" size="sm">
-								Create Test
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Test"}
 							</Button>
 						</div>
 					</form>
