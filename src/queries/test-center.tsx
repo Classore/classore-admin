@@ -7,7 +7,9 @@ export interface CreateTestDto {
 	description: string;
 }
 
-export interface UpdateTestSettingsDto {}
+export interface UpdateTestSettingsDto {
+	attempts: number;
+}
 
 const CreateTest = async (payload: Partial<CreateTestDto>) => {
 	return axios.post<HttpResponse<TestCenterProps>>(endpoints().test_center.create, payload);

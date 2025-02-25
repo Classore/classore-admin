@@ -111,7 +111,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		}
 	};
 
-	const uploader = async (file: File, moduleId: string, sequence: number) => {
+	const uploader = React.useCallback(async (file: File, moduleId: string, sequence: number) => {
 		if (!file) {
 			toast.error("No file selected");
 			return;
@@ -160,7 +160,7 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 			clearFiles();
 			abortController.current = null;
 		}
-	};
+	}, []);
 
 	React.useEffect(() => {
 		if (isLoading && moduleId) {

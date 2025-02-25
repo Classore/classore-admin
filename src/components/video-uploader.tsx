@@ -150,7 +150,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				abortController.current = null;
 			}
 		},
-		[moduleId, sequence, upload_id]
+		[moduleId, sequence, upload_id, uploadChunk]
 	);
 
 	const handleFileChange = useCallback(
