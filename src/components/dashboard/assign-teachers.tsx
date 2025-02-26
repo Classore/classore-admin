@@ -76,7 +76,7 @@ export const AssignTeachers = () => {
 		if (modules) {
 			const mod = modules.find((module) => module.chapter_module_id === String(chapterModule?.id));
 			if (mod) {
-				return mod.chapter_module_tutor?.id ?? "";
+				return mod.chapter_module_tutor ?? "";
 			}
 		}
 		return "";

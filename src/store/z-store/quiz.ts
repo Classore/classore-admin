@@ -7,12 +7,12 @@ type Option = {
 	content: string;
 	is_correct: "YES" | "NO";
 	sequence_number: number;
-	images?: File[];
+	images?: (File | string)[];
 };
 
 export type QuestionDto = {
 	content: string;
-	images: File[];
+	images: (File | string)[];
 	options: Option[];
 	question_type: QuestionTypeProps;
 	sequence: number;
@@ -190,6 +190,7 @@ export const useQuizStore = create<InitialState & QuizOptions>((set) => ({
 					}
 					return question;
 				});
+
 				return { questions: updatedQuestions };
 			});
 		},

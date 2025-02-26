@@ -1,4 +1,10 @@
-import { RiAddLine, RiBookMarkedLine, RiCameraLine, RiLoaderLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiBookMarkedLine,
+	RiCameraLine,
+	RiDeleteBin6Line,
+	RiLoaderLine,
+} from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import { addDays } from "date-fns";
@@ -76,7 +82,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		banner: null,
 	};
 
-	const { handleClick, handleFileChange, inputRef } = useFileHandler({
+	const { clearFiles, handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
 			const file = files[0];
 			setFieldValue("banner", file);
@@ -131,17 +137,17 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>
 				<Button className="w-fit" onClick={() => onOpenChange(true)} size="sm">
-					<RiAddLine /> Add New subcategory
+					<RiAddLine /> Add New Subcategory
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="max-h-[80vh] w-[500px] overflow-y-auto p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<div className="space-y-5">
 						<IconLabel icon={RiBookMarkedLine} />
-						<DialogTitle>Add New subcategory</DialogTitle>
-						<DialogDescription hidden>Add New subcategory</DialogDescription>
+						<DialogTitle>Add New Subcategory</DialogTitle>
+						<DialogDescription hidden>Add New Subcategory</DialogDescription>
 						<form onSubmit={handleSubmit} className="w-full space-y-4">
-							<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
+							<div className="relative aspect-video w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 								{values.banner ? (
 									<Image
 										src={previewUrl}
@@ -157,14 +163,25 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 									name="image"
 									id="image"
 									className="sr-only hidden"
+									accept="image/*"
 									onChange={handleFileChange}
 								/>
-								<button
-									type="button"
-									onClick={handleClick}
-									className="absolute bottom-2 right-2 flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs">
-									<RiCameraLine className="size-3" /> Update cover image
-								</button>
+								{values.banner && (
+									<button
+										type="button"
+										onClick={clearFiles}
+										className="absolute right-2 top-2 flex aspect-square items-center rounded bg-white p-1 text-red-500">
+										<RiDeleteBin6Line className="size-3" />
+									</button>
+								)}
+								{!values.banner && (
+									<button
+										type="button"
+										onClick={handleClick}
+										className="absolute bottom-2 right-2 flex items-center gap-x-1 rounded bg-white px-2 py-1 text-xs">
+										<RiCameraLine className="size-3" /> Update cover image
+									</button>
+								)}
 							</div>
 							<Input
 								label="Subcategory Name"

@@ -70,7 +70,7 @@ export const AddAttachment = ({ id, sequence, setFieldValue, setOpen, values }: 
 		isDragging,
 	} = useFileHandler({
 		onValueChange: (files) => {
-			const newFiles = files.filter((file) => !isDuplicateFile(file, values.attachments));
+			const newFiles = files.filter((file) => !isDuplicateFile(file, values.attachments as File[]));
 			if (newFiles.length < files.length) {
 				toast.warning("Duplicate files were skipped");
 			}
@@ -95,7 +95,7 @@ export const AddAttachment = ({ id, sequence, setFieldValue, setOpen, values }: 
 	};
 
 	const handleDeleteFile = (file: File) => {
-		const newAttachments = values.attachments.filter((f: File) => f.name !== file.name);
+		const newAttachments = (values.attachments as File[]).filter((f: File) => f.name !== file.name);
 		setFieldValue("attachments", newAttachments);
 	};
 
@@ -151,7 +151,7 @@ export const AddAttachment = ({ id, sequence, setFieldValue, setOpen, values }: 
 			</label>
 			<div className="w-full space-y-2">
 				{values.attachments.map((attachment, index) => (
-					<Attachement key={index} attachment={attachment} onDelete={handleDeleteFile} />
+					<Attachement key={index} attachment={attachment as File} onDelete={handleDeleteFile} />
 				))}
 			</div>
 			<div className="flex w-full items-center justify-end gap-x-4">

@@ -16,7 +16,7 @@ import {
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
 import { Switch } from "../ui/switch";
@@ -26,8 +26,8 @@ interface Props {
 	chapterId: string;
 	moduleId: string;
 	onDelete: (sequence: number) => void;
-	// onDuplicate: (sequence: number) => void;
-	// onReorder: (sequence: number, direction: "up" | "down") => void;
+	onDuplicate: (sequence: number) => void;
+	onReorder: (sequence: number, direction: "up" | "down") => void;
 	question: QuestionDto;
 	// onUpdateQuestions: (question: QuestionDto) => void;
 }
@@ -52,12 +52,11 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		removeQuestion,
 		addImagesToQuestion,
 		removeImageFromQuestion,
-	} = useQuizStore((state) => state.actions);
+	} = useQuizStore();
 
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
-			// addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
-			addImagesToQuestion(question.sequence_number, files);
+			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
 		},
 		fileType: "image",
 		onError: (error) => {
@@ -82,8 +81,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 					<Select
 						value={question.question_type}
 						onValueChange={(value) =>
-							// handleTypeChange(value, chapterId, moduleId, question.sequence_number)
-							handleTypeChange(value, question.sequence_number)
+							handleTypeChange(value, chapterId, moduleId, question.sequence_number)
 						}>
 						<SelectTrigger className="h-7 w-40 text-xs">
 							<SelectValue placeholder="Select a type" />
@@ -106,8 +104,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 								key={index}
 								onClick={() => {
 									if (label === "delete") {
-										// removeQuestion(chapterId, moduleId, question.sequence_number);
-										removeQuestion(question.sequence_number);
+										removeQuestion(chapterId, moduleId, question.sequence_number);
 									}
 								}}
 								className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
@@ -122,8 +119,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 				<Textarea
 					value={question.content}
 					onChange={(e) =>
-						// addQuestionContent(chapterId, moduleId, question.sequence_number, e.target.value)
-						addQuestionContent(question.sequence_number, e.target.value)
+						addQuestionContent(chapterId, moduleId, question.sequence_number, e.target.value)
 					}
 					className="h-44 w-full md:text-sm"
 				/>
@@ -157,8 +153,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 								<button
 									type="button"
 									onClick={() => {
-										// removeImageFromQuestion(chapterId, moduleId, question.sequence_number, index);
-										removeImageFromQuestion(question.sequence_number, index);
+										removeImageFromQuestion(chapterId, moduleId, question.sequence_number, index);
 										handleRemoveFile(image);
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
@@ -220,15 +215,15 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 };
 
 const OptionItem = ({
+	chapterId,
+	moduleId,
 	question,
 }: {
 	chapterId: string;
 	moduleId: string;
 	question: QuestionDto;
 }) => {
-	const { addOptionContent, addOption, setCorrectOption, removeOption } = useQuizStore(
-		(state) => state.actions
-	);
+	const { addOptionContent, addOption, setCorrectOption, removeOption } = useQuizStore();
 
 	return (
 		<>
@@ -246,14 +241,13 @@ const OptionItem = ({
 								value={option.content}
 								autoFocus
 								onChange={(e) =>
-									// addOptionContent(
-									// 	chapterId,
-									// 	moduleId,
-									// 	question.sequence_number,
-									// 	e.target.value,
-									// 	option.sequence_number
-									// )
-									addOptionContent(question.sequence_number, e.target.value, option.sequence_number)
+									addOptionContent(
+										chapterId,
+										moduleId,
+										question.sequence_number,
+										e.target.value,
+										option.sequence_number
+									)
 								}
 								className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 							/>
@@ -266,8 +260,7 @@ const OptionItem = ({
 								<button
 									type="button"
 									onClick={() =>
-										// setCorrectOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
-										setCorrectOption(question.sequence_number, option.sequence_number)
+										setCorrectOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
 									}>
 									<RiCheckboxCircleFill
 										className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
@@ -279,8 +272,7 @@ const OptionItem = ({
 						{question.question_type !== "YES_OR_NO" && (
 							<button
 								onClick={() =>
-									// removeOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
-									removeOption(question.sequence_number, option.sequence_number)
+									removeOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
 								}
 								className="grid size-6 place-items-center rounded-md border">
 								<RiDeleteBin6Line className="size-4 text-neutral-400" />
@@ -303,8 +295,7 @@ const OptionItem = ({
 							toast.error("Options can only be added to multiple choice questions");
 							return;
 						}
-						// addOption(chapterId, moduleId, question.sequence_number);
-						addOption(question.sequence_number);
+						addOption(chapterId, moduleId, question.sequence_number);
 					}}
 					className="w-fit focus:border-primary-300"
 					size="xs"
