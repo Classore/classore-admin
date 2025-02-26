@@ -1,14 +1,15 @@
+import { RiAddLine, RiDeleteBin5Line, RiFile2Line, RiFileUploadLine } from "@remixicon/react";
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { axios, convertNumberToWord, formatFileSize } from "@/lib";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Editor, Progress, Spinner, TabPanel } from "./shared";
-import { PasteLink } from "./dashboard/module-card";
+import { Editor, Spinner, TabPanel } from "./shared";
+import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
 import {
@@ -19,25 +20,17 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
-import {
-	RiAddLine,
-	RiDeleteBin5Line,
-	RiFile2Line,
-	RiFileUploadLine,
-	RiUploadCloud2Line,
-} from "@remixicon/react";
 
 type LessonsProps = {
 	lessonTab: string;
 	chapterId: string | undefined;
+	setCurrentTab: (tab: string) => void;
 };
 
 const {
 	addLessonTitle,
 	addLessonContent,
-	addLessonVideo,
 	addLessonAttachments,
-	removeLessonVideo,
 	removeLessonAttachment,
 	setChapterLessons,
 	addLessonTutor,
@@ -50,32 +43,25 @@ interface UseMutationProps {
 
 // this is the tutor role id. It should come from the api but
 const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
-export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
+export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) => {
 	const abortController = React.useRef<AbortController | null>(null);
-	const ref = React.useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
-
-	const handleClick = () => {
-		if (ref.current) {
-			ref.current.click();
-		}
-	};
 
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
-	const [progress, setProgress] = React.useState(0);
-	const [open, setOpen] = React.useState(false);
 
 	const { data: course } = useQuery({
 		queryKey: ["get-subject", courseId],
 		queryFn: courseId ? () => GetSubject(courseId) : skipToken,
 	});
-	const { data } = useQuery({
+
+	const { data: modules } = useQuery({
 		queryKey: ["get-modules", { chapterId }],
 		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
+		enabled: !!chapterId,
 	});
 
 	const { data: tutors } = useQuery({
@@ -87,8 +73,8 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 
 	const chapter = course?.data.chapters.find((chapter) => chapter.id === chapterId);
 	React.useEffect(() => {
-		if (data) {
-			const chapterLessons = data.data.data.map((lesson) => ({
+		if (modules) {
+			const chapterLessons = modules.data.data.map((lesson) => ({
 				id: lesson.chapter_module_id,
 				chapter_sequence: Number(chapter?.sequence),
 				sequence: lesson.chapter_module_sequence,
@@ -106,14 +92,11 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 
 			setChapterLessons(chapterLessons);
 		}
-	}, [chapter?.sequence, data]);
+	}, [chapter?.sequence, modules]);
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
 			const formData = new FormData();
-			module.videos?.forEach((video) => {
-				formData.append("videos", video);
-			});
 			module.attachments.forEach((attachment) => {
 				formData.append("attachments", attachment);
 			});
@@ -127,10 +110,6 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 					endpoints(chapter_id).school.create_chapter_module,
 					formData,
 					{
-						onUploadProgress: (e) => {
-							const progress = Math.round((e.loaded * 100) / (e.total ?? e.loaded));
-							setProgress(progress);
-						},
 						signal: abortController.current.signal,
 						timeout: 1000 * 60 * 2,
 						headers: {
@@ -148,12 +127,10 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 			toast.success("Chapter module created successfully!");
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
-			setProgress(0);
 		},
 		onError: (error) => {
 			console.log(error);
 			toast.error("Failed to create module");
-			setProgress(0);
 		},
 	});
 
@@ -165,11 +142,6 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 
 		if (!lesson?.content) {
 			toast.error("Add description for this lesson");
-			return;
-		}
-
-		if (lesson.videos.length === 0) {
-			toast.error("Upload a video for this lesson");
 			return;
 		}
 
@@ -267,6 +239,13 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 					className="w-full rounded-md border border-neutral-200 bg-transparent bg-white text-base font-semibold text-neutral-600 outline-0 ring-0 placeholder:text-base placeholder:font-normal placeholder:text-neutral-300 focus:border-2 focus:border-b-primary-300 focus:ring-0"
 				/>
 
+				{/* UPLOAD VIDEO */}
+				<VideoUploader
+					moduleId={lesson.id}
+					sequence={lesson.sequence}
+					video_array={lesson.videos.map((video) => video)}
+				/>
+
 				<Editor
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
@@ -274,16 +253,10 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 					className="h-[400px]"
 				/>
 
-				{/* <textarea
-					placeholder="Enter lesson description"
-					value={lesson.content}
-					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
-					className="flex h-44 w-full resize-none rounded-md border border-neutral-200 bg-white p-3 text-sm outline-none placeholder:text-neutral-300 focus:border-primary-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-				/> */}
-
 				<div className="flex items-center gap-2">
 					<button
 						type="button"
+						onClick={() => setCurrentTab("quiz")}
 						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
 						<RiAddLine className="size-4" />
 						<span>Add Quiz</span>
@@ -291,87 +264,6 @@ export const Lessons = ({ lessonTab, chapterId }: LessonsProps) => {
 				</div>
 
 				<div className="flex flex-col gap-4">
-					<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
-						<strong>Note:</strong> Uploaded video and attachments may take a while before being visible.
-						After saving this lesson, refresh the page (after 2mins) to see the uploaded video.
-					</p>
-					{/* UPLOAD VIDEO */}
-					{lesson.videos.length ? (
-						lesson.videos.map((video, index) => {
-							let url;
-							if (video instanceof File) {
-								url = URL.createObjectURL(video);
-							} else {
-								url = embedUrl(video);
-							}
-							return (
-								<div key={index} className="space-y-4">
-									<div className="relative">
-										<video
-											src={url}
-											id="videoPlayer"
-											className="rounded-md"
-											width="640"
-											height="360"
-											controls>
-											Your browser does not support the video tag.
-										</video>
-
-										<button
-											onClick={() => {
-												URL.revokeObjectURL(url);
-												removeLessonVideo(lesson.sequence, lesson.chapter_sequence);
-											}}
-											type="button"
-											className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
-											<RiDeleteBin5Line className="size-4" />
-										</button>
-									</div>
-									{progress > 0 && <Progress progress={progress} />}
-								</div>
-							);
-						})
-					) : (
-						<label
-							htmlFor="video-upload"
-							className="grid w-full place-items-center rounded-lg bg-white py-4">
-							<input
-								type="file"
-								className="sr-only hidden"
-								id="video-upload"
-								accept="video/*"
-								multiple={false}
-								ref={ref}
-								onChange={(e) => {
-									const files = Array.from(e.target.files ?? []);
-									addLessonVideo(lesson.sequence, files, lesson.chapter_sequence);
-								}}
-							/>
-							<div className="flex flex-col items-center gap-y-6 p-5">
-								<div className="grid size-10 place-items-center rounded-md bg-neutral-100">
-									<RiUploadCloud2Line size={20} />
-								</div>
-
-								<div className="text-center text-sm">
-									<p className="font-medium">
-										<span className="text-secondary-300">Click to upload</span> or drag and drop video
-									</p>
-									<p className="text-center text-xs text-neutral-400">
-										mp4, avi, mov, wmv, mkv, .flv (max. 800 x 400px)
-									</p>
-								</div>
-
-								<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
-								<div className="flex items-center justify-center gap-x-4">
-									<Button onClick={handleClick} className="w-fit" size="sm" variant="invert-outline">
-										<RiUploadCloud2Line size={14} /> Upload Video
-									</Button>
-									<PasteLink open={open} sequence={lesson.sequence} setOpen={setOpen} disabled={isPending} />
-								</div>
-							</div>
-						</label>
-					)}
-
 					{/* ADD TUTOR */}
 					<label className="flex-1 space-y-1">
 						<p className="text-sm text-neutral-400">Select Teacher:</p>
