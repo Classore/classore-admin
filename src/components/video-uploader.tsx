@@ -1,9 +1,10 @@
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { RiDeleteBin5Line, RiUploadCloud2Line } from "@remixicon/react";
+import { type Socket, io } from "socket.io-client";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 
-import { embedUrl, generateUuid, validateFile } from "@/lib";
+import { Logger, embedUrl, generateUuid, validateFile } from "@/lib";
 import { PasteLink } from "./dashboard/module-card";
 import { Progress, VideoPlayer } from "./shared";
 import { queryClient } from "@/providers";
@@ -15,57 +16,82 @@ interface Props {
 	video_array: (File | string)[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
-const UPLOAD_TIMEOUT = 30000; // 30 seconds
-const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
+const CHUNK_SIZE = 3 * 1024 * 1024;
+const MAX_TIMEOUT = 60000;
+const MAX_RETRIES = 3;
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const abortController = useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = useState(0);
+	const [retryCount, setRetryCount] = React.useState(0);
+	const [isUploading, setIsUploading] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState("");
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	const socket = useRef<Socket | null>(null);
 	const [open, setOpen] = useState(false);
 
-	const hasVideo = Boolean(video_array.length > 0);
 	const upload_id = useMemo(() => generateUuid(), []);
+	const hasVideo = Boolean(video_array.length > 0);
 
-	const uploadChunk = async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
+	useEffect(() => {
+		socket.current = io(API_URL, {
+			transports: ["websocket"],
+		});
+		socket.current.on("connect", () => {
+			Logger.info("Socket connected");
+		});
+		socket.current.on("error", (error) => {
+			Logger.error("Socket error", error);
+		});
+		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
+			Logger.info("Video upload status", data);
+		});
+
+		return () => {
+			socket.current?.off("connect");
+			socket.current?.off("error");
+			socket.current?.off(`video_upload_status.${moduleId}`);
+			socket.current?.disconnect();
+		};
+	}, []);
+
+	const uploadChunk = async (chunkNumber: number, file: File): Promise<void> => {
 		const start = chunkNumber * CHUNK_SIZE;
 		const end = Math.min(start + CHUNK_SIZE, file.size);
 		const chunk = file.slice(start, end);
-		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-
 		const formData = new FormData();
+
+		const bytesUploaded = start + chunk.size;
+		const progress = (bytesUploaded / file.size) * 100;
+
+		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 		const chunkBlob = new Blob([chunk], { type: file.type });
 
-		formData.append("file", chunkBlob, `${file.name}.part${chunkNumber}`);
-		formData.append("upload_id", upload_id);
-		formData.append("sequence", sequence.toString());
+		formData.append("file", chunkBlob);
 		formData.append("chunk_index", chunkNumber.toString());
 		formData.append("total_chunks", totalChunks.toString());
+		formData.append("upload_id", upload_id);
+
+		Logger.info(`Uploading chunk ${chunkNumber} of ${totalChunks}`, {
+			progress: Math.round(progress * 100) / 100,
+			bytesUploaded,
+			totalBytes: file.size,
+			chunkNumber,
+			totalChunks,
+		});
 
 		try {
 			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
-
-			console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
-				start,
-				end,
-				size: chunk.size,
-				type: file.type,
-			});
-
-			const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-			if (!token) throw new Error("Authentication token missing");
-
+			const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
 			const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
 				method: "PUT",
 				body: formData,
 				headers: {
-					Authorization: `Bearer ${token}`,
+					Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
 					Accept: "application/json",
 				},
 				signal: controller.signal,
@@ -79,83 +105,77 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			}
 
 			const data = await response.json();
-			console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
-
-			setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
+			Logger.success(`Chunk ${chunkNumber} of ${totalChunks} uploaded:`, data);
+			setUploadProgress(Math.round(progress * 100) / 100);
 		} catch (error) {
-			console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
-			setPreviewUrl("");
-			setUploadProgress(0);
+			Logger.error(`Chunk ${chunkNumber} upload failed:`, error);
 			throw error;
+		} finally {
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 		}
 	};
 
-	const uploader = useCallback(
-		async (file: File) => {
-			if (!file) {
-				toast.error("No file selected");
-				return;
-			}
-
-			if (!moduleId) {
-				toast.error("Invalid module ID");
-				return;
-			}
-
-			const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-			if (!token) {
-				toast.error("Authentication token missing");
-				return;
-			}
-
-			const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-
+	const uploadChunkWithRetry = async (chunkNumber: number, file: File): Promise<void> => {
+		while (retryCount < MAX_RETRIES) {
 			try {
-				setIsLoading(true);
-				abortController.current = new AbortController();
-
-				console.log("Starting chunked upload:", {
-					fileName: file.name,
-					fileSize: file.size,
-					totalChunks,
-					chunkSize: CHUNK_SIZE,
-				});
-
-				// Use Promise.all with a limited concurrency to upload chunks
-				const concurrencyLimit = 3; // Upload 3 chunks at a time
-
-				for (let i = 0; i < totalChunks; i += concurrencyLimit) {
-					if (abortController.current?.signal.aborted) {
-						throw new Error("Upload cancelled");
-					}
-
-					const chunkPromises = [];
-					for (let j = 0; j < concurrencyLimit && i + j < totalChunks; j++) {
-						chunkPromises.push(uploadChunk(i + j, file, sequence));
-					}
-
-					await Promise.all(chunkPromises);
-				}
-
-				setUploadProgress(100);
-				toast.success("File upload completed");
-				queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+				return await uploadChunk(chunkNumber, file);
 			} catch (error) {
-				console.error("Upload failed:", error);
-				toast.error(error instanceof Error ? error.message : "Upload failed");
-				setPreviewUrl("");
-				setUploadProgress(0);
-			} finally {
-				setIsLoading(false);
-				abortController.current = null;
+				setRetryCount((prev) => prev + 1);
+				if (retryCount === MAX_RETRIES) {
+					throw error;
+				}
+				await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
 			}
-		},
-		[moduleId, sequence, upload_id, uploadChunk]
-	);
+		}
+	};
+
+	const uploader = React.useCallback(async (file: File, moduleId: string) => {
+		if (!file || !moduleId) {
+			toast.error("Invalid file or module ID");
+			return;
+		}
+
+		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
+		if (!token) {
+			toast.error("Authentication token missing");
+			return;
+		}
+
+		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+		try {
+			setIsLoading(true);
+			setIsUploading(true);
+			abortController.current = new AbortController();
+			for (let chunkNumber = 1; chunkNumber <= totalChunks; chunkNumber++) {
+				if (abortController.current?.signal.aborted) {
+					throw new Error("Upload cancelled");
+				}
+				await uploadChunkWithRetry(chunkNumber, file);
+			}
+			setUploadProgress(100);
+			toast.success("File upload completed");
+		} catch (error) {
+			Logger.error("Upload failed:", error);
+			toast.error(error instanceof Error ? error.message : "Upload failed");
+		} finally {
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			setIsLoading(false);
+			setIsUploading(false);
+			setUploadProgress(0);
+			setRetryCount(0);
+			abortController.current = null;
+		}
+	}, []);
 
 	const handleFileChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			if (!e.target.files?.length) return;
+
+			if (isUploading) {
+				toast.error("An upload is already in progress");
+				return;
+			}
 
 			const selectedFile = e.target.files[0];
 			const error = validateFile(selectedFile, {
@@ -170,16 +190,22 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				const reader = new FileReader();
 				reader.onload = () => {
 					setPreviewUrl(reader.result as string);
-					uploader(selectedFile);
+					uploader(selectedFile, moduleId);
+				};
+				reader.onerror = () => {
+					toast.error("Failed to read file");
 				};
 				reader.readAsDataURL(selectedFile);
+				return () => {
+					reader.abort();
+				};
 			} else {
 				toast.error(error.message, {
 					description: "Please try again.",
 				});
 			}
 		},
-		[uploader]
+		[isUploading, moduleId, uploader]
 	);
 
 	const handleCancelUpload = useCallback(() => {

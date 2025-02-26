@@ -82,7 +82,7 @@ export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 	React.useEffect(() => {
 		if (course) {
 			setValues({
-				timer_hour: course.data.chapters[0].timer_hour,
+				timer_hour: course?.data?.chapters[0]?.timer_hour,
 				timer_minute: course?.data?.chapters[0]?.timer_minute,
 				bench_mark: Number(course?.data?.chapters[0]?.bench_mark),
 				attempt_limit: course?.data?.chapters[0]?.attempt_limit,
