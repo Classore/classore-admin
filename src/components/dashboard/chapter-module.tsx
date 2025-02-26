@@ -43,8 +43,12 @@ interface Props {
 	setTab: (tab: string) => void;
 }
 
-interface UseMutationProps {
+interface UseCreateMutationProps {
 	chapter_id: string;
+	module: CreateChapterModuleDto;
+}
+interface UseUpdateMutationProps {
+	module_id: string;
 	module: CreateChapterModuleDto;
 }
 
@@ -84,7 +88,8 @@ export const ChapterModule = ({
 	};
 
 	const { isPending, mutate } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) => CreateChapterModule(chapter_id, module),
+		mutationFn: ({ chapter_id, module }: UseCreateMutationProps) =>
+			CreateChapterModule(chapter_id, module),
 		mutationKey: ["create-chapter-module"],
 		onSuccess: (data) => {
 			toast.success(data.message);
@@ -97,7 +102,8 @@ export const ChapterModule = ({
 	});
 
 	const { isPending: isUpdating, mutateAsync } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) => UpdateChapterModule(chapter_id, module),
+		mutationFn: ({ module_id, module }: UseUpdateMutationProps) =>
+			UpdateChapterModule(module_id, module),
 		mutationKey: ["create-chapter-module"],
 		onSuccess: (data) => {
 			toast.success(data.message);
@@ -129,12 +135,25 @@ export const ChapterModule = ({
 				content,
 			};
 			if (isExistingModule) {
-				mutateAsync({ chapter_id, module: payload });
+				mutateAsync({ module_id: String(module.id), module: payload });
 			} else {
 				mutate({ chapter_id, module: payload });
 			}
 		},
 	});
+
+	const updateModule = () => {
+		if (!module.id) {
+			toast.error("Chapter ID is required");
+			return;
+		}
+		const content = convertHTmlToMd(values.content);
+		const payload = {
+			...values,
+			content,
+		};
+		mutateAsync({ module_id: module.id, module: payload });
+	};
 
 	const html = React.useMemo(() => {
 		return convertMdToHtml(values.content || "");
@@ -269,18 +288,30 @@ export const ChapterModule = ({
 					</button>
 				)}
 				{module.id && (
-					<Dialog open={open.delete} onOpenChange={(value) => setOpen({ ...open, delete: value })}>
-						<DialogTrigger asChild>
-							<button
-								type="button"
-								className="flex items-center gap-x-1 rounded bg-red-400 px-3 py-1.5 text-xs capitalize text-white hover:bg-red-500">
-								Delete Lesson
-							</button>
-						</DialogTrigger>
-						<DialogContent className="w-[400px] p-1">
-							<DeleteLesson lessonId={module.id} onClose={() => setOpen({ ...open, delete: false })} />
-						</DialogContent>
-					</Dialog>
+					<div className="flex items-center gap-x-4">
+						<button
+							type="button"
+							onClick={updateModule}
+							className="flex items-center gap-x-1 rounded bg-primary-400 px-3 py-1.5 text-xs capitalize text-white hover:bg-primary-500">
+							{isPending || isUpdating ? (
+								<RiLoaderLine size={16} className="animate-spin" />
+							) : (
+								"Update Lesson"
+							)}
+						</button>
+						<Dialog open={open.delete} onOpenChange={(value) => setOpen({ ...open, delete: value })}>
+							<DialogTrigger asChild>
+								<button
+									type="button"
+									className="flex items-center gap-x-1 rounded bg-red-400 px-3 py-1.5 text-xs capitalize text-white hover:bg-red-500">
+									Delete Lesson
+								</button>
+							</DialogTrigger>
+							<DialogContent className="w-[400px] p-1">
+								<DeleteLesson lessonId={module.id} onClose={() => setOpen({ ...open, delete: false })} />
+							</DialogContent>
+						</Dialog>
+					</div>
 				)}
 			</div>
 		</form>
