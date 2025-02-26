@@ -9,10 +9,10 @@ export class Logger {
 	} as const;
 
 	private static LogStyles = {
-		DEBUG: "color: #36a3f7",
-		INFO: "color: #0f9d58",
+		DEBUG: "color: #f6f5f4",
+		INFO: "color: #50a3e3",
 		ERROR: "color: #f44336",
-		SUCCESS: "color: #4caf50",
+		SUCCESS: "color: #71e375",
 	};
 
 	private static LogColor(level: keyof typeof Logger.LogLevel, message: string): [string, string] {

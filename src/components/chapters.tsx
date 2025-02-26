@@ -15,9 +15,9 @@ import {
 } from "@remixicon/react";
 
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { HttpError, Maybe } from "@/types";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import { Button } from "./ui/button";
 import {
 	CreateChapter,
@@ -49,9 +49,9 @@ export const Chapters = ({
 	lessonTab,
 	onChapterIdChange,
 }: ChaptersProps) => {
-	const [current, setCurrent] = React.useState<Maybe<number>>(null);
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
+	const [current, setCurrent] = React.useState(0);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
@@ -61,6 +61,7 @@ export const Chapters = ({
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			addChapter();
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -69,6 +70,7 @@ export const Chapters = ({
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			addChapter();
 		},
 	});
 
@@ -97,15 +99,15 @@ export const Chapters = ({
 		}
 	}, [chapters, onChapterIdChange]);
 
-	const currentChapter = React.useMemo(() => {
-		if (current === null) return;
-		return chapters[current];
-	}, [chapters, current]);
+	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!currentChapter) return;
+		if (!currentChapter) {
+			toast.error("Please select a chapter");
+			return;
+		}
 
 		const payload: CreateChapterDto = {
 			name: currentChapter.name,
@@ -137,7 +139,7 @@ export const Chapters = ({
 			case "delete":
 				mutateAsync({ ids: [chapterId], model_type: "CHAPTER" }).then(() => {
 					removeChapter(sequence);
-					setCurrent(null);
+					setCurrent(current - 1);
 				});
 				break;
 			default:
@@ -161,10 +163,13 @@ export const Chapters = ({
 
 			{/* chapters */}
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-				{chapters.map((chapter) => (
+				{chapters.map((chapter, index) => (
 					<div
 						key={chapter.id}
-						onClick={() => onChapterIdChange?.(chapter.id)}
+						onClick={() => {
+							onChapterIdChange?.(chapter.id);
+							setCurrent(index);
+						}}
 						className={`"rounded-md border bg-white ${chapterId === chapter.id ? "border-primary-400" : ""}`}>
 						<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
 							<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
@@ -205,10 +210,10 @@ export const Chapters = ({
 								{lessons
 									.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
 									.map((lesson) => (
-										<button
+										<div
 											key={lesson.sequence}
 											onClick={() => setLessonTab(lesson.id)}
-											className={`flex items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+											className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
 											<RiDraggable className="size-4" />
 											<p className="flex-1 truncate text-left capitalize">
 												{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
@@ -231,7 +236,7 @@ export const Chapters = ({
 												className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
 												<RiDeleteBinLine className="size-4" />
 											</button>
-										</button>
+										</div>
 									))}
 							</div>
 
