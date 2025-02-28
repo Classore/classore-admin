@@ -151,11 +151,11 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			<div className="flex h-7 w-full items-center justify-between">
 				<div className="flex items-center gap-x-1.5">
 					<RiQuestionLine className="size-5 text-neutral-400" />
-					<p className="text-xs text-neutral-400">QUESTION {question.sequence_number}</p>
+					<p className="text-xs text-neutral-400">QUESTION {question?.sequence_number}</p>
 				</div>
 				<div className="flex items-center gap-x-2">
 					<Select
-						value={question.question_type}
+						value={question?.question_type}
 						onValueChange={(value) => handleTypeChange(sectionId, sequence, value)}>
 						<SelectTrigger className="h-7 w-40 text-xs">
 							<SelectValue placeholder="Select a type" />
@@ -191,13 +191,13 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 
 			<div className="relative flex flex-col gap-2">
 				<Textarea
-					value={question.content}
+					value={question?.content}
 					onChange={(e) => addQuestionContent(sectionId, sequence, e.target.value)}
 					className="h-44 w-full md:text-sm"
 				/>
 
 				{/* Different upload buttons based on question type */}
-				{question.question_type === "LISTENING" || question.question_type === "SPEAKING" ? (
+				{question?.question_type === "LISTENING" || question?.question_type === "SPEAKING" ? (
 					<div className="absolute bottom-2 right-2 flex gap-x-2">
 						<label className="ml-auto">
 							<input
@@ -213,7 +213,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 							</div>
 						</label>
 
-						{question.question_type === "SPEAKING" && (
+						{question?.question_type === "SPEAKING" && (
 							<button
 								type="button"
 								onClick={recordingState === "recording" ? stopRecording : startRecording}
@@ -247,8 +247,8 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			</div>
 
 			{/* Audio preview for listening and speaking questions */}
-			{(question.question_type === "LISTENING" || question.question_type === "SPEAKING") &&
-				question.audio && (
+			{(question?.question_type === "LISTENING" || question?.question_type === "SPEAKING") &&
+				question?.audio && (
 					<div className="flex flex-col gap-2">
 						<p className="text-sm text-neutral-400">Audio Preview</p>
 						<div className="flex items-center gap-x-4 rounded-md border p-2">
@@ -257,8 +257,8 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 								type="button"
 								onClick={() => {
 									removeAudioFromQuestion(sectionId, sequence);
-									if (question.audio) {
-										handleRemoveAudioFile(question.audio as File);
+									if (question?.audio) {
+										handleRemoveAudioFile(question?.audio as File);
 									}
 									setAudioPreview(null);
 									setRecordingState("idle");
@@ -273,7 +273,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			{/* Image previews */}
 			{question?.images?.length && question?.images?.length > 0 && (
 				<ul className="grid grid-cols-4 gap-x-2">
-					{question.images.map((image, index) => {
+					{question?.images.map((image, index) => {
 						const source = URL.createObjectURL(image as File);
 						return (
 							<li key={index} className="relative">
@@ -295,13 +295,13 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Settings for different question types */}
-			{(question.question_type === "MULTICHOICE" || question.question_type === "VISUAL") && (
+			{(question?.question_type === "MULTICHOICE" || question?.question_type === "VISUAL") && (
 				<div className="flex w-full items-center justify-center gap-x-4">
 					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Randomize options</p>
 						<Switch
-							checked={question.shuffled_options || false}
+							checked={question?.shuffled_options || false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -309,7 +309,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question.is_required || false}
+							checked={question?.is_required || false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -318,7 +318,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Speaking specific settings */}
-			{question.question_type === "SPEAKING" && (
+			{question?.question_type === "SPEAKING" && (
 				<div className="flex w-full items-center justify-center gap-x-4">
 					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Max recording duration (seconds)</p>
@@ -333,7 +333,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question.is_required || false}
+							checked={question?.is_required || false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -342,7 +342,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Listening specific settings */}
-			{question.question_type === "LISTENING" && (
+			{question?.question_type === "LISTENING" && (
 				<div className="flex w-full items-center justify-center gap-x-4">
 					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Maximum plays allowed</p>
@@ -357,7 +357,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question.is_required || false}
+							checked={question?.is_required || false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -366,11 +366,11 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Options for multiple choice, yes/no, fill in the gap, and visual */}
-			{(question.question_type === "MULTICHOICE" ||
-				question.question_type === "YES_OR_NO" ||
-				question.question_type === "FILL_IN_THE_GAP" ||
-				question.question_type === "VISUAL" ||
-				question.question_type === "LISTENING") && (
+			{(question?.question_type === "MULTICHOICE" ||
+				question?.question_type === "YES_OR_NO" ||
+				question?.question_type === "FILL_IN_THE_GAP" ||
+				question?.question_type === "VISUAL" ||
+				question?.question_type === "LISTENING") && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
 					<OptionItem sectionId={sectionId} sequence={sequence} question={question} />
@@ -395,7 +395,7 @@ const OptionItem = ({
 	return (
 		<>
 			<div className="w-full space-y-2">
-				{question.options.map((option, index) => (
+				{question?.options.map((option, index) => (
 					<div
 						key={index}
 						className="flex h-auto min-h-10 w-full flex-col rounded-lg border border-neutral-400 px-3 py-2">
@@ -409,7 +409,7 @@ const OptionItem = ({
 									value={option.content}
 									autoFocus
 									onChange={(e) =>
-										addOptionContent(sectionId, sequence, question.sequence_number, e.target.value)
+										addOptionContent(sectionId, sequence, question?.sequence_number, e.target.value)
 									}
 									className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 								/>
@@ -421,7 +421,7 @@ const OptionItem = ({
 									)}
 									<button
 										type="button"
-										onClick={() => setCorrectOption(sectionId, sequence, question.sequence_number)}>
+										onClick={() => setCorrectOption(sectionId, sequence, question?.sequence_number)}>
 										<RiCheckboxCircleFill
 											className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
 										/>
@@ -429,7 +429,7 @@ const OptionItem = ({
 								</div>
 							</div>
 
-							{question.question_type !== "YES_OR_NO" && (
+							{question?.question_type !== "YES_OR_NO" && (
 								<button
 									onClick={() => removeQuestionOption(sectionId, sequence, index)}
 									className="grid size-6 place-items-center rounded-md border">
@@ -439,14 +439,14 @@ const OptionItem = ({
 						</div>
 
 						{/* Visual question type option images */}
-						{question.question_type === "VISUAL" && <div className="mt-2 flex flex-col"></div>}
+						{question?.question_type === "VISUAL" && <div className="mt-2 flex flex-col"></div>}
 					</div>
 				))}
 			</div>
 
-			{question.question_type === "MULTICHOICE" ||
-			question.question_type === "VISUAL" ||
-			question.question_type === "LISTENING" ? (
+			{question?.question_type === "MULTICHOICE" ||
+			question?.question_type === "VISUAL" ||
+			question?.question_type === "LISTENING" ? (
 				<Button
 					type="button"
 					onClick={() => {
@@ -456,14 +456,14 @@ const OptionItem = ({
 							LISTENING: 4,
 						};
 
-						const questionType = question.question_type as keyof typeof maxOptions;
+						const questionType = question?.question_type as keyof typeof maxOptions;
 
-						if (question.options.length >= (maxOptions[questionType] || 4)) {
+						if (question?.options.length >= (maxOptions[questionType] || 4)) {
 							toast.error(`Maximum options limit for this question type reached`);
 							return;
 						}
 
-						if (!["MULTICHOICE", "VISUAL", "LISTENING"].includes(question.question_type)) {
+						if (!["MULTICHOICE", "VISUAL", "LISTENING"].includes(question?.question_type)) {
 							toast.error("Options can only be added to multiple choice, visual, or listening questions");
 							return;
 						}
