@@ -12,6 +12,7 @@ import type {
 	PaginatedResponse,
 	PaginationProps,
 	QuestionTypeProps,
+	VideoProps,
 } from "@/types";
 
 export interface CreateChapterDto {
@@ -33,7 +34,7 @@ export interface CreateChapterModuleDto {
 	images: (File | string)[];
 	attachments: (File | string)[];
 	image_urls: string[];
-	video_urls: string[];
+	video_urls: VideoProps[];
 }
 
 export interface CreateQuestionDto {
@@ -188,18 +189,25 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	if (payload.sequence) formData.append("sequence", String(payload.sequence));
 	if (payload.tutor) formData.append("tutor", payload.tutor);
 	if (payload.attachments?.length) {
-		payload.attachments.forEach((attachment) => {
-			formData.append("attachments[]", attachment);
+		payload.attachments.forEach((attachment, i) => {
+			formData.append(`attachments[${i}]`, attachment);
 		});
 	}
 	if (payload.images?.length) {
-		payload.images.forEach((image) => {
-			formData.append("images[]", image);
+		payload.images.forEach((image, i) => {
+			formData.append(`images[${i}]`, image);
 		});
 	}
 	if (payload.videos?.length) {
-		payload.videos.forEach((video) => {
-			formData.append("videos[]", video);
+		payload.videos.forEach((video, i) => {
+			formData.append(`videos[${i}]`, video);
+		});
+	}
+	if (payload.video_urls) {
+		payload.video_urls.forEach((video_url, i) => {
+			formData.append(`video_urls[${i}][derived_url]`, video_url.derived_url);
+			formData.append(`video_urls[${i}][duration]`, video_url.duration.toString());
+			formData.append(`video_urls[${i}][secure_url]`, video_url.secure_url);
 		});
 	}
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);

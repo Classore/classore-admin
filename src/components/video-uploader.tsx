@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { RiDeleteBin5Line, RiUploadCloud2Line } from "@remixicon/react";
 import { type Socket, io } from "socket.io-client";
 import Cookies from "js-cookie";
@@ -16,204 +16,157 @@ interface Props {
 	video_array: (File | string)[];
 }
 
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const MAX_FILE_SIZE = 200 * 1024 * 1024;
-const CHUNK_SIZE = 3 * 1024 * 1024;
-const MAX_TIMEOUT = 60000;
-const MAX_RETRIES = 3;
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"] as const;
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+const CHUNK_SIZE = 5 * 1024 * 1024; // 10MB
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const abortController = useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = useState(0);
-	const [retryCount, setRetryCount] = React.useState(0);
 	const [isUploading, setIsUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	const [isLoading, setIsLoading] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState("");
-	const socket = useRef<Socket | null>(null);
+	const socketRef = useRef<Socket | null>(null);
 	const [open, setOpen] = useState(false);
 
-	const upload_id = useMemo(() => generateUuid(), []);
-	const hasVideo = Boolean(video_array.length > 0);
+	const hasVideo = video_array.length > 0;
 
 	useEffect(() => {
-		socket.current = io(API_URL, {
+		if (!moduleId) return;
+		const socket = io("wss://classore-be-dev.up.railway.app", {
 			transports: ["websocket"],
+			reconnection: true,
+			reconnectionAttempts: 5,
+			reconnectionDelay: 1000,
+			timeout: 10000,
 		});
-		socket.current.on("connect", () => {
-			Logger.info("Socket connected");
+
+		socketRef.current = socket;
+		socket.on("connect", () => {
+			Logger.log("Socket connected");
 		});
-		socket.current.on("error", (error) => {
+		socket.on("error", (error) => {
 			Logger.error("Socket error", error);
 		});
-		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
-			Logger.info("Video upload status", data);
+		socket.on(`video_upload_status.${moduleId}`, (data) => {
+			Logger.log("Video upload status update:", data);
 		});
 
 		return () => {
-			socket.current?.off("connect");
-			socket.current?.off("error");
-			socket.current?.off(`video_upload_status.${moduleId}`);
-			socket.current?.disconnect();
+			socket.off("connect");
+			socket.off("error");
+			socket.off(`video_upload_status.${moduleId}`);
+
+			if (socket.connected) {
+				socket.disconnect();
+			}
+			socketRef.current = null;
 		};
-	}, []);
+	}, [moduleId]);
 
-	const uploadChunk = async (chunkNumber: number, file: File): Promise<void> => {
-		const start = chunkNumber * CHUNK_SIZE;
-		const end = Math.min(start + CHUNK_SIZE, file.size);
-		const chunk = file.slice(start, end);
-		const formData = new FormData();
+	const uploader = useCallback(async (file: File) => {
+		const total_chunks = Math.ceil(file.size / CHUNK_SIZE);
+		const uploadId = generateUuid();
+		let current_chunk = 0;
 
-		const bytesUploaded = start + chunk.size;
-		const progress = (bytesUploaded / file.size) * 100;
+		setUploadProgress(0);
+		setIsUploading(true);
 
-		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-		const chunkBlob = new Blob([chunk], { type: file.type });
+		while (current_chunk < total_chunks) {
+			const start = current_chunk * CHUNK_SIZE;
+			const end = Math.min(start + CHUNK_SIZE, file.size);
+			const chunk = file.slice(start, end);
 
-		formData.append("file", chunkBlob);
-		formData.append("chunk_index", chunkNumber.toString());
-		formData.append("total_chunks", totalChunks.toString());
-		formData.append("upload_id", upload_id);
+			const formData = new FormData();
+			formData.append("file", chunk, file.name);
+			formData.append("upload_id", uploadId);
+			formData.append("chunk_index", (current_chunk + 1).toString());
+			formData.append("total_chunks", total_chunks.toString());
 
-		Logger.info(`Uploading chunk ${chunkNumber} of ${totalChunks}`, {
-			progress: Math.round(progress * 100) / 100,
-			bytesUploaded,
-			totalBytes: file.size,
-			chunkNumber,
-			totalChunks,
-		});
-
-		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
-			const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
-				method: "PUT",
-				body: formData,
-				headers: {
-					Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-					Accept: "application/json",
-				},
-				signal: controller.signal,
-			});
-
-			clearTimeout(timeoutId);
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
-			Logger.success(`Chunk ${chunkNumber} of ${totalChunks} uploaded:`, data);
-			setUploadProgress(Math.round(progress * 100) / 100);
-		} catch (error) {
-			Logger.error(`Chunk ${chunkNumber} upload failed:`, error);
-			throw error;
-		} finally {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-		}
-	};
-
-	const uploadChunkWithRetry = async (chunkNumber: number, file: File): Promise<void> => {
-		while (retryCount < MAX_RETRIES) {
 			try {
-				return await uploadChunk(chunkNumber, file);
+				Logger.info(`Uploading chunk ${current_chunk + 1} of ${total_chunks}`);
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chunk_uploads/${moduleId}`,
+					{
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+						},
+						signal: abortController.current?.signal,
+					}
+				);
+
+				if (!response.ok) {
+					throw new Error(`Error uploading chunk ${current_chunk + 1}`);
+				}
+				current_chunk++;
+				setUploadProgress((current_chunk / total_chunks) * 100);
 			} catch (error) {
-				setRetryCount((prev) => prev + 1);
-				if (retryCount === MAX_RETRIES) {
-					throw error;
-				}
-				await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
-			}
-		}
-	};
-
-	const uploader = React.useCallback(async (file: File, moduleId: string) => {
-		if (!file || !moduleId) {
-			toast.error("Invalid file or module ID");
-			return;
-		}
-
-		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-		if (!token) {
-			toast.error("Authentication token missing");
-			return;
-		}
-
-		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-
-		try {
-			setIsLoading(true);
-			setIsUploading(true);
-			abortController.current = new AbortController();
-			for (let chunkNumber = 1; chunkNumber <= totalChunks; chunkNumber++) {
 				if (abortController.current?.signal.aborted) {
-					throw new Error("Upload cancelled");
+					Logger.error("Upload aborted");
+					return;
 				}
-				await uploadChunkWithRetry(chunkNumber, file);
+				Logger.error("Error uploading chunk", error);
+				toast.error(`Error uploading chunk ${current_chunk + 1}`);
+			} finally {
+				setUploadProgress(0);
+				setIsUploading(false);
+				queryClient.invalidateQueries({
+					queryKey: ["get-module", "get-modules", "get-subject", "get-subjects"],
+				});
 			}
-			setUploadProgress(100);
-			toast.success("File upload completed");
-		} catch (error) {
-			Logger.error("Upload failed:", error);
-			toast.error(error instanceof Error ? error.message : "Upload failed");
-		} finally {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			setIsLoading(false);
-			setIsUploading(false);
-			setUploadProgress(0);
-			setRetryCount(0);
-			abortController.current = null;
 		}
 	}, []);
 
 	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			if (!e.target.files?.length) return;
+		async (e: React.ChangeEvent<HTMLInputElement>) => {
+			try {
+				if (!e.target.files?.length) return;
+				if (isUploading) {
+					toast.error("An upload is already in progress");
+					e.target.value = "";
+					return;
+				}
 
-			if (isUploading) {
-				toast.error("An upload is already in progress");
-				return;
-			}
+				const selectedFile = e.target.files[0];
+				const validationResult = validateFile(selectedFile, {
+					fileType: "video",
+					allowedMimeTypes: ALLOWED_VIDEO_TYPES,
+					maxFileSize: MAX_FILE_SIZE,
+					maxFiles: 1,
+					minFiles: 1,
+				});
 
-			const selectedFile = e.target.files[0];
-			const error = validateFile(selectedFile, {
-				fileType: "video",
-				allowedMimeTypes: ALLOWED_VIDEO_TYPES,
-				maxFileSize: MAX_FILE_SIZE,
-				maxFiles: 1,
-				minFiles: 1,
-			});
-
-			if (!error) {
-				const reader = new FileReader();
-				reader.onload = () => {
-					setPreviewUrl(reader.result as string);
-					uploader(selectedFile, moduleId);
-				};
-				reader.onerror = () => {
-					toast.error("Failed to read file");
-				};
-				reader.readAsDataURL(selectedFile);
-				return () => {
-					reader.abort();
-				};
-			} else {
-				toast.error(error.message, {
+				if (validationResult) {
+					toast.error(validationResult.message, {
+						description: "Please try again.",
+					});
+					e.target.value = "";
+					return;
+				}
+				const objectUrl = URL.createObjectURL(selectedFile);
+				setPreviewUrl(objectUrl);
+				await uploader(selectedFile);
+				URL.revokeObjectURL(objectUrl);
+				e.target.value = "";
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : "Failed to process file";
+				toast.error(errorMessage, {
 					description: "Please try again.",
 				});
+				Logger.error("File processing error:", error);
 			}
 		},
-		[isUploading, moduleId, uploader]
+		[isUploading, uploader]
 	);
 
 	const handleCancelUpload = useCallback(() => {
 		if (abortController.current) {
 			abortController.current.abort();
-			setUploadProgress(0);
-			toast.info("Upload cancelled");
 		}
+		toast.info("Upload cancelled");
+		setUploadProgress(0);
 		setPreviewUrl("");
 	}, []);
 
@@ -223,37 +176,6 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			fileInputRef.current.value = "";
 		}
 	}, []);
-
-	useEffect(() => {
-		if (isLoading) {
-			const toastId = `upload-${moduleId}-${sequence}`;
-			toast.loading("Uploading video", {
-				description: (
-					<div className="space-y-2">
-						<p className="text-xs text-neutral-400">Please hold on while we upload your video</p>
-						<Progress progress={uploadProgress} />
-					</div>
-				),
-				duration: Infinity,
-				id: toastId,
-				action: {
-					label: "Cancel",
-					onClick: handleCancelUpload,
-				},
-				actionButtonStyle: {
-					background: "red",
-					color: "white",
-					borderRadius: "8px",
-					padding: "4px 8px",
-					fontSize: "12px",
-				},
-			});
-
-			return () => {
-				toast.dismiss(toastId);
-			};
-		}
-	}, [handleCancelUpload, isLoading, moduleId, sequence, uploadProgress]);
 
 	const video = video_array[0];
 	const uploadedVideo = typeof video === "string" ? video : "";
@@ -273,6 +195,15 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 						<div className="h-full w-full space-y-3">
 							<div className="space-y-4">
 								<div className="relative aspect-video w-full rounded-lg border border-neutral-200">
+									{isUploading && (
+										<div className="absolute left-0 top-0 !z-[2] grid h-full w-full place-items-center rounded-lg bg-black/45">
+											<button
+												onClick={handleCancelUpload}
+												className="rounded-md bg-red-500 px-3 py-1 text-sm text-white">
+												Cancel Upload
+											</button>
+										</div>
+									)}
 									<video
 										src={previewUrl}
 										id="videoPlayer"
@@ -286,7 +217,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 									<button
 										onClick={handleFileRemove}
 										type="button"
-										className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
+										className="absolute right-2 top-2 z-50 rounded-md bg-white p-1"
+										aria-label="Remove video">
 										<RiDeleteBin5Line className="size-4" />
 									</button>
 								</div>
@@ -296,13 +228,12 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 					) : (
 						<label
 							htmlFor="video-upload"
-							draggable
 							className="grid aspect-video w-full place-items-center border border-neutral-200 bg-white py-4">
 							<input
 								type="file"
 								className="sr-only hidden"
 								id="video-upload"
-								accept="video/*"
+								accept={ALLOWED_VIDEO_TYPES.join(",")}
 								multiple={false}
 								ref={fileInputRef}
 								onChange={handleFileChange}
@@ -318,17 +249,17 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 									<p className="text-center text-xs text-neutral-400">mp4, webm, ogg, mkv (max. 200MB)</p>
 								</div>
 
-								<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
+								<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']" />
 								<div className="flex items-center justify-center gap-x-4">
 									<Button
 										onClick={() => fileInputRef.current?.click()}
 										className="w-fit"
 										size="sm"
 										variant="invert-outline"
-										disabled={isLoading}>
+										disabled={isUploading}>
 										<RiUploadCloud2Line size={14} /> Upload Video
 									</Button>
-									<PasteLink open={open} sequence={sequence} setOpen={setOpen} disabled={isLoading} />
+									<PasteLink open={open} sequence={sequence} setOpen={setOpen} disabled={isUploading} />
 								</div>
 							</div>
 						</label>
