@@ -60,7 +60,7 @@ const Page = () => {
 			<Seo title="Courses" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
-					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white">
+					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
 							<div className="flex items-center gap-x-4">
@@ -79,7 +79,7 @@ const Page = () => {
 							<UserCard icon={RiBookOpenLine} value={0} label="Unpublished Courses" />
 						</div>
 					</div>
-					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white">
+					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<div className="flex items-center">
 								{exams.map((type) => (

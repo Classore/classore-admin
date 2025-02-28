@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { CreateSubject, GetBundles, GetExaminations } from "@/queries";
 import { IsHttpError, httpErrorhandler } from "@/lib";
 import type { CreateSubjectDto } from "@/queries";
@@ -14,7 +15,6 @@ import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 type Mode = "initial" | "select" | "create";
 
@@ -51,7 +51,15 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient
-				.invalidateQueries({ queryKey: ["get-bundle", "get-subject", "get-subjects"] })
+				.invalidateQueries({
+					queryKey: [
+						"get-bundle",
+						"get-bundles",
+						"get-subject",
+						"get-subjects",
+						"get-bundle-for-subjects",
+					],
+				})
 				.then(() => {
 					onOpenChange(false);
 				});
@@ -65,6 +73,18 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 			} else {
 				toast.error("Something went wrong");
 			}
+		},
+		onSettled: () => {
+			setMode("initial");
+			queryClient.invalidateQueries({
+				queryKey: [
+					"get-bundle",
+					"get-bundles",
+					"get-subject",
+					"get-subjects",
+					"get-bundle-for-subjects",
+				],
+			});
 		},
 	});
 

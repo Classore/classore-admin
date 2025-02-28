@@ -60,8 +60,11 @@ export const Chapters = ({
 		mutationKey: ["create-chapter"],
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({
+				queryKey: ["get-modules", "get-subject", "get-subjects", "get-bundle"],
+			});
 			addChapter();
+			window.location.reload();
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -69,8 +72,9 @@ export const Chapters = ({
 			toast.error(err);
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			addChapter();
+			queryClient.invalidateQueries({
+				queryKey: ["get-modules", "get-subject", "get-subjects", "get-bundle"],
+			});
 		},
 	});
 

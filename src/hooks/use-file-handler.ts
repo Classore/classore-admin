@@ -1,7 +1,7 @@
 import React from "react";
 
 // Enhanced type definitions
-export type FileType = "document" | "image" | "video";
+export type FileType = "audio" | "document" | "image" | "video";
 
 export interface FileValidationRules {
 	maxSize?: number; // in bytes
@@ -34,6 +34,7 @@ interface FileHandlerReturn {
 
 // Memoized MIME type configurations
 const DEFAULT_MIME_TYPES = {
+	audio: ["audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg"],
 	document: [
 		"application/pdf",
 		"application/msword",
