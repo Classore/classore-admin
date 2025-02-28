@@ -50,6 +50,7 @@ export const UploadWidget = ({ moduleId, sequence, video_url }: Props) => {
 		};
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const handleUpload = (results: any) => {
 		if (!results.info || typeof results.info === "string") return;
 

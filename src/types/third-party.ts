@@ -26,7 +26,7 @@ export type CloudinaryAssetResponse = {
 	paused: boolean;
 	partOfBatch: boolean;
 	publicId: "";
-	preparedParams: {};
+	preparedParams: object;
 	camera: boolean;
 	coordinatesResize: boolean;
 	delayedPreCalls: boolean;

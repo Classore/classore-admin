@@ -66,7 +66,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 	} = useTestCenterStore();
 
 	const [recordingState, setRecordingState] = useState<"idle" | "recording" | "recorded">("idle");
-	const [_audioPreview, setAudioPreview] = useState<string | null>(null);
+	const [audioPreview, setAudioPreview] = useState<string | null>(null);
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 	const audioChunksRef = useRef<Blob[]>([]);
 
@@ -252,7 +252,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex flex-col gap-2">
 						<p className="text-sm text-neutral-400">Audio Preview</p>
 						<div className="flex items-center gap-x-4 rounded-md border p-2">
-							<audio controls src={URL.createObjectURL(question.audio as File)} className="max-w-full" />
+							<audio controls src={String(audioPreview)} className="max-w-full" />
 							<button
 								type="button"
 								onClick={() => {

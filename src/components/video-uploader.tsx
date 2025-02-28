@@ -64,7 +64,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		};
 	}, [moduleId]);
 
-	const uploader = async (file: File) => {
+	const uploader = useCallback(async (file: File) => {
 		const total_chunks = Math.ceil(file.size / CHUNK_SIZE);
 		const uploadId = generateUuid();
 		let current_chunk = 0;
@@ -117,7 +117,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				});
 			}
 		}
-	};
+	}, []);
 
 	const handleFileChange = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {

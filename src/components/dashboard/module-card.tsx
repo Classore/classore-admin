@@ -53,6 +53,35 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const hasVideo = Boolean(module?.video_array.length && module.video_array.length > 0);
 	const moduleId = String(module?.id || "");
 
+	const {
+		clearFiles,
+		handleClick,
+		handleDragLeave,
+		handleDragOver,
+		handleDrop,
+		handleDragEnter,
+		handleFileChange,
+		inputRef,
+		isDragging,
+	} = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			if (file) {
+				handleFiles(file);
+			}
+		},
+		fileType: "video",
+		validationRules: {
+			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
+			maxSize: 1024 * 1024 * 1024 * 5, // 500MB
+			maxFiles: 1,
+			minFiles: 1,
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+	});
+
 	const uploadChunk = async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
 		const chunkSize = 1024 * 1024 * 2;
 		const start = chunkNumber * chunkSize;
@@ -111,56 +140,59 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		}
 	};
 
-	const uploader = React.useCallback(async (file: File, moduleId: string, sequence: number) => {
-		if (!file) {
-			toast.error("No file selected");
-			return;
-		}
-
-		if (!moduleId) {
-			toast.error("Invalid module ID");
-			return;
-		}
-
-		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-		if (!token) {
-			toast.error("Authentication token missing");
-			return;
-		}
-
-		const chunkSize = 2 * 1024 * 1024; // 2MB chunks
-		const totalChunks = Math.ceil(file.size / chunkSize);
-
-		try {
-			setIsLoading(true);
-			abortController.current = new AbortController();
-
-			console.log("Starting chunked upload:", {
-				fileName: file.name,
-				fileSize: file.size,
-				totalChunks,
-				chunkSize,
-			});
-
-			for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
-				if (abortController.current?.signal.aborted) {
-					throw new Error("Upload cancelled");
-				}
-				await uploadChunk(chunkNumber, file, sequence);
+	const uploader = React.useCallback(
+		async (file: File, moduleId: string, sequence: number) => {
+			if (!file) {
+				toast.error("No file selected");
+				return;
 			}
 
-			setUploadProgress(100);
-			toast.success("File upload completed");
-		} catch (error) {
-			console.error("Upload failed:", error);
-			toast.error(error instanceof Error ? error.message : "Upload failed");
-		} finally {
-			setIsLoading(false);
-			setUploadProgress(0);
-			clearFiles();
-			abortController.current = null;
-		}
-	}, []);
+			if (!moduleId) {
+				toast.error("Invalid module ID");
+				return;
+			}
+
+			const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
+			if (!token) {
+				toast.error("Authentication token missing");
+				return;
+			}
+
+			const chunkSize = 2 * 1024 * 1024; // 2MB chunks
+			const totalChunks = Math.ceil(file.size / chunkSize);
+
+			try {
+				setIsLoading(true);
+				abortController.current = new AbortController();
+
+				console.log("Starting chunked upload:", {
+					fileName: file.name,
+					fileSize: file.size,
+					totalChunks,
+					chunkSize,
+				});
+
+				for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
+					if (abortController.current?.signal.aborted) {
+						throw new Error("Upload cancelled");
+					}
+					await uploadChunk(chunkNumber, file, sequence);
+				}
+
+				setUploadProgress(100);
+				toast.success("File upload completed");
+			} catch (error) {
+				console.error("Upload failed:", error);
+				toast.error(error instanceof Error ? error.message : "Upload failed");
+			} finally {
+				setIsLoading(false);
+				setUploadProgress(0);
+				clearFiles();
+				abortController.current = null;
+			}
+		},
+		[clearFiles, uploadChunk]
+	);
 
 	React.useEffect(() => {
 		if (isLoading && moduleId) {
@@ -202,35 +234,6 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const { getDragProps } = useDrag({
 		items: module?.attachments ?? [],
 		onReorder: () => {},
-	});
-
-	const {
-		clearFiles,
-		handleClick,
-		handleDragLeave,
-		handleDragOver,
-		handleDrop,
-		handleDragEnter,
-		handleFileChange,
-		inputRef,
-		isDragging,
-	} = useFileHandler({
-		onValueChange: (files) => {
-			const file = files[0];
-			if (file) {
-				handleFiles(file);
-			}
-		},
-		fileType: "video",
-		validationRules: {
-			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
-			maxSize: 1024 * 1024 * 1024 * 5, // 500MB
-			maxFiles: 1,
-			minFiles: 1,
-		},
-		onError: (error) => {
-			toast.error(error);
-		},
 	});
 
 	const handleCancelUpload = React.useCallback(() => {
@@ -384,11 +387,18 @@ export const PasteLink = ({
 			toast.error("Please enter a valid url");
 			return;
 		}
-		const video_urls: string[] = [];
-		video_urls.push(url);
 		mutate({
 			module_id: String(module?.id),
-			module: { sequence, video_urls },
+			module: {
+				sequence,
+				video_urls: [
+					{
+						derived_url: url,
+						duration: 15,
+						secure_url: url,
+					},
+				],
+			},
 		});
 	};
 
