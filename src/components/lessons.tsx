@@ -16,6 +16,7 @@ import { UploadWidget } from "./upload-widget";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
+	GetQuestions,
 	GetStaffs,
 	type GetStaffsResponse,
 	GetSubject,
@@ -70,6 +71,13 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		queryFn: () => GetStaffs({ admin_role, limit: 50 }),
 		enabled: !!admin_role,
 		select: (data) => (data as GetStaffsResponse).data.admins,
+	});
+
+	const { data: questions } = useQuery({
+		queryKey: ["get-questions", { lessonTab }],
+		queryFn: lessonTab ? () => GetQuestions({ module_id: lessonTab, limit: 50, page: 1 }) : skipToken,
+		enabled: !!lessonTab,
+		select: (data) => data.data.data,
 	});
 
 	const chapter = course?.data.chapters.find((chapter) => chapter.id === chapterId);
@@ -194,11 +202,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			return;
 		}
 
-		if (lesson.videos.length === 0) {
-			toast.error("Upload a video for this lesson");
-			return;
-		}
-
 		if (!lesson.tutor) {
 			toast.error("Please select a tutor for this lesson");
 			return;
@@ -220,6 +223,13 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			},
 		});
 	};
+
+	const memoizedQuestions = React.useMemo(() => {
+		if (questions) {
+			return questions;
+		}
+		return [];
+	}, [questions]);
 
 	if (!lesson) return null;
 
@@ -257,8 +267,8 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				<Editor
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
+					className="h-[600px]"
 					size="md"
-					className="h-[400px]"
 				/>
 
 				<div className="flex items-center gap-2">
@@ -369,7 +379,27 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			</div>
 
 			<details>
-				<summary className="cursor-pointer p-2">Lesson Quiz</summary>
+				<summary className="cursor-pointer select-none p-2">Lesson Quiz</summary>
+				<div className="w-full space-y-2">
+					{memoizedQuestions?.map((question, index) => (
+						<div key={question.question_id} className="w-full space-y-2 rounded-lg bg-white p-3">
+							<div>
+								<div className="flex items-center justify-between">
+									<p className="text-sm text-neutral-400">Question {index + 1}</p>
+									<p className="text-xs text-neutral-300">{question.question_question_type}</p>
+								</div>
+								<p className="text-sm font-medium first-letter:capitalize">{question.question_content}</p>
+							</div>
+							<ul className="space-y-0.t w-full list-disc pl-4">
+								{question.options.map((option) => (
+									<li key={index} className="list-item text-sm first-letter:capitalize">
+										{option.content}
+									</li>
+								))}
+							</ul>
+						</div>
+					))}
+				</div>
 			</details>
 		</TabPanel>
 	);

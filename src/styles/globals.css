@@ -165,6 +165,7 @@ input[type="search"]::-webkit-search-results-decoration {
 .editor:focus {
 	outline: none;
 	border-color: var(--primary-400);
+	font-size: 14px;
 }
 
 .editor .heading-1 {
@@ -216,31 +217,31 @@ input[type="search"]::-webkit-search-results-decoration {
 	display: list-item;
 }
 
-.editor .text-bold {
+.editor .bold {
 	font-weight: bold;
 }
 
-.editor .text-italic {
+.editor .italic {
 	font-style: italic;
 }
 
-.editor .text-underline {
+.editor .underline {
 	text-decoration: underline;
 }
 
-.editor .text-line-through {
+.editor .line-through {
 	text-decoration: line-through;
 }
 
-.editor .text-subscript {
+.editor .subscript {
 	vertical-align: sub;
 }
 
-.editor .text-superscript {
+.editor .superscript {
 	vertical-align: super;
 }
 
-.editor .text-highlight {
+.editor .highlight {
 	background-color: yellow;
 	color: var(--neutral-900);
 }
