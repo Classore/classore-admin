@@ -6,12 +6,12 @@ type Option = {
 	content: string;
 	is_correct: "YES" | "NO";
 	sequence_number: number;
-	images?: File[];
+	images?: (File | string)[];
 };
 
 export type QuestionDto = {
 	content: string;
-	images: File[];
+	images: (File | string)[];
 	options: Option[];
 	question_type: QuestionTypeProps;
 	sequence: number;
@@ -329,7 +329,7 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 											q.question_type === "SINGLE_CHOICE"
 												? opt.sequence_number === option_id
 													? "YES"
-													: "NO"
+													: "NO" // Force all other options to "NO" for single choice
 												: opt.sequence_number === option_id
 													? opt.is_correct === "YES"
 														? "NO"

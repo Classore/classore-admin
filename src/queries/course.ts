@@ -67,6 +67,11 @@ export type UpdateChapterModuleDto = MakeOptional<
 >;
 
 export type GetChapterModuleResponse = HttpResponse<PaginatedResponse<CastedChapterModuleProps>>;
+export type GetQuestionsResponse = HttpResponse<PaginatedResponse<CastedQuestionProps>>;
+export type PaginatedQuestions = {
+	data: CastedQuestionProps[];
+	meta: PaginatedResponse<CastedQuestionProps>["meta"];
+};
 
 const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
@@ -150,7 +155,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 		.then((res) => res.data);
 };
 
-const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) => {
+const GetQuestions = async (params?: PaginationProps & { module_id: string }) => {
 	if (params) {
 		for (const key in params) {
 			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
@@ -159,9 +164,7 @@ const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) =
 		}
 	}
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedQuestionProps>>
-		>(endpoints().school.get_questions, { params })
+		.get<GetQuestionsResponse>(endpoints().school.get_questions, { params })
 		.then((res) => res.data);
 };
 

@@ -33,9 +33,9 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 	const moduleId = String(module?.id);
 
 	const {} = useQuery({
-		queryKey: ["get-questions"],
-		queryFn: () => GetQuestions({ chapter_id: chapterId, limit: 50, page: 1 }),
-		enabled: false,
+		queryKey: ["get-questions", moduleId],
+		queryFn: () => GetQuestions({ module_id: moduleId, limit: 50, page: 1 }),
+		enabled: !!moduleId,
 	});
 
 	const { isPending, mutate } = useMutation({

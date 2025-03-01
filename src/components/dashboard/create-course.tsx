@@ -26,7 +26,7 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 	const router = useRouter();
 	const subjectId = router.query.courseId as string;
 
-	const [module, setModule] = React.useState<ChapterModule | null>(null);
+	const [lesson, setLesson] = React.useState<ChapterModule | null>(null);
 	const [sequence, setSequence] = React.useState(0);
 	const [tab, setTab] = React.useState("video");
 
@@ -40,10 +40,15 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 		return initialChapters;
 	});
 
+	const moduleId = React.useMemo(() => {
+		if (!lesson) return "";
+		return lesson.id;
+	}, [lesson]);
+
 	const {} = useQuery({
-		queryKey: ["get-questions", chapters[sequence]?.id, sequence],
-		queryFn: () => GetQuestions({ chapter_id: chapters[sequence].id, limit: 100, page: 1 }),
-		enabled: !!chapters[sequence]?.id,
+		queryKey: ["get-questions", moduleId, sequence],
+		queryFn: () => GetQuestions({ module_id: moduleId, limit: 100, page: 1 }),
+		enabled: !!moduleId,
 	});
 
 	const { isPending, mutateAsync } = useMutation({
@@ -169,7 +174,7 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 
 	const { onSelectChapterModule } = useCourseStore();
 	const onSelectModule = (module: ChapterModule) => {
-		setModule(module);
+		setLesson(module);
 		onSelectChapterModule(module);
 	};
 
@@ -195,7 +200,7 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 							index={index}
 							isPending={isPending}
 							isSelected={index === sequence}
-							lesson={module}
+							lesson={lesson}
 							onDelete={deleteChapter}
 							onDuplicate={duplicateChapter}
 							onMove={moveChapter}
@@ -213,13 +218,13 @@ export const CreateCourse = ({ existingChapters, courseName }: Props) => {
 					<ModuleCard
 						chapter={chapters[sequence]}
 						index={sequence}
-						module={module}
+						module={lesson}
 						courseName={courseName}
 					/>
 				</TabPanel>
 
 				<TabPanel selected={tab} value="quiz" innerClassName="overflow-y-auto">
-					<QuizCard chapter={chapters[sequence]} index={sequence} module={module} />
+					<QuizCard chapter={chapters[sequence]} index={sequence} module={lesson} />
 				</TabPanel>
 			</div>
 		</div>

@@ -12,10 +12,6 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 	const [lessonTab, setLessonTab] = React.useState("");
 
-	React.useEffect(() => {
-		window.scrollTo({ behavior: "smooth", top: 0 });
-	}, [currentTab, lessonTab]);
-
 	usePrefetchQuery({
 		queryKey: ["get-modules", { chapterId }],
 		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
