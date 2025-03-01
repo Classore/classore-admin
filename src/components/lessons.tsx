@@ -9,9 +9,10 @@ import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { axios, convertNumberToWord, formatFileSize } from "@/lib";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
 import { Editor, Spinner, TabPanel } from "./shared";
-import { VideoUploader } from "./video-uploader";
+// import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
+import { UploadWidget } from "./upload-widget";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -242,10 +243,15 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				/>
 
 				{/* UPLOAD VIDEO */}
-				<VideoUploader
+				{/* <VideoUploader
 					moduleId={lesson.id}
 					sequence={lesson.sequence}
 					video_array={lesson.videos.map((video) => video)}
+				/> */}
+				<UploadWidget
+					moduleId={lessonTab}
+					sequence={lesson.sequence}
+					video_url={lesson.videos[0] as string}
 				/>
 
 				<Editor
