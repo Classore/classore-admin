@@ -164,6 +164,7 @@ const Initial = (props: InnerProps) => {
 			<DialogDescription hidden>Add New Course</DialogDescription>
 			<div className="w-full space-y-4">
 				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
+				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
 				<Textarea
 					label="Describe what the students will learn"
 					name="description"
