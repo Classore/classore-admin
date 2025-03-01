@@ -1,13 +1,13 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { RiDeleteBin5Line, RiUploadCloud2Line } from "@remixicon/react";
-import { type Socket, io } from "socket.io-client";
+import { RiDeleteBin5Line, RiUploadCloud2Line, RiVideoAddLine } from "@remixicon/react";
 import Cookies from "js-cookie";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type Socket, io } from "socket.io-client";
 import { toast } from "sonner";
 
-import { Logger, embedUrl, generateUuid, validateFile } from "@/lib";
-import { PasteLink } from "./dashboard/module-card";
-import { Progress, VideoPlayer } from "./shared";
+import { Logger, embedUrl, generateUuid, getFileChunks, validateFile } from "@/lib";
 import { queryClient } from "@/providers";
+import { PasteLink } from "./dashboard/module-card";
+import { Progress } from "./shared";
 import { Button } from "./ui/button";
 
 interface Props {
@@ -16,11 +16,16 @@ interface Props {
 	video_array: (File | string)[];
 }
 
+type Chunk = {
+	index_number: number;
+	start_size: number;
+	end_size: number;
+};
+
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const MAX_FILE_SIZE = 200 * 1024 * 1024;
-const CHUNK_SIZE = 3 * 1024 * 1024;
-const MAX_TIMEOUT = 60000;
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+const MAX_TIMEOUT = 60000; // 60 seconds
 const MAX_RETRIES = 3;
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
@@ -59,66 +64,67 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		};
 	}, []);
 
-	const uploadChunk = async (chunkNumber: number, file: File): Promise<void> => {
-		const start = chunkNumber * CHUNK_SIZE;
-		const end = Math.min(start + CHUNK_SIZE, file.size);
-		const chunk = file.slice(start, end);
-		const formData = new FormData();
+	const uploadChunk = async (chunks: Chunk[], file: File): Promise<void> => {
+		for (const chunk of chunks) {
+			const bytesUploaded = chunk.start_size + file.size;
+			const progress = (bytesUploaded / file.size) * 100;
 
-		const bytesUploaded = start + chunk.size;
-		const progress = (bytesUploaded / file.size) * 100;
+			const formData = new FormData();
+			const fileChunk = file.slice(chunk.start_size, chunk.end_size);
 
-		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-		const chunkBlob = new Blob([chunk], { type: file.type });
+			const blob = new Blob([fileChunk], { type: file.type });
 
-		formData.append("file", chunkBlob);
-		formData.append("chunk_index", chunkNumber.toString());
-		formData.append("total_chunks", totalChunks.toString());
-		formData.append("upload_id", upload_id);
+			formData.append("chunk_index", chunk.index_number.toString());
+			formData.append("total_chunks", chunks.length.toString());
+			formData.append("upload_id", upload_id);
+			formData.append("file", blob);
 
-		Logger.info(`Uploading chunk ${chunkNumber} of ${totalChunks}`, {
-			progress: Math.round(progress * 100) / 100,
-			bytesUploaded,
-			totalBytes: file.size,
-			chunkNumber,
-			totalChunks,
-		});
+			try {
+				setIsLoading(true);
+				setIsUploading(true);
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
+				const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
+					method: "PUT",
+					body: formData,
+					headers: {
+						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+						Accept: "application/json",
+					},
+					signal: controller.signal,
+				});
 
-		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
-			const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
-				method: "PUT",
-				body: formData,
-				headers: {
-					Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-					Accept: "application/json",
-				},
-				signal: controller.signal,
-			});
+				clearTimeout(timeoutId);
 
-			clearTimeout(timeoutId);
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+				}
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+				const data = await response.json();
+				Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
+				setUploadProgress(Math.round(progress * 100) / 100);
+			} catch (error) {
+				Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
+				throw error;
+			} finally {
+				queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+				if (chunk.index_number === chunks.length) {
+					setUploadProgress(100);
+					setIsLoading(false);
+					setIsUploading(false);
+					setUploadProgress(0);
+					setRetryCount(0);
+					toast.success("File upload completed");
+				}
 			}
-
-			const data = await response.json();
-			Logger.success(`Chunk ${chunkNumber} of ${totalChunks} uploaded:`, data);
-			setUploadProgress(Math.round(progress * 100) / 100);
-		} catch (error) {
-			Logger.error(`Chunk ${chunkNumber} upload failed:`, error);
-			throw error;
-		} finally {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 		}
 	};
 
-	const uploadChunkWithRetry = async (chunkNumber: number, file: File): Promise<void> => {
+	const uploadChunkWithRetry = async (chunks: Chunk[], file: File): Promise<void> => {
 		while (retryCount < MAX_RETRIES) {
 			try {
-				return await uploadChunk(chunkNumber, file);
+				return await uploadChunk(chunks, file);
 			} catch (error) {
 				setRetryCount((prev) => prev + 1);
 				if (retryCount === MAX_RETRIES) {
@@ -131,7 +137,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 	const uploader = React.useCallback(async (file: File, moduleId: string) => {
 		if (!file || !moduleId) {
-			toast.error("Invalid file or module ID");
+			toast.error("Please save this lesson before trying to upload a video");
 			return;
 		}
 
@@ -140,32 +146,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			toast.error("Authentication token missing");
 			return;
 		}
-
-		const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-
-		try {
-			setIsLoading(true);
-			setIsUploading(true);
-			abortController.current = new AbortController();
-			for (let chunkNumber = 1; chunkNumber <= totalChunks; chunkNumber++) {
-				if (abortController.current?.signal.aborted) {
-					throw new Error("Upload cancelled");
-				}
-				await uploadChunkWithRetry(chunkNumber, file);
-			}
-			setUploadProgress(100);
-			toast.success("File upload completed");
-		} catch (error) {
-			Logger.error("Upload failed:", error);
-			toast.error(error instanceof Error ? error.message : "Upload failed");
-		} finally {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			setIsLoading(false);
-			setIsUploading(false);
-			setUploadProgress(0);
-			setRetryCount(0);
-			abortController.current = null;
-		}
+		// console.log(file, moduleId);
+		const chunks = getFileChunks(file.size);
+		uploadChunkWithRetry(chunks, file);
 	}, []);
 
 	const handleFileChange = useCallback(
@@ -266,7 +249,16 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			</p>
 
 			{hasVideo && uploadedVideo ? (
-				<VideoPlayer moduleId={moduleId} src={embedUrl(uploadedVideo)} />
+				<video
+					src={embedUrl(uploadedVideo)}
+					id="videoPlayer"
+					controlsList="nodownload"
+					className="h-full w-full rounded-lg"
+					width="640"
+					height="360"
+					controls>
+					Your browser does not support the video tag.
+				</video>
 			) : (
 				<div className="w-full rounded-lg bg-neutral-50">
 					{previewUrl ? (
@@ -298,39 +290,52 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 							htmlFor="video-upload"
 							draggable
 							className="grid aspect-video w-full place-items-center border border-neutral-200 bg-white py-4">
-							<input
-								type="file"
-								className="sr-only hidden"
-								id="video-upload"
-								accept="video/*"
-								multiple={false}
-								ref={fileInputRef}
-								onChange={handleFileChange}
-							/>
-							<div className="flex flex-col items-center gap-y-6 p-5">
-								<div className="grid size-10 place-items-center rounded-md bg-neutral-100">
-									<RiUploadCloud2Line size={20} />
-								</div>
-								<div className="text-center text-sm">
-									<p className="font-medium">
-										<span className="text-secondary-300">Click to upload</span> video
-									</p>
-									<p className="text-center text-xs text-neutral-400">mp4, webm, ogg, mkv (max. 200MB)</p>
-								</div>
+							{moduleId ? (
+								<>
+									<input
+										type="file"
+										className="sr-only hidden"
+										id="video-upload"
+										accept="video/*"
+										multiple={false}
+										ref={fileInputRef}
+										onChange={handleFileChange}
+									/>
+									<div className="flex flex-col items-center gap-y-6 p-5">
+										<div className="grid size-10 place-items-center rounded-md bg-neutral-100">
+											<RiUploadCloud2Line size={20} />
+										</div>
+										<div className="text-center text-sm">
+											<p className="font-medium">
+												<span className="text-secondary-300">Click to upload</span> video
+											</p>
+											<p className="text-center text-xs text-neutral-400">mp4, webm, ogg, mkv (max. 200MB)</p>
+										</div>
 
-								<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
-								<div className="flex items-center justify-center gap-x-4">
-									<Button
-										onClick={() => fileInputRef.current?.click()}
-										className="w-fit"
-										size="sm"
-										variant="invert-outline"
-										disabled={isLoading}>
-										<RiUploadCloud2Line size={14} /> Upload Video
-									</Button>
-									<PasteLink open={open} sequence={sequence} setOpen={setOpen} disabled={isLoading} />
+										<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
+										<div className="flex items-center justify-center gap-x-4">
+											<Button
+												onClick={() => fileInputRef.current?.click()}
+												className="w-fit"
+												size="sm"
+												variant="invert-outline"
+												disabled={isLoading}>
+												<RiUploadCloud2Line size={14} /> Upload Video
+											</Button>
+											<PasteLink open={open} sequence={sequence} setOpen={setOpen} disabled={isLoading} />
+										</div>
+									</div>
+								</>
+							) : (
+								<div className="flex flex-col items-center justify-center space-y-2">
+									<RiVideoAddLine size={50} className="text-neutral-400" />
+
+									<p className="text-center text-sm">
+										You can only upload a video, add a quiz once the lesson has been saved. <br /> Please save the lesson
+										first.
+									</p>
 								</div>
-							</div>
+							)}
 						</label>
 					)}
 				</div>

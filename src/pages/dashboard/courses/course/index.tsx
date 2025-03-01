@@ -103,7 +103,7 @@ const Page = () => {
 								courseId={courseId}
 								currentCategory={String(course?.data.examination.id)}
 								currentSubcategory={String(course?.data.examination_bundle.id)}
-								links={[]}
+								links={breadcrumbs}
 							/>
 						</div>
 						<div className="flex items-center gap-x-2">

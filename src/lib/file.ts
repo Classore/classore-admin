@@ -99,3 +99,48 @@ export const processImageToBase64 = (file?: File): Promise<string> => {
 		reader.readAsDataURL(file);
 	});
 };
+
+export type Chunk = {
+	index_number: number;
+	start_size: number;
+	end_size: number;
+};
+
+/**
+ * Splits a file size into manageable chunks for processing or uploading.
+ *
+ * The function determines the chunk size based on the total file size:
+ * - Files <= 50MB are split into chunks of 10MB or less, with a maximum of 5 chunks.
+ * - Files between 50MB and 100MB use a chunk size of 18MB.
+ * - Files > 100MB use a chunk size of 25MB.
+ *
+ * @param {number} fileSize - The total size of the file in bytes.
+ * @returns {Chunk[]} An array of chunks, each containing an index number and start and end sizes.
+ */
+export const getFileChunks = (fileSize: number): Chunk[] => {
+	let chunkSize = 0;
+	let start = 0;
+	const end = fileSize;
+	const chunks: Chunk[] = [];
+
+	if (fileSize <= 50 * 1024 * 1024) {
+		chunkSize = Math.min(10 * 1024 * 1024, Math.ceil(fileSize / 5));
+	} else if (fileSize <= 100 * 1024 * 1024) {
+		chunkSize = 18 * 1024 * 1024; //
+	} else {
+		chunkSize = 25 * 1024 * 1024; // 25MB
+	}
+
+	let index = 1;
+	while (start < end) {
+		let nextEnd = Math.min(start + chunkSize, fileSize);
+		if (end - nextEnd < chunkSize && end - nextEnd > 0) {
+			nextEnd = end;
+		}
+		chunks.push({ index_number: index, start_size: start, end_size: nextEnd });
+		start = nextEnd;
+		index++;
+	}
+
+	return chunks;
+};

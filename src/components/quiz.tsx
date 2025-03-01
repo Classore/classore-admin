@@ -1,16 +1,18 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { RiArrowLeftSLine } from "@remixicon/react";
-import { toast } from "sonner";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React from "react";
+import { toast } from "sonner";
 
-import { CreateQuestions, GetQuestions } from "@/queries";
-import { QuestionCard } from "./dashboard/question-card";
-import { useQuizStore } from "@/store/z-store/quizz";
-import type { QuestionDto } from "@/store/z-store";
+import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
+import { CreateQuestions, GetQuestions } from "@/queries";
+import type { QuestionDto } from "@/store/z-store";
+import { useChapterStore } from "@/store/z-store/chapter";
+import { useQuizStore } from "@/store/z-store/quizz";
 import type { HttpError } from "@/types";
-import { Button } from "./ui/button";
+import { QuestionCard } from "./dashboard/question-card";
 import { Spinner } from "./shared";
+import { Button } from "./ui/button";
 
 interface Props {
 	chapterId: string | undefined;
@@ -21,6 +23,9 @@ interface Props {
 export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	const { addQuestion, duplicateQuestion, questions, removeQuestion, reorderQuestion } =
 		useQuizStore();
+
+	const lessons = useChapterStore((state) => state.lessons);
+	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
 
 	const {} = useQuery({
 		queryKey: ["get-questions", lessonTab],
@@ -138,7 +143,10 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	return (
 		<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
 			<div className="flex w-full items-center justify-between">
-				<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
+				<p className="text-xs uppercase tracking-widest">
+					Lesson {lesson && convertNumberToWord(lesson?.sequence)} - Chapter{" "}
+					{lesson && convertNumberToWord(lesson?.chapter_sequence)}
+				</p>
 				<button
 					type="button"
 					onClick={() => setCurrentTab("lesson")}

@@ -4,14 +4,9 @@ import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { axios, convertNumberToWord, formatFileSize } from "@/lib";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Editor, Spinner, TabPanel } from "./shared";
-import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
+import { axios, convertNumberToWord, formatFileSize } from "@/lib";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -20,6 +15,11 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { Editor, Spinner, TabPanel } from "./shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { VideoUploader } from "./video-uploader";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -87,7 +87,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				video_urls: [],
 				attachment_urls: [],
 				tutor: lesson.chapter_module_tutor,
-				lesson_chapter: lesson.chapter_module_chapter,
+				lesson_chapter: lesson.chapter_module_id,
 			}));
 
 			setChapterLessons(chapterLessons);
@@ -228,10 +228,32 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			selected={lessonTab}
 			value={lessonTab}>
 			<div className="flex flex-col gap-4">
-				<p className="text-xs uppercase tracking-widest">
-					Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
-					{convertNumberToWord(lesson.chapter_sequence)}
-				</p>
+				<header className="flex items-center justify-between gap-1">
+					<p className="text-xs uppercase tracking-widest">
+						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
+						{convertNumberToWord(lesson.chapter_sequence)}
+					</p>
+
+					<div className="flex items-center gap-4">
+						{/* <button
+							type="button"
+							disabled={!lesson.lesson_chapter}
+							onClick={() => setCurrentTab("quiz")}
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 disabled:cursor-not-allowed">
+							<RiVideoAddLine className="size-4" />
+							<span>Add Video</span>
+						</button> */}
+
+						<button
+							type="button"
+							disabled={!lesson.lesson_chapter}
+							onClick={() => setCurrentTab("quiz")}
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 disabled:cursor-not-allowed">
+							<RiAddLine className="size-4" />
+							<span>Add Quiz</span>
+						</button>
+					</div>
+				</header>
 
 				<input
 					value={lesson.title}
@@ -243,7 +265,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 
 				{/* UPLOAD VIDEO */}
 				<VideoUploader
-					moduleId={lesson.id}
+					moduleId={lesson.lesson_chapter}
 					sequence={lesson.sequence}
 					video_array={lesson.videos.map((video) => video)}
 				/>
@@ -254,16 +276,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					size="md"
 					className="h-[400px]"
 				/>
-
-				<div className="flex items-center gap-2">
-					<button
-						type="button"
-						onClick={() => setCurrentTab("quiz")}
-						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-						<RiAddLine className="size-4" />
-						<span>Add Quiz</span>
-					</button>
-				</div>
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}
@@ -361,10 +373,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					)}
 				</div>
 			</div>
-
-			<details>
-				<summary className="cursor-pointer p-2">Lesson Quiz</summary>
-			</details>
 		</TabPanel>
 	);
 };

@@ -4,8 +4,8 @@ import * as React from "react";
 import { GetChapterModules } from "@/queries";
 import { Chapters } from "./chapters";
 import { Lessons } from "./lessons";
-import { TabPanel } from "./shared";
 import { Quiz } from "./quiz";
+import { TabPanel } from "./shared";
 
 export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 	const [chapterId, setChapterId] = React.useState<string | undefined>(undefined);
@@ -22,7 +22,7 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 	});
 
 	return (
-		<TabPanel innerClassName="grid grid-cols-7 pt-5 gap-2" selected={tab} value="course">
+		<TabPanel innerClassName="grid grid-cols-7 pt-5 gap-2 bg-white p-4" selected={tab} value="course">
 			<Chapters
 				setLessonTab={setLessonTab}
 				lessonTab={lessonTab}
