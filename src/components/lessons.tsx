@@ -134,11 +134,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			return;
 		}
 
-		if (!lesson.tutor) {
-			toast.error("Please select a tutor for this lesson");
-			return;
-		}
-
 		mutate({
 			chapter_id: chapterId ?? "",
 			module: {
