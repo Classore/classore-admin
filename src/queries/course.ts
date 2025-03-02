@@ -22,6 +22,8 @@ export interface CreateChapterDto {
 	sequence: number;
 	subject_id: string;
 	videos: File[];
+	tags?: string[];
+	tutor?: string;
 }
 
 export interface CreateChapterModuleDto {
@@ -35,6 +37,7 @@ export interface CreateChapterModuleDto {
 	attachments: (File | string)[];
 	image_urls: string[];
 	video_urls: VideoProps[];
+	tags?: string[];
 }
 
 export interface CreateQuestionDto {
@@ -184,7 +187,6 @@ const GetQuestion = async (id: string) => {
 
 const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
 	const formData = createFormDataFromObject(payload);
-	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 

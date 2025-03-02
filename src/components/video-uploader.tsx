@@ -220,8 +220,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	}, []);
 
 	useEffect(() => {
+		const toastId = `upload-${moduleId}-${sequence}`;
+
 		if (isLoading) {
-			const toastId = `upload-${moduleId}-${sequence}`;
 			toast.loading("Uploading video", {
 				description: (
 					<div className="space-y-2">
@@ -243,12 +244,18 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 					fontSize: "12px",
 				},
 			});
-
-			return () => {
-				toast.dismiss(toastId);
-			};
+		} else {
+			if (uploadProgress === 100) {
+				toast.success("Upload completed successfully", { id: toastId });
+			}
 		}
-	}, [handleCancelUpload, isLoading, moduleId, sequence, uploadProgress]);
+
+		return () => {
+			if (!isLoading && uploadProgress !== 100) {
+				toast.dismiss(toastId);
+			}
+		};
+	}, [isLoading, moduleId, sequence, uploadProgress, handleCancelUpload]);
 
 	const video = video_array[0];
 	const uploadedVideo = typeof video === "string" ? video : "";

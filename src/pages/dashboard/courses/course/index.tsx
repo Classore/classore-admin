@@ -4,11 +4,12 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { CreateCourseTabPanel } from "@/components/create-course";
-import { DashboardLayout } from "@/components/layout";
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
 import { QuizSettingsTab } from "@/components/quiz-settings";
 import { chapterActions } from "@/store/z-store/chapter";
+import { AssignTeachers } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -138,6 +139,7 @@ const Page = () => {
 				<div className="w-full">
 					<CreateCourseTabPanel tab={tab} />
 					<QuizSettingsTab tab={tab} />
+					<AssignTeachers tab={tab} />
 				</div>
 			</DashboardLayout>
 		</>

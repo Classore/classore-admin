@@ -98,9 +98,7 @@ const Page = () => {
 							<TabPanel selected={tab} value="settings">
 								<QuizSettings />
 							</TabPanel>
-							<TabPanel selected={tab} value="teachers">
-								<AssignTeachers />
-							</TabPanel>
+							<AssignTeachers tab={tab} />
 						</div>
 					</div>
 				</div>
