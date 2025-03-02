@@ -247,8 +247,6 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		} else {
 			if (uploadProgress === 100) {
 				toast.success("Upload completed successfully", { id: toastId });
-			} else if (!isLoading && uploadProgress < 100) {
-				toast.error("Upload cancelled", { id: toastId });
 			}
 		}
 
