@@ -1,5 +1,6 @@
 export const requiredEnvs = [
 	"API_URL",
+	"WSS_URL",
 	"CLOUDINARY_URL",
 	"GOOGLE_CLIENT_EMAIL",
 	"GOOGLE_CLIENT_ID",
@@ -12,6 +13,7 @@ export const requiredEnvs = [
 	"NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
 	"NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET",
 	"NEXT_PUBLIC_CLOUDINARY_URL",
+	"NEXT_PUBLIC_WSS_URL",
 	"NODE_ENV",
 	"TESTING",
 ] as const;

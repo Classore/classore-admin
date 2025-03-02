@@ -5,14 +5,13 @@ import React from "react";
 
 import { CreateCourseTabPanel } from "@/components/create-course";
 import { DashboardLayout } from "@/components/layout";
-
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
 import { QuizSettingsTab } from "@/components/quiz-settings";
+import { chapterActions } from "@/store/z-store/chapter";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 

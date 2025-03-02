@@ -1,229 +1,217 @@
-import { HeadingNode, type HeadingTagType, $createHeadingNode } from "@lexical/rich-text";
-import { ListItemNode, ListNode, type ListType, $createListNode } from "@lexical/list";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { $createListNode, ListItemNode, ListNode } from "@lexical/list";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { $createHeadingNode, HeadingNode } from "@lexical/rich-text";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { $setBlocksType } from "@lexical/selection";
+import type { EditorThemeClasses } from "lexical";
 import { Redo, Undo } from "lucide-react";
+import { $getRoot } from "lexical";
 import React from "react";
 import {
+	$getSelection,
+	$insertNodes,
+	$isRangeSelection,
 	FORMAT_ELEMENT_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	REDO_COMMAND,
 	UNDO_COMMAND,
-	type EditorThemeClasses,
-	type ElementFormatType,
-	type TextFormatType,
-	ParagraphNode,
-	TextNode,
-	$insertNodes,
-	$getRoot,
-	$getSelection,
-	$isRangeSelection,
 } from "lexical";
 
 import { alignment_types, format_types, heading_types, list_types } from "@/config";
-import { cn } from "@/lib";
+import { capitalize, cn, convertMdToHtml } from "@/lib";
 
-interface Props {
-	onValueChange: (text: string) => void;
+interface EditorProps {
+	onValueChange: (value: string) => void;
 	className?: string;
 	defaultValue?: string;
+	placeholder?: string;
 	size?: "sm" | "md" | "lg";
 }
 
-const theme: EditorThemeClasses = {
-	heading: {
-		h1: "heading-1",
-		h2: "heading-2",
-		h3: "heading-3",
-		h4: "heading-4",
-		h5: "heading-5",
-		h6: "heading-6",
-	},
-	list: {
-		ul: "list-bullet",
-		ol: "list-number",
-		listitem: "list-item",
-	},
-	text: {
-		bold: "bold",
-		italic: "italic",
-		underline: "underline",
-		strikethrough: "line-through",
-		subscript: "subscript",
-		superscript: "superscript",
-		code: "code",
-		highlight: "highlight",
-	},
-};
-
-const sizes: Record<string, string> = {
+const iconSize: Record<string, string> = {
 	lg: "size-5",
 	md: "size-4",
 	sm: "size-3",
 };
 
-export const Editor = React.memo(({ onValueChange, className, defaultValue, size }: Props) => {
-	return (
-		<LexicalComposer
-			initialConfig={{
-				namespace: "Editor",
-				nodes: [HeadingNode, ListItemNode, ListNode, ParagraphNode, TextNode],
-				theme,
-				onError: (error) => console.error("editor error: ", error),
-			}}>
-			<div className="flex w-full items-center gap-1 py-1">
-				<CustomHeadingActions size={size} />
-				<CustomTextActions size={size} />
-				<CustomAlignmentActions size={size} />
-				<CustomListActions size={size} />
-				<CustomHistoryActions size={size} />
-			</div>
-			<RichTextPlugin
-				contentEditable={
-					<ContentEditable
-						style={{
-							padding: "8px",
-							outline: "none",
-						}}
-						className={cn(
-							"editor max-h-[700px] w-full overflow-y-auto rounded-lg border-2 text-sm transition-all duration-500 focus:border-primary-400",
-							className
-						)}
-					/>
-				}
-				ErrorBoundary={LexicalErrorBoundary}
-			/>
-			<HtmlPlugin initialHtml={defaultValue} onHtmlChanged={onValueChange} />
-			<HistoryPlugin />
-		</LexicalComposer>
-	);
-});
+const buttonSize: Record<string, string> = {
+	lg: "rounded-md",
+	md: "rounded",
+	sm: "rounded-sm",
+};
 
+const editorSize: Record<string, string> = {
+	lg: "text-sm rounded-md",
+	md: "text-sm rounded-md",
+	sm: "text-[10px] rounded-sm",
+};
+
+export const Editor = React.memo(
+	({ onValueChange, className, defaultValue, size = "md" }: EditorProps) => {
+		const theme = React.useMemo<EditorThemeClasses>(
+			() => ({
+				heading: {
+					h1: "heading-1",
+					h2: "heading-2",
+					h3: "heading-3",
+					h4: "heading-4",
+					h5: "heading-5",
+				},
+				list: {
+					ul: "list-bullet",
+					ol: "list-number",
+					listitem: "list-item",
+				},
+				text: {
+					bold: "text-bold",
+					italic: "text-italic",
+					underline: "text-underline",
+					strikethrough: "text-line-through",
+					subscript: "text-subscript",
+					superscript: "text-superscript",
+					code: "text-code",
+					highlight: "text-highlight",
+				},
+			}),
+			[]
+		);
+
+		const html = React.useMemo(() => {
+			if (!defaultValue) return "";
+			return convertMdToHtml(defaultValue);
+		}, [defaultValue]);
+
+		return (
+			<LexicalComposer
+				initialConfig={{
+					namespace: "Editor",
+					nodes: [HeadingNode, ListItemNode, ListNode],
+					theme,
+					onError: (error) => console.error("editor error: ", error),
+				}}>
+				<div className="h-full w-full space-y-4">
+					<div className="flex w-full flex-wrap items-center gap-1 rounded bg-neutral-100 p-2">
+						<CustomActions size={size} types={heading_types} actionType="heading" />
+						<CustomActions size={size} types={format_types} actionType="text" />
+						<CustomActions size={size} types={alignment_types} actionType="alignment" />
+						<CustomActions size={size} types={list_types} actionType="list" />
+						<CustomHistoryActions size={size} />
+					</div>
+					<RichTextPlugin
+						contentEditable={
+							<ContentEditable
+								style={{
+									padding: "16px",
+									outline: "none",
+								}}
+								className={cn(
+									"editor max-h-[500px] w-full overflow-y-auto border-2 text-lg transition-all duration-500 focus:border-primary-400",
+									editorSize[size],
+									className
+								)}
+							/>
+						}
+						ErrorBoundary={LexicalErrorBoundary}
+					/>
+					<HtmlPlugin initialHtml={html} onHtmlChanged={onValueChange} />
+					<HistoryPlugin />
+				</div>
+			</LexicalComposer>
+		);
+	}
+);
 Editor.displayName = "Editor";
 
-const CustomHistoryActions = ({ size }: { size?: "sm" | "md" | "lg" }) => {
+const CustomHistoryActions = React.memo(({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
 	const [editor] = useLexicalComposerContext();
 
 	React.useEffect(() => {
 		editor.focus();
 	}, [editor]);
 
-	return (
-		<div className="flex items-center gap-1">
-			<button
-				className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}
-				onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}>
-				<Undo className={`${sizes[size ?? "md"]}`} />
-			</button>
-			<button
-				className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}
-				onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}>
-				<Redo className={`${sizes[size ?? "md"]}`} />
-			</button>
-		</div>
+	const handleUndo = React.useCallback(
+		() => editor.dispatchCommand(UNDO_COMMAND, undefined),
+		[editor]
 	);
-};
-
-const CustomTextActions = ({ size }: { size?: "sm" | "md" | "lg" }) => {
-	const [editor] = useLexicalComposerContext();
-
-	const handleClick = (format: TextFormatType) => {
-		editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-	};
+	const handleRedo = React.useCallback(
+		() => editor.dispatchCommand(REDO_COMMAND, undefined),
+		[editor]
+	);
 
 	return (
 		<div className="flex items-center gap-1">
-			{format_types.map(({ icon: Icon, label }) => (
-				<button
-					key={label}
-					onClick={() => handleClick(label.toLowerCase() as TextFormatType)}
-					className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}>
-					<Icon className={`${sizes[size ?? "md"]}`} />
-				</button>
-			))}
+			<ActionButton title="Undo" size={size} onClick={handleUndo}>
+				<Undo className={`${iconSize[size]}`} />
+			</ActionButton>
+			<ActionButton title="Redo" size={size} onClick={handleRedo}>
+				<Redo className={`${iconSize[size]}`} />
+			</ActionButton>
 		</div>
 	);
-};
+});
+CustomHistoryActions.displayName = "CustomHistoryActions";
 
-const CustomAlignmentActions = ({ size }: { size?: "sm" | "md" | "lg" }) => {
-	const [editor] = useLexicalComposerContext();
+const CustomActions = React.memo(
+	({
+		size = "md",
+		types,
+		actionType,
+	}: {
+		size?: "sm" | "md" | "lg";
+		types: any[];
+		actionType: string;
+	}) => {
+		const [editor] = useLexicalComposerContext();
 
-	const handleClick = (format: ElementFormatType) => {
-		editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, format);
-	};
+		const handleClick = React.useCallback(
+			(format: any) => {
+				switch (actionType) {
+					case "text":
+						editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+						break;
+					case "alignment":
+						editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, format);
+						break;
+					case "heading":
+					case "list":
+						editor.update(() => {
+							const selection = $getSelection();
+							if ($isRangeSelection(selection)) {
+								$setBlocksType(selection, () =>
+									actionType === "heading" ? $createHeadingNode(format) : $createListNode(format)
+								);
+							}
+						});
+						break;
+				}
+			},
+			[editor, actionType]
+		);
 
-	return (
-		<div className="flex items-center gap-1">
-			{alignment_types.map(({ icon: Icon, label }) => (
-				<button
-					key={label}
-					onClick={() => handleClick(label.toLowerCase() as ElementFormatType)}
-					className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}>
-					<Icon className={`${sizes[size ?? "md"]}`} />
-				</button>
-			))}
-		</div>
-	);
-};
-
-const CustomHeadingActions = ({ size }: { size?: "sm" | "md" | "lg" }) => {
-	const [editor] = useLexicalComposerContext();
-
-	const handleClick = (tag: HeadingTagType) => {
-		editor.update(() => {
-			const selection = $getSelection();
-			if ($isRangeSelection(selection)) {
-				$setBlocksType(selection, () => $createHeadingNode(tag));
-			}
-		});
-	};
-
-	return (
-		<div className="flex items-center gap-1">
-			{heading_types.map(({ icon: Icon, label }) => (
-				<button
-					key={label}
-					onClick={() => handleClick(label.toLowerCase() as HeadingTagType)}
-					className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}>
-					<Icon className={`${sizes[size ?? "md"]}`} />
-				</button>
-			))}
-		</div>
-	);
-};
-
-const CustomListActions = ({ size }: { size?: "sm" | "md" | "lg" }) => {
-	const [editor] = useLexicalComposerContext();
-
-	const handleClick = (list: ListType) => {
-		editor.update(() => {
-			const selection = $getSelection();
-			if ($isRangeSelection(selection)) {
-				$setBlocksType(selection, () => $createListNode(list));
-			}
-		});
-	};
-
-	return (
-		<div className="flex items-center gap-1">
-			{list_types.map(({ icon: Icon, label }) => (
-				<button
-					key={label}
-					onClick={() => handleClick(label.toLowerCase() as ListType)}
-					className={`grid place-items-center rounded-md bg-primary-400 p-1 text-white transition-colors duration-300 hover:bg-primary-500/65`}>
-					<Icon className={`${sizes[size ?? "md"]}`} />
-				</button>
-			))}
-		</div>
-	);
-};
+		return (
+			<div className="flex items-center gap-1">
+				{types.map(({ icon: Icon, label }) => (
+					<ActionButton
+						key={label}
+						title={capitalize(label)}
+						size={size}
+						onClick={() => handleClick(label.toLowerCase())}>
+						<Icon className={`${iconSize[size]}`} />
+					</ActionButton>
+				))}
+			</div>
+		);
+	}
+);
+CustomActions.displayName = "CustomActions";
 
 interface HtmlPluginProps {
 	initialHtml?: string;
@@ -265,3 +253,26 @@ const HtmlPlugin = ({ initialHtml, onHtmlChanged }: HtmlPluginProps) => {
 		/>
 	);
 };
+
+const ActionButton = React.memo(
+	({
+		title,
+		size,
+		onClick,
+		children,
+	}: {
+		title: string;
+		size: string;
+		onClick: () => void;
+		children: React.ReactNode;
+	}) => (
+		<button
+			title={title}
+			onClick={onClick}
+			className={`grid place-items-center rounded-md bg-primary-100 p-1 text-primary-400 transition-colors duration-300 hover:bg-primary-50 active:scale-95 ${buttonSize[size]}`}>
+			{children}
+		</button>
+	)
+);
+
+ActionButton.displayName = "ActionButton";

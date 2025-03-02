@@ -1,19 +1,14 @@
-import { useQueries } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 
 import { Card, LeaderboardItem, ReferralItem } from "@/components/card";
 import { DashboardLayout } from "@/components/layout";
 import { Seo } from "@/components/shared";
-import type { UserProps } from "@/types";
+import { formatCurrency } from "@/lib";
 
 const Page = () => {
-	const [] = useQueries({
-		queries: [],
-	});
-
-	const Leaderboard: UserProps[] = [];
-	const referrals: UserProps[] = [];
+	const leaderboard: string[] = [];
+	const referrals: string[] = [];
 
 	return (
 		<>
@@ -45,10 +40,10 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="grid w-full grid-cols-2 gap-4">
-								<Card value="0" label="Total Earnings" />
-								<Card value="0" label="Cancelled" />
-								<Card value="0" label="Failed" />
-								<Card value="0" label="Successful" />
+								<Card value={formatCurrency(0)} label="Total Earnings" />
+								<Card value={formatCurrency(0)} label="Cancelled" />
+								<Card value={formatCurrency(0)} label="Failed" />
+								<Card value={formatCurrency(0)} label="Successful" />
 							</div>
 						</div>
 						{/* COURSES */}
@@ -90,16 +85,12 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="rounded-2xl bg-white p-3">
-								{!Leaderboard.length ? (
-									<div className="grid h-40 w-full place-items-center">
+								{leaderboard.length === 0 ? (
+									<div className="flex h-40 w-full items-center justify-center">
 										<p className="text-sm text-neutral-400">No data available</p>
 									</div>
 								) : (
-									<div className="flex space-y-2">
-										{Leaderboard.map((_, index) => (
-											<LeaderboardItem key={index} />
-										))}
-									</div>
+									leaderboard.map((_, index) => <LeaderboardItem key={index} />)
 								)}
 							</div>
 						</div>
@@ -112,16 +103,12 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="rounded-2xl bg-white p-3">
-								{!referrals.length ? (
-									<div className="grid h-40 w-full place-items-center">
+								{referrals.length === 0 ? (
+									<div className="flex h-40 w-full items-center justify-center">
 										<p className="text-sm text-neutral-400">No data available</p>
 									</div>
 								) : (
-									<div className="flex space-y-2">
-										{referrals.map((_, index) => (
-											<ReferralItem key={index} />
-										))}
-									</div>
+									referrals.map((_, index) => <ReferralItem key={index} />)
 								)}
 							</div>
 						</div>

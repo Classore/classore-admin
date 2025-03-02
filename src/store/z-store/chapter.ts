@@ -1,4 +1,3 @@
-import type { VideoProps } from "@/types";
 import { create } from "zustand";
 
 type Chapter = {
@@ -22,7 +21,6 @@ type Lesson = {
 	attachments: (File | string)[];
 	image_urls: string[];
 	video_urls: string[];
-	video_array?: VideoProps[];
 	attachment_urls: string[];
 	tutor: string;
 };
