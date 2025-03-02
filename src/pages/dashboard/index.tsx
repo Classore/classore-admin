@@ -1,10 +1,15 @@
 import Link from "next/link";
 import React from "react";
 
+import { Card, LeaderboardItem, ReferralItem } from "@/components/card";
 import { DashboardLayout } from "@/components/layout";
 import { Seo } from "@/components/shared";
+import { formatCurrency } from "@/lib";
 
 const Page = () => {
+	const leaderboard: string[] = [];
+	const referrals: string[] = [];
+
 	return (
 		<>
 			<Seo title="Dashboard" />
@@ -20,9 +25,10 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="grid w-full grid-cols-2 gap-4">
-								{[...Array(4)].map((_, index) => (
-									<div key={index} className="aspect-[1.7/1] w-full rounded-2xl bg-white"></div>
-								))}
+								<Card value="0" label="Total Users" />
+								<Card value="0" label="Active Users" />
+								<Card value="0" label="Students" />
+								<Card value="0" label="Parents" />
 							</div>
 						</div>
 						{/* PAYMENTS */}
@@ -34,9 +40,10 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="grid w-full grid-cols-2 gap-4">
-								{[...Array(4)].map((_, index) => (
-									<div key={index} className="aspect-[1.7/1] w-full rounded-2xl bg-white"></div>
-								))}
+								<Card value={formatCurrency(0)} label="Total Earnings" />
+								<Card value={formatCurrency(0)} label="Cancelled" />
+								<Card value={formatCurrency(0)} label="Failed" />
+								<Card value={formatCurrency(0)} label="Successful" />
 							</div>
 						</div>
 						{/* COURSES */}
@@ -48,9 +55,10 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="grid w-full grid-cols-2 gap-4">
-								{[...Array(4)].map((_, index) => (
-									<div key={index} className="aspect-[1.7/1] w-full rounded-2xl bg-white"></div>
-								))}
+								<Card value="0" label="Categories" />
+								<Card value="0" label="Subcategories" />
+								<Card value="0" label="Published Courses" />
+								<Card value="0" label="Unpublished Courses" />
 							</div>
 						</div>
 						{/* CALENDAR */}
@@ -62,9 +70,10 @@ const Page = () => {
 								</Link>
 							</div>
 							<div className="grid w-full grid-cols-2 gap-4">
-								{[...Array(4)].map((_, index) => (
-									<div key={index} className="aspect-[1.7/1] w-full rounded-2xl bg-white"></div>
-								))}
+								<Card value="0" label="Total Events" />
+								<Card value="0" label="Upcoming" />
+								<Card value="0" label="Ended" />
+								<Card value="0" label="Live" />
 							</div>
 						</div>
 						{/* LEADERBOARD */}
@@ -75,7 +84,15 @@ const Page = () => {
 									View Details
 								</Link>
 							</div>
-							<div className="rounded-2xl bg-white p-3"></div>
+							<div className="rounded-2xl bg-white p-3">
+								{leaderboard.length === 0 ? (
+									<div className="flex h-40 w-full items-center justify-center">
+										<p className="text-sm text-neutral-400">No data available</p>
+									</div>
+								) : (
+									leaderboard.map((_, index) => <LeaderboardItem key={index} />)
+								)}
+							</div>
 						</div>
 						{/* REFERRALS */}
 						<div className="h-fit w-full space-y-4 rounded-lg bg-neutral-100 p-4">
@@ -85,7 +102,15 @@ const Page = () => {
 									View Details
 								</Link>
 							</div>
-							<div className="rounded-2xl bg-white p-3"></div>
+							<div className="rounded-2xl bg-white p-3">
+								{referrals.length === 0 ? (
+									<div className="flex h-40 w-full items-center justify-center">
+										<p className="text-sm text-neutral-400">No data available</p>
+									</div>
+								) : (
+									referrals.map((_, index) => <ReferralItem key={index} />)
+								)}
+							</div>
 						</div>
 					</div>
 				</div>

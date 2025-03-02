@@ -82,63 +82,66 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 		},
 	});
 
-	const uploadChunk = async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
-		const chunkSize = 1024 * 1024 * 2;
-		const start = chunkNumber * chunkSize;
-		const end = Math.min(start + chunkSize, file.size);
-		const chunk = file.slice(start, end);
-		const formData = new FormData();
+	const uploadChunk = React.useCallback(
+		async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
+			const chunkSize = 1024 * 1024 * 2;
+			const start = chunkNumber * chunkSize;
+			const end = Math.min(start + chunkSize, file.size);
+			const chunk = file.slice(start, end);
+			const formData = new FormData();
 
-		const totalChunks = Math.ceil(file.size / chunkSize);
-		const chunkBlob = new Blob([chunk], { type: file.type });
-		formData.append("videos", chunkBlob, `${file.name}.part${chunkNumber}`);
-		formData.append("sequence", sequence.toString());
-		formData.append("chunkNumber", chunkNumber.toString());
-		formData.append("totalChunks", totalChunks.toString());
-		formData.append("totalSize", file.size.toString());
-		formData.append("chunkSize", chunkSize.toString());
-		formData.append("originalName", file.name);
+			const totalChunks = Math.ceil(file.size / chunkSize);
+			const chunkBlob = new Blob([chunk], { type: file.type });
+			formData.append("videos", chunkBlob, `${file.name}.part${chunkNumber}`);
+			formData.append("sequence", sequence.toString());
+			formData.append("chunkNumber", chunkNumber.toString());
+			formData.append("totalChunks", totalChunks.toString());
+			formData.append("totalSize", file.size.toString());
+			formData.append("chunkSize", chunkSize.toString());
+			formData.append("originalName", file.name);
 
-		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 30000);
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-			console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
-				start,
-				end,
-				size: chunk.size,
-				type: file.type,
-			});
+				console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
+					start,
+					end,
+					size: chunk.size,
+					type: file.type,
+				});
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
-				{
-					method: "PUT",
-					body: formData,
-					headers: {
-						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-						Accept: "application/json",
-					},
-					signal: controller.signal,
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
+					{
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+							Accept: "application/json",
+						},
+						signal: controller.signal,
+					}
+				);
+
+				clearTimeout(timeoutId);
+
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
 				}
-			);
 
-			clearTimeout(timeoutId);
+				const data = await response.json();
+				console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+				setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
+			} catch (error) {
+				console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
+				throw error;
 			}
-
-			const data = await response.json();
-			console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
-
-			setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
-		} catch (error) {
-			console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
-			throw error;
-		}
-	};
+		},
+		[moduleId]
+	);
 
 	const uploader = React.useCallback(
 		async (file: File, moduleId: string, sequence: number) => {
@@ -393,9 +396,9 @@ export const PasteLink = ({
 				sequence,
 				video_urls: [
 					{
-						derived_url: url,
-						duration: 15,
-						secure_url: url,
+						derived_url: "",
+						duration: 0,
+						secure_url: "",
 					},
 				],
 			},

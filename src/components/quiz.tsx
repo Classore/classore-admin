@@ -24,7 +24,7 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 
 	const {} = useQuery({
 		queryKey: ["get-questions", lessonTab],
-		queryFn: () => GetQuestions({ chapter_id: lessonTab, limit: 100, page: 1 }),
+		queryFn: () => GetQuestions({ module_id: lessonTab, limit: 100, page: 1 }),
 		enabled: !!chapterId,
 		select: (data) => ({
 			questions: data.data.data.map((question) => {
