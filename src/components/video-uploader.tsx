@@ -34,6 +34,7 @@ const MAX_TIMEOUT = 60000; // 60 seconds
 const MAX_RETRIES = 3;
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
+	const [processingProgress, setProcessingProgress] = useState(0);
 	const abortController = useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const [retryCount, setRetryCount] = React.useState(0);
@@ -58,8 +59,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			Logger.error("Socket error", error);
 		});
 		socket.current.on(`video_upload_status.${moduleId}`, (data: VideoUploadStatus) => {
-			Logger.info("Video upload status", data);
 			toast.success(`Video upload progress: ${data.progress}%`);
+			setProcessingProgress(data.progress);
+			Logger.info("Video upload status", data);
 		});
 
 		return () => {
@@ -70,10 +72,14 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		};
 	}, [moduleId]);
 
+	React.useEffect(() => {
+		Logger.log("processing progress", processingProgress);
+	}, [processingProgress]);
+
 	const uploadChunk = async (chunks: Chunk[], file: File): Promise<void> => {
 		for (const chunk of chunks) {
-			const bytesUploaded = chunk.start_size + file.size;
-			const progress = (bytesUploaded / file.size) * 100;
+			// const bytesUploaded = chunk.start_size + file.size;
+			// const progress = (bytesUploaded / file.size) * 100;
 
 			const formData = new FormData();
 			const fileChunk = file.slice(chunk.start_size, chunk.end_size);
@@ -109,7 +115,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 				const data = await response.json();
 				Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
-				setUploadProgress(Math.round(progress * 100) / 100);
+				setUploadProgress(Math.round(chunk.index_number / chunks.length) / 100);
 			} catch (error) {
 				Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
 				throw error;
@@ -156,7 +162,6 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				toast.error("Authentication token missing");
 				return;
 			}
-			// console.log(file, moduleId);
 			const chunks = getFileChunks(file.size);
 			uploadChunkWithRetry(chunks, file);
 		},

@@ -30,6 +30,8 @@ const initialValues: CreateRoleDto = {
 	videos_write: "NO",
 	transactions_read: "NO",
 	transactions_write: "NO",
+	marketer_read: "NO",
+	marketer_write: "NO",
 };
 
 export const AddRoles = ({ setOpen }: Props) => {
@@ -148,6 +150,28 @@ export const AddRoles = ({ setOpen }: Props) => {
 						/>
 						<label htmlFor="tutor_write" className="text-sm font-medium leading-none">
 							Tutor Write
+						</label>
+					</div>
+					<div className="flex items-center gap-x-3">
+						<Switch
+							id="marketer_read"
+							name="marketer_read"
+							checked={values.marketer_read === "YES"}
+							onCheckedChange={(checked) => setFieldValue("marketer_read", checked ? "YES" : "NO")}
+						/>
+						<label htmlFor="marketer_read" className="text-sm font-medium leading-none">
+							Marketer Read
+						</label>
+					</div>
+					<div className="flex items-center gap-x-3">
+						<Switch
+							id="marketer_write"
+							name="marketer_write"
+							checked={values.marketer_write === "YES"}
+							onCheckedChange={(checked) => setFieldValue("marketer_write", checked ? "YES" : "NO")}
+						/>
+						<label htmlFor="marketer_write" className="text-sm font-medium leading-none">
+							Marketer Write
 						</label>
 					</div>
 					<div className="flex items-center gap-x-3">

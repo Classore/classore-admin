@@ -7,6 +7,7 @@ import { SearchInput, Seo } from "@/components/shared";
 import { TestCenterTable } from "@/components/tables";
 import { AddTest } from "@/components/dashboard";
 import { hasPermission } from "@/lib/permission";
+import { GetTests } from "@/queries/test-center";
 import { Card } from "@/components/test-center";
 import { useUserStore } from "@/store/z-store";
 import {
@@ -26,6 +27,7 @@ const Page = () => {
 
 	const { isLoading } = useQuery({
 		queryKey: ["get-tests", { page }],
+		queryFn: () => GetTests({ limit: 10, page }),
 		enabled: false,
 	});
 

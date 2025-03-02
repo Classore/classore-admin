@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { axios, convertNumberToWord, formatFileSize } from "@/lib";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
@@ -14,6 +15,8 @@ import { endpoints } from "@/config";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
+	GetStaffs,
+	type GetStaffsResponse,
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
@@ -30,6 +33,7 @@ const {
 	addLessonAttachments,
 	removeLessonAttachment,
 	setChapterLessons,
+	addLessonTutor,
 } = chapterActions;
 
 interface UseMutationProps {
@@ -37,6 +41,8 @@ interface UseMutationProps {
 	module: CreateChapterModuleDto;
 }
 
+// this is the tutor role id. It should come from the api but
+const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
 export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) => {
 	const abortController = React.useRef<AbortController | null>(null);
 	const queryClient = useQueryClient();
@@ -56,6 +62,13 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		queryKey: ["get-modules", { chapterId }],
 		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
 		enabled: !!chapterId,
+	});
+
+	const { data: tutors } = useQuery({
+		queryKey: ["get-staffs", admin_role],
+		queryFn: () => GetStaffs({ admin_role, limit: 50 }),
+		enabled: !!admin_role,
+		select: (data) => (data as GetStaffsResponse).data.admins,
 	});
 
 	const chapter = course?.data.chapters.find((chapter) => chapter.id === chapterId);
@@ -131,6 +144,11 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 
 		if (!lesson?.content) {
 			toast.error("Add description for this lesson");
+			return;
+		}
+
+		if (!lesson.tutor) {
+			toast.error("Please select a tutor for this lesson");
 			return;
 		}
 
@@ -259,6 +277,27 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				/> */}
 
 				<div className="flex flex-col gap-4">
+					{/* ADD TUTOR */}
+					<label className="flex-1 space-y-1">
+						<p className="text-sm text-neutral-400">Select Teacher:</p>
+
+						<Select
+							value={lesson.tutor}
+							onValueChange={(value) => addLessonTutor(lesson.sequence, value, lesson.chapter_sequence)}
+							disabled={isPending}>
+							<SelectTrigger className="w-full py-5 text-sm capitalize">
+								<SelectValue placeholder="Select Teacher" />
+							</SelectTrigger>
+							<SelectContent className="text-sm capitalize">
+								{tutors?.data.map((user) => (
+									<SelectItem key={user.id} value={user.id}>
+										{user.first_name} {user.last_name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</label>
+
 					{/* ADD FILE ATTACHMENTS */}
 					<div className="flex flex-col gap-4 rounded-md bg-white px-4 py-3 text-sm">
 						<div className="flex items-center justify-between gap-2">

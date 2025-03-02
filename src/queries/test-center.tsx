@@ -21,8 +21,10 @@ const GetTests = async (params?: PaginationProps) => {
 	});
 };
 
-const GetTest = async (testId: string) => {
-	return axios.get<HttpResponse<TestCenterProps>>(endpoints(testId).test_center.one);
+const GetTest = async (params?: PaginationProps & { testId: string }) => {
+	return axios.get<HttpResponse<PaginatedResponse<TestCenterProps>>>(endpoints().test_center.one, {
+		params,
+	});
 };
 
 const UpdateTest = async (testId: string, payload: Partial<CreateTestDto>) => {
