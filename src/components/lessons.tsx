@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { axios, convertNumberToWord, formatFileSize } from "@/lib";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Editor, Spinner, TabPanel } from "./shared";
+import { Spinner, TabPanel } from "./shared";
 import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
@@ -270,12 +270,16 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					video_array={lesson.videos.map((video) => video)}
 				/>
 
-				<Editor
+				<textarea
+					name="lesson.content"
+					value={lesson.content}
+					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
+					className="h-[400px] w-full border border-neutral-400 transition-all duration-300 focus:border-primary-400"></textarea>
+				{/* <Editor
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
-					size="md"
 					className="h-[400px]"
-				/>
+				/> */}
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}

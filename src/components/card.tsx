@@ -6,21 +6,22 @@ interface Props {
 	label?: string;
 }
 
-export const Card = ({ value, label }: Props) => {
+export const Card = React.memo(({ value, label }: Props) => {
 	return (
-		<div className="aspect-[1.7/1] w-full space-y-4 rounded-2xl bg-white px-5 py-[15px]">
+		<div className="w-full space-y-5 rounded-2xl bg-white px-5 py-[15px]">
 			<div className="grid size-10 place-items-center rounded-full border">
 				<Target04 />
 			</div>
-			<div className="w-full space-y-2">
+			<div className="w-full space-y-1">
 				<p className="text-2xl font-semibold">{value}</p>
 				<p className="text-sm text-neutral-400">{label}</p>
 			</div>
 		</div>
 	);
-};
+});
+Card.displayName = "Card";
 
-export const LeaderboardItem = () => {
+export const LeaderboardItem = React.memo(() => {
 	return (
 		<div className="flex h-14 w-full items-center justify-between rounded-md">
 			<div className="flex items-center gap-x-2">
@@ -34,9 +35,10 @@ export const LeaderboardItem = () => {
 			<div className=""></div>
 		</div>
 	);
-};
+});
+LeaderboardItem.displayName = "LeaderboardItem";
 
-export const ReferralItem = () => {
+export const ReferralItem = React.memo(() => {
 	return (
 		<div className="flex h-14 w-full items-center justify-between rounded-md">
 			<div className="flex items-center gap-x-2">
@@ -50,4 +52,5 @@ export const ReferralItem = () => {
 			<div className=""></div>
 		</div>
 	);
-};
+});
+ReferralItem.displayName = "ReferralItem";

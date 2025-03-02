@@ -22,6 +22,11 @@ type Chunk = {
 	end_size: number;
 };
 
+type VideoUploadStatus = {
+	status: string;
+	progress: number;
+};
+
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
@@ -43,7 +48,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const hasVideo = Boolean(video_array.length > 0);
 
 	useEffect(() => {
-		socket.current = io(API_URL, {
+		socket.current = io(process.env.NEXT_PUBLIC_WSS_URL, {
 			transports: ["websocket"],
 		});
 		socket.current.on("connect", () => {
@@ -52,8 +57,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		socket.current.on("error", (error) => {
 			Logger.error("Socket error", error);
 		});
-		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
+		socket.current.on(`video_upload_status.${moduleId}`, (data: VideoUploadStatus) => {
 			Logger.info("Video upload status", data);
+			toast.success(`Video upload progress: ${data.progress}%`);
 		});
 
 		return () => {
