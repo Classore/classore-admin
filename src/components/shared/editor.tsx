@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { $createListNode, ListItemNode, ListNode } from "@lexical/list";
+import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { $createHeadingNode, HeadingNode } from "@lexical/rich-text";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { $setBlocksType } from "@lexical/selection";
 import type { EditorThemeClasses } from "lexical";
-import { Redo, Undo } from "lucide-react";
-import { $getRoot } from "lexical";
-import React from "react";
 import {
+	$getRoot,
 	$getSelection,
 	$insertNodes,
 	$isRangeSelection,
@@ -24,6 +22,8 @@ import {
 	REDO_COMMAND,
 	UNDO_COMMAND,
 } from "lexical";
+import { Redo, Undo } from "lucide-react";
+import React from "react";
 
 import { alignment_types, format_types, heading_types, list_types } from "@/config";
 import { capitalize, cn, convertMdToHtml } from "@/lib";
@@ -98,7 +98,7 @@ export const Editor = React.memo(
 					onError: (error) => console.error("editor error: ", error),
 				}}>
 				<div className="h-full w-full space-y-4">
-					<div className="flex w-full flex-wrap items-center gap-1 rounded bg-neutral-100 p-2">
+					<div className="flex w-full flex-wrap items-center gap-1 rounded bg-white p-3">
 						<CustomActions size={size} types={heading_types} actionType="heading" />
 						<CustomActions size={size} types={format_types} actionType="text" />
 						<CustomActions size={size} types={alignment_types} actionType="alignment" />
@@ -113,7 +113,7 @@ export const Editor = React.memo(
 									outline: "none",
 								}}
 								className={cn(
-									"editor max-h-[500px] w-full overflow-y-auto border-2 text-lg transition-all duration-500 focus:border-primary-400",
+									"editor max-h-[500px] w-full overflow-y-auto border-2 bg-white text-lg transition-all duration-500 focus:border-primary-400",
 									editorSize[size],
 									className
 								)}
