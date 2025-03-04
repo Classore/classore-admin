@@ -17,7 +17,6 @@ import React from "react";
 
 import { CreateBundle, GetExaminations } from "@/queries";
 import type { CreateBundleDto } from "@/queries";
-import { processImageToBase64 } from "@/lib";
 import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
@@ -40,8 +39,6 @@ interface Props {
 }
 
 export const AddBundle = ({ onOpenChange, open }: Props) => {
-	const [previewUrl, setPreviewUrl] = React.useState("");
-
 	const { isPending, mutate } = useMutation({
 		mutationFn: (data: CreateBundleDto) => CreateBundle(data),
 		onSuccess: () => {
@@ -86,9 +83,6 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		onValueChange: (files) => {
 			const file = files[0];
 			setFieldValue("banner", file);
-			processImageToBase64(file).then((base64) => {
-				setPreviewUrl(base64);
-			});
 			setFieldValue("cover_image", files[0]);
 		},
 		fileType: "image",
@@ -150,8 +144,10 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 							<div className="relative aspect-video w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 								{values.banner ? (
 									<Image
-										src={previewUrl}
-										alt={values.banner.name}
+										src={
+											typeof values.banner === "string" ? values.banner : URL.createObjectURL(values.banner)
+										}
+										alt={typeof values.banner === "string" ? values.banner : values.banner.name}
 										fill
 										sizes="100%"
 										className="rounded-md object-cover object-center"

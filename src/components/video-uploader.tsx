@@ -76,62 +76,65 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		Logger.log("processing progress", processingProgress);
 	}, [processingProgress]);
 
-	const uploadChunk = async (chunks: Chunk[], file: File): Promise<void> => {
-		for (const chunk of chunks) {
-			// const bytesUploaded = chunk.start_size + file.size;
-			// const progress = (bytesUploaded / file.size) * 100;
+	const uploadChunk = useCallback(
+		async (chunks: Chunk[], file: File): Promise<void> => {
+			for (const chunk of chunks) {
+				// const bytesUploaded = chunk.start_size + file.size;
+				// const progress = (bytesUploaded / file.size) * 100;
 
-			const formData = new FormData();
-			const fileChunk = file.slice(chunk.start_size, chunk.end_size);
+				const formData = new FormData();
+				const fileChunk = file.slice(chunk.start_size, chunk.end_size);
 
-			const blob = new Blob([fileChunk], { type: file.type });
+				const blob = new Blob([fileChunk], { type: file.type });
 
-			formData.append("chunk_index", chunk.index_number.toString());
-			formData.append("total_chunks", chunks.length.toString());
-			formData.append("upload_id", upload_id);
-			formData.append("file", blob);
+				formData.append("chunk_index", chunk.index_number.toString());
+				formData.append("total_chunks", chunks.length.toString());
+				formData.append("upload_id", upload_id);
+				formData.append("file", blob);
 
-			try {
-				setIsLoading(true);
-				setIsUploading(true);
-				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
-				const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
-					method: "PUT",
-					body: formData,
-					headers: {
-						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-						Accept: "application/json",
-					},
-					signal: controller.signal,
-				});
+				try {
+					setIsLoading(true);
+					setIsUploading(true);
+					const controller = new AbortController();
+					const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
+					const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+							Accept: "application/json",
+						},
+						signal: controller.signal,
+					});
 
-				clearTimeout(timeoutId);
+					clearTimeout(timeoutId);
 
-				if (!response.ok) {
-					const errorData = await response.json();
-					throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-				}
+					if (!response.ok) {
+						const errorData = await response.json();
+						throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+					}
 
-				const data = await response.json();
-				Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
-				setUploadProgress(Math.round(chunk.index_number / chunks.length) / 100);
-			} catch (error) {
-				Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
-				throw error;
-			} finally {
-				queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-				if (chunk.index_number === chunks.length) {
-					setUploadProgress(100);
-					setIsLoading(false);
-					setIsUploading(false);
-					setUploadProgress(0);
-					setRetryCount(0);
-					toast.success("File upload completed");
+					const data = await response.json();
+					Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
+					setUploadProgress(Math.round(chunk.index_number / chunks.length) / 100);
+				} catch (error) {
+					Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
+					throw error;
+				} finally {
+					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+					if (chunk.index_number === chunks.length) {
+						setUploadProgress(100);
+						setIsLoading(false);
+						setIsUploading(false);
+						setUploadProgress(0);
+						setRetryCount(0);
+						toast.success("File upload completed");
+					}
 				}
 			}
-		}
-	};
+		},
+		[moduleId, upload_id]
+	);
 
 	const uploadChunkWithRetry = useCallback(
 		async (chunks: Chunk[], file: File): Promise<void> => {

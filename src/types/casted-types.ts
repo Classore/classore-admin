@@ -13,6 +13,8 @@ export type CastedExamTypeProps = {
 };
 
 export type CastedExamBundleProps = {
+	examinationbundle_allow_extra_subjects: "NO" | "YES";
+	examinationbundle_allowed_subjects: number;
 	examinationbundle_amount: number;
 	examinationbundle_amount_per_subject: number;
 	examinationbundle_banner: string;

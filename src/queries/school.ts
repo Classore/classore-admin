@@ -32,7 +32,7 @@ export interface CreateBundleDto {
 	allow_extra_subjects: "YES" | "NO";
 	amount: number;
 	amount_per_subject: number;
-	banner: File | null;
+	banner: File | string | null;
 	end_date: Date;
 	examination: string;
 	extra_charge: number;
@@ -165,6 +165,46 @@ const GetSubject = async (id: string) => {
 		.then((res) => res.data);
 };
 
+const UpdateBundle = async (id: string, payload: Partial<CreateBundleDto>) => {
+	const formData = new FormData();
+	if (payload.allow_extra_subjects) {
+		formData.append("allow_extra_subjects", payload?.allow_extra_subjects?.toString());
+	}
+	if (payload.allowed_subjects) {
+		formData.append("allowed_subjects", payload.allowed_subjects?.toString());
+	}
+	if (payload.amount) {
+		formData.append("amount", payload.amount.toString());
+	}
+	if (payload.amount_per_subject) {
+		formData.append("amount_per_subject", payload.amount_per_subject.toString());
+	}
+	if (payload.banner && payload.banner instanceof File) {
+		formData.append("banner", payload.banner);
+	}
+	if (payload.end_date) {
+		formData.append("end_date", format(payload.end_date, "MM/dd/yyyy"));
+	}
+	if (payload.examination) {
+		formData.append("examination", payload?.examination);
+	}
+	if (payload.extra_charge) {
+		formData.append("extra_charge", payload.extra_charge.toString());
+	}
+	if (payload.max_subjects) {
+		formData.append("max_subjects", payload.max_subjects.toString());
+	}
+	if (payload.name) {
+		formData.append("name", payload.name);
+	}
+	if (payload.start_date) {
+		formData.append("start_date", format(payload.start_date, "MM/dd/yyyy"));
+	}
+	return axios
+		.put<HttpResponse<CastedExamBundleProps>>(endpoints(id).school.update_exam_bundle, formData)
+		.then((res) => res.data);
+};
+
 const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
 	return axios
 		.delete<HttpResponse<string>>(endpoints().school.delete, { data: { ids, model_type } })
@@ -181,4 +221,5 @@ export {
 	GetExaminations,
 	GetSubjects,
 	GetSubject,
+	UpdateBundle,
 };
