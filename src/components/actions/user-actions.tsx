@@ -1,7 +1,18 @@
 import React from "react";
-import { RiDeleteBin6Line, RiEditLine, RiForbid2Line, RiInformationLine } from "@remixicon/react";
+import {
+	RiBook2Line,
+	RiDeleteBin6Line,
+	RiEditLine,
+	RiForbid2Line,
+	RiInformationLine,
+	RiUserAddLine,
+	RiUserLine,
+} from "@remixicon/react";
 
 import type { CastedUserProps } from "@/types/casted-types";
+import { Referrals } from "./user/referrals";
+import { Profile } from "./user/profile";
+import { Courses } from "./user/courses";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import {
@@ -17,7 +28,14 @@ interface Props {
 	user: CastedUserProps;
 }
 
+const tabs = [
+	{ label: "user profile", icon: RiUserLine },
+	{ label: "referrals", icon: RiUserAddLine },
+	{ label: "courses", icon: RiBook2Line },
+];
+
 export const UserActions = ({ user }: Props) => {
+	const [tab, setTab] = React.useState("user profile");
 	const [open, setOpen] = React.useState({
 		delete: false,
 		edit: false,
@@ -35,12 +53,31 @@ export const UserActions = ({ user }: Props) => {
 						<RiInformationLine size={18} /> View Details
 					</button>
 				</DialogTrigger>
-				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[38%]">
-					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
+				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[38%] p-0">
+					<div className="w-full space-y-4 rounded-lg border p-4">
 						<DialogTitle className="capitalize">{user.user_user_type.toLowerCase()} Details</DialogTitle>
 						<DialogDescription hidden>User Details</DialogDescription>
-						<div className="w-full">
-							<div className="w-full"></div>
+						<div className="w-full space-y-6">
+							<div className="w-full space-y-6">
+								<div className="h-[214px] w-full">
+									<div className="h-[150px] w-full rounded-lg bg-gradient-to-r from-secondary-100 to-primary-200"></div>
+								</div>
+								<div className="w-full space-y-6">
+									<div className="flex h-10 items-center gap-x-3 border-b">
+										{tabs.map(({ icon: Icon, label }) => (
+											<button
+												key={label}
+												onClick={() => setTab(label)}
+												className={`relative flex h-10 items-center gap-x-1 text-sm font-medium capitalize before:absolute before:bottom-0 before:left-0 before:h-[1px] before:bg-primary-400 ${label === tab ? "text-primary-400 before:w-full" : "text-neutral-400 before:w-0"}`}>
+												<Icon size={14} /> {label}
+											</button>
+										))}
+									</div>
+								</div>
+								<Profile tab={tab} />
+								<Referrals tab={tab} />
+								<Courses tab={tab} />
+							</div>
 							<div className="flex w-full items-center justify-between">
 								<Button size="sm" className="w-fit" variant="destructive-outline">
 									Delete Account

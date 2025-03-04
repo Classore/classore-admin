@@ -120,7 +120,7 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<ExamActions id={bundle.examinationbundle_id} />
+						<ExamActions id={bundle.examinationbundle_id} subcategory={bundle} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>

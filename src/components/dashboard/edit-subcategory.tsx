@@ -1,5 +1,5 @@
 import { useMutation, useQueries } from "@tanstack/react-query";
-import { RiCameraLine } from "@remixicon/react";
+import { RiCameraLine, RiLoaderLine } from "@remixicon/react";
 import { useFormik } from "formik";
 import { addDays } from "date-fns";
 import { DatePicker } from "antd";
@@ -9,26 +9,36 @@ import dayjs from "dayjs";
 import * as Yup from "yup";
 import React from "react";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type { BundleResponse, CreateBundleDto, ExaminationResponse } from "@/queries";
+import { GetBundle, GetExaminations, UpdateBundle } from "@/queries";
 import { DialogDescription, DialogTitle } from "../ui/dialog";
-import { GetBundle, GetExaminations } from "@/queries";
-import { processImageToBase64 } from "@/lib";
+import type { CastedExamBundleProps } from "@/types";
 import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
 dayjs.locale("en-gb");
 
 interface Props {
 	id: string;
+	subcategory: CastedExamBundleProps;
 	onOpenChange: (open: boolean) => void;
 }
 
-export const EditSubcategory = ({ id, onOpenChange }: Props) => {
-	const [previewUrl, setPreviewUrl] = React.useState("");
-	const {} = useMutation({});
+export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
+	const { isPending, mutate } = useMutation({
+		mutationFn: (payload: Partial<CreateBundleDto>) => UpdateBundle(id, payload),
+		mutationKey: ["update-bundle", id],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			onOpenChange(false);
+		},
+		onError: (error: any) => {
+			toast.error(error.response.data.message);
+		},
+	});
 
 	const [{ data }, {}] = useQueries({
 		queries: [
@@ -57,24 +67,21 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 	});
 
 	const initialValues: Partial<CreateBundleDto> = {
-		allow_extra_subjects: "NO",
-		allowed_subjects: 0,
-		amount: 0,
-		amount_per_subject: 0,
-		banner: null,
-		end_date: addDays(new Date(), 1),
-		examination: "",
-		extra_charge: 0,
-		max_subjects: 0,
-		name: "",
-		start_date: new Date(),
+		allow_extra_subjects: subcategory.examinationbundle_allow_extra_subjects,
+		allowed_subjects: subcategory.examinationbundle_allowed_subjects,
+		amount: subcategory.examinationbundle_amount,
+		amount_per_subject: subcategory.examinationbundle_amount_per_subject,
+		banner: subcategory.examinationbundle_banner,
+		end_date: subcategory.examinationbundle_end_date,
+		examination: subcategory.examinationbundle_examination,
+		extra_charge: subcategory.examinationbundle_extra_charge,
+		max_subjects: subcategory.examinationbundle_max_subjects,
+		name: subcategory.examinationbundle_name,
+		start_date: subcategory.examinationbundle_start_date,
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
-			processImageToBase64(files[0]).then((base64) => {
-				setPreviewUrl(base64);
-			});
 			setFieldValue("banner", files[0]);
 		},
 		fileType: "image",
@@ -99,7 +106,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 			allowed_subjects: Yup.number()
 				.required("Allowed Subjects is required")
 				.min(1, "Allowed Subjects must be at least 1"),
-			amount: Yup.number().required("Amount is required").min(1, "Amount must be at least 1"),
+			amount: Yup.number().required("Amount is required").min(0, "Amount must be at least 1"),
 			amount_per_subject: Yup.number()
 				.required("Amount Per Subject is required")
 				.min(1, "Amount Per Subject must be at least 1"),
@@ -107,7 +114,9 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 			examination: Yup.string().required("Examination is required"),
 			extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
 				return value === "YES"
-					? Yup.number().required("Extra Charge is required").min(1, "Extra Charge must be at least 1")
+					? Yup.number()
+							.required("Extra Charge is required")
+							.min(1000, "Extra Charge must be at least 1000")
 					: Yup.number().notRequired();
 			}),
 			max_subjects: Yup.number()
@@ -115,7 +124,9 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
 		}),
-		onSubmit: () => {},
+		onSubmit: (values) => {
+			mutate(values);
+		},
 	});
 
 	return (
@@ -126,8 +137,8 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 				<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 					{values.banner ? (
 						<Image
-							src={previewUrl}
-							alt={values.banner.name}
+							src={typeof values.banner === "string" ? values.banner : URL.createObjectURL(values.banner)}
+							alt={typeof values.banner === "string" ? values.banner : values.banner.name}
 							fill
 							sizes="100%"
 							className="rounded-md object-cover object-center"
@@ -153,6 +164,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 					placeholder="IELTS"
 					className="col-span-full"
 					name="name"
+					defaultValue={values.name}
 					onChange={handleChange}
 					error={touched.name && errors.name ? errors.name : ""}
 				/>
@@ -160,6 +172,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 					label="Amount"
 					type="number"
 					name="amount"
+					defaultValue={values.amount}
 					onChange={handleChange}
 					error={errors.amount && touched.amount ? errors.amount : ""}
 				/>
@@ -168,6 +181,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						label="Amount per Subject"
 						type="number"
 						name="amount_per_subject"
+						defaultValue={values.amount_per_subject}
 						onChange={handleChange}
 						error={
 							errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
@@ -177,6 +191,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						label="Extra Charge"
 						type="number"
 						name="extra_charge"
+						defaultValue={values.extra_charge as unknown as string}
 						onChange={handleChange}
 						error={errors.extra_charge && touched.extra_charge ? errors.extra_charge : ""}
 					/>
@@ -258,6 +273,7 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						type="number"
 						name="allowed_subjects"
 						label="Allowed Subjects"
+						defaultValue={values.allowed_subjects as unknown as string}
 						onChange={handleChange}
 						error={errors.allowed_subjects && touched.allowed_subjects ? errors.allowed_subjects : ""}
 					/>
@@ -265,17 +281,23 @@ export const EditSubcategory = ({ id, onOpenChange }: Props) => {
 						type="number"
 						name="max_subjects"
 						label="Maximum Number of Subjects"
+						defaultValue={values.max_subjects as unknown as string}
 						onChange={handleChange}
 						error={errors.max_subjects && touched.max_subjects ? errors.max_subjects : ""}
 					/>
 				</div>
 			</div>
 			<div className="mt-6 flex w-full items-center justify-end gap-x-4">
-				<Button type="button" onClick={() => onOpenChange(false)} className="w-fit" variant="outline">
+				<Button
+					size="sm"
+					type="button"
+					onClick={() => onOpenChange(false)}
+					className="w-fit"
+					variant="outline">
 					Discard Changes
 				</Button>
-				<Button type="submit" className="w-fit">
-					Update Changes
+				<Button size="sm" type="submit" className="w-fit">
+					{isPending ? <RiLoaderLine className="animate-spin" /> : "Update Changes"}
 				</Button>
 			</div>
 		</form>
