@@ -76,7 +76,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		Logger.log("processing progress", processingProgress);
 	}, [processingProgress]);
 
-	const uploadChunk = async (chunks: Chunk[], file: File): Promise<void> => {
+	const uploadChunk = useCallback(async (chunks: Chunk[], file: File): Promise<void> => {
 		for (const chunk of chunks) {
 			// const bytesUploaded = chunk.start_size + file.size;
 			// const progress = (bytesUploaded / file.size) * 100;
@@ -131,7 +131,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				}
 			}
 		}
-	};
+	}, []);
 
 	const uploadChunkWithRetry = useCallback(
 		async (chunks: Chunk[], file: File): Promise<void> => {

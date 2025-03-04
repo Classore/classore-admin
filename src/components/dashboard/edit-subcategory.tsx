@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import type { BundleResponse, CreateBundleDto, ExaminationResponse } from "@/queries";
 import { GetBundle, GetExaminations, UpdateBundle } from "@/queries";
 import { DialogDescription, DialogTitle } from "../ui/dialog";
-import type { CastedExamBundleProps } from "@/types";
+import type { CastedExamBundleProps, HttpError } from "@/types";
 import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -35,7 +35,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 			toast.success(data.message);
 			onOpenChange(false);
 		},
-		onError: (error: any) => {
+		onError: (error: HttpError) => {
 			toast.error(error.response.data.message);
 		},
 	});
