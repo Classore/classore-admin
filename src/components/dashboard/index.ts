@@ -12,3 +12,4 @@ export * from "./edit-subcategory";
 export * from "./event";
 export * from "./quiz-settings";
 export * from "./user-card";
+export * from "./role-badge";

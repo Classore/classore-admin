@@ -1,5 +1,10 @@
+import type { AdminOneProps, PaginatedRoleProps } from "@/types";
 import type { PermissionKey } from "@/constants";
-import type { AdminOneProps } from "@/types";
+
+export type PermissionObject = {
+	permission: PermissionKey;
+	hasPermission: boolean;
+};
 
 export const getUserPermissions = (user: AdminOneProps) => {
 	const pattern = /^([a-zA-Z]+)_(read|write)$/;
@@ -22,4 +27,19 @@ export const hasAllPermissions = (user: AdminOneProps | null, permissions: Permi
 	if (!user) return false;
 	const userPermissions = getUserPermissions(user);
 	return permissions.every((permission) => userPermissions.includes(permission));
+};
+
+export const getRolePermissions = (role: PaginatedRoleProps): PermissionObject[] => {
+	const pattern = /^([a-zA-Z]+)_(read|write)$/;
+	const permissions = Object.entries(role)
+		.map(([key, value]) => {
+			const match = key.match(pattern);
+			if (match) {
+				const permission: PermissionKey = match[1] as PermissionKey;
+				return { permission, hasPermission: value === "YES" };
+			}
+			return { permission: null, hasPermission: false };
+		})
+		.filter((item): item is PermissionObject => item.permission !== null);
+	return permissions;
 };

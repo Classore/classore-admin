@@ -39,6 +39,8 @@ export interface CreateRoleDto {
 	videos_write: "NO" | "YES";
 	waitlist_read: "NO" | "YES";
 	waitlist_write: "NO" | "YES";
+	marketer_read: "NO" | "YES";
+	marketer_write: "NO" | "YES";
 }
 
 export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;

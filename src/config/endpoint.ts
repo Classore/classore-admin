@@ -42,7 +42,7 @@ export const endpoints = (id?: string) => {
 			get_questions: "/admin/learning/question/fetch-all",
 			add_video: `/admin/learning/chunk_uploads/${id}`,
 			update_exam: `${id}`,
-			update_exam_bundle: `${id}`,
+			update_exam_bundle: `/admin/examination/update-exam-bundle/${id}`,
 			update_class: `${id}`,
 			update_subject: `${id}`,
 			update_chapter: `${id}`,
