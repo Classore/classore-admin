@@ -11,6 +11,7 @@ export const endpoints = (id?: string) => {
 			approve_reset: "/admin/staff/password/approve-reset-request",
 			reset: "/admin/staff/password/reset",
 			delete_entity: `/auth/delete-entity`,
+			update_role: `/admin/role/update-one/${id}`,
 		},
 		calendar: {
 			create: "/admin/calendar/events/new",

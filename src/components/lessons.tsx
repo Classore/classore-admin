@@ -12,6 +12,7 @@ import { Spinner, TabPanel } from "./shared";
 import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
+// import { RichTextEditor } from "./editor";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -270,7 +271,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					value={lesson.content}
 					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
 					className="h-[400px] w-full border border-neutral-400 text-sm transition-all duration-300 focus:border-primary-400"></textarea>
-				{/* <Editor
+				{/* <RichTextEditor
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
 					className="h-[400px]"

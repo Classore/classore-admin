@@ -69,6 +69,12 @@ const GetRolesQuery = async (params?: PaginationProps) => {
 		.then((res) => res.data);
 };
 
+const UpdateRole = async (id: string, payload: CreateRoleDto) => {
+	return axios
+		.put<HttpResponse<Node & RoleProps>>(endpoints(id).auth.update_role, payload)
+		.then((res) => res.data);
+};
+
 const GetWaitlistQuery = async ({
 	limit,
 	page,
@@ -97,4 +103,5 @@ export {
 	GetRolesQuery,
 	GetWaitlistQuery,
 	SignInMutation,
+	UpdateRole,
 };
