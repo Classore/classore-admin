@@ -40,6 +40,7 @@ const initialValues: CreateSubjectDto = {
 	categoryId: "",
 	description: "",
 	name: "",
+	banner: null,
 };
 
 export const AddCourse = ({ onOpenChange, open }: Props) => {
@@ -101,6 +102,9 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
+			<Button size="sm" className="w-fit" onClick={() => onOpenChange(!open)}>
+				<RiAddLine /> Add New Course
+			</Button>
 			<DialogContent className="w-[400px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<IconLabel icon={RiBookLine} />

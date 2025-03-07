@@ -1,4 +1,4 @@
-import { RiAddLine, RiArrowLeftSLine } from "@remixicon/react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
@@ -94,7 +94,6 @@ const Page = () => {
 
 	return (
 		<>
-			<AddCourse open={open} onOpenChange={setOpen} />
 			<Seo title="Course" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
@@ -108,9 +107,7 @@ const Page = () => {
 							</div>
 							<Breadcrumbs courseId={id} links={breadcrumbs} />
 						</div>
-						<Button onClick={() => setOpen(true)} className="w-fit" size="sm">
-							<RiAddLine /> Add New Course
-						</Button>
+						<AddCourse open={open} onOpenChange={setOpen} />
 					</div>
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
