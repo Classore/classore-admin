@@ -4,8 +4,9 @@ import * as React from "react";
 import { GetChapterModules } from "@/queries";
 import { Chapters } from "./chapters";
 import { Lessons } from "./lessons";
-import { TabPanel } from "./shared";
 import { Quiz } from "./quiz";
+import { TabPanel } from "./shared";
+import { VideoTab } from "./video-tab";
 
 export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 	const [chapterId, setChapterId] = React.useState<string | undefined>(undefined);
@@ -35,6 +36,9 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 				</TabPanel>
 				<TabPanel selected={currentTab} value="quiz">
 					<Quiz chapterId={chapterId} lessonTab={lessonTab} setCurrentTab={setCurrentTab} />
+				</TabPanel>
+				<TabPanel selected={currentTab} value="video">
+					<VideoTab chapterId={chapterId} lessonTab={lessonTab} setCurrentTab={setCurrentTab} />
 				</TabPanel>
 			</div>
 		</TabPanel>
