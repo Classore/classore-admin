@@ -1,13 +1,18 @@
 import { RiArrowLeftSLine } from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
+import { Breadcrumbs, Loading, SearchInput, Seo } from "@/components/shared";
 import { TestSettings } from "@/components/dashboard/test-settings";
-import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
+import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { AddSection } from "@/components/dashboard/add-section";
 import type { BreadcrumbItemProps } from "@/components/shared";
-import { DashboardLayout } from "@/components/layout";
+import { TestCenterSectionTable } from "@/components/tables";
+import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
+import { GetTest } from "@/queries/test-center";
+import { useUserStore } from "@/store/z-store";
 import {
 	Select,
 	SelectContent,
@@ -20,13 +25,27 @@ const statuses = ["all", "published", "unpublished"];
 
 const Page = () => {
 	const [current, setCurrent] = React.useState(statuses[0]);
+	const [page, setPage] = React.useState(1);
+	const { user } = useUserStore();
 	const router = useRouter();
 	const id = router.query.id as string;
+
+	const { isLoading } = useQuery({
+		queryKey: ["get-test-sections", id],
+		queryFn: () => GetTest({ testId: id, limit: 10, page }),
+		enabled: false,
+	});
 
 	const links: BreadcrumbItemProps[] = [
 		{ href: "/dashboard/test-center", label: "Manage Test Center", active: true },
 		{ href: `/dashboard/test-center/${id}`, label: `test exam`, active: true },
 	];
+
+	if (!hasPermission(user, ["transactions_read"])) {
+		return <Unauthorized />;
+	}
+
+	if (!isLoading) return <Loading />;
 
 	return (
 		<>
@@ -73,6 +92,13 @@ const Page = () => {
 								</Select>
 							</div>
 						</div>
+						<TestCenterSectionTable
+							onPageChange={setPage}
+							page={page}
+							sections={[]}
+							total={0}
+							isLoading={isLoading}
+						/>
 					</div>
 				</div>
 			</DashboardLayout>

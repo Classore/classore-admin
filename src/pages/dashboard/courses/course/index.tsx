@@ -3,21 +3,25 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
+import { DeleteSubject } from "@/components/dashboard/delete-subject";
 import { CreateCourseTabPanel } from "@/components/create-course";
-import { DashboardLayout } from "@/components/layout";
-
-import { QuizSettingsTab } from "@/components/quiz-settings";
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
+import { EditCourse } from "@/components/dashboard/edit-course";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { chapterActions } from "@/store/z-store/chapter";
+import { AssignTeachers } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 
 const Page = () => {
+	const [openModal, setOpenModal] = React.useState(false);
 	const [tab, setTab] = React.useState("course");
+	const [open, setOpen] = React.useState(false);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
@@ -107,12 +111,16 @@ const Page = () => {
 							/>
 						</div>
 						<div className="flex items-center gap-x-2">
-							<Button className="w-fit" size="sm" variant="destructive-outline">
-								Delete
-							</Button>
+							<DeleteSubject
+								open={openModal}
+								setOpen={setOpenModal}
+								subjectId={courseId}
+								subjectName={course?.data.name}
+							/>
 							<Button className="w-fit" size="sm" variant="outline">
 								Save and Exit
 							</Button>
+							<EditCourse courseId={courseId} open={open} setOpen={setOpen} subject={course?.data.name} />
 							<Button className="w-fit" size="sm">
 								Next <RiArrowLeftSLine className="rotate-180" />
 							</Button>
@@ -139,6 +147,7 @@ const Page = () => {
 				<div className="w-full">
 					<CreateCourseTabPanel tab={tab} />
 					<QuizSettingsTab tab={tab} />
+					<AssignTeachers tab={tab} />
 				</div>
 			</DashboardLayout>
 		</>

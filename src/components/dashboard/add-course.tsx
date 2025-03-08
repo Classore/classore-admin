@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { toast } from "sonner";
 import React from "react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { CreateSubject, GetBundles, GetExaminations } from "@/queries";
 import { IsHttpError, httpErrorhandler } from "@/lib";
 import type { CreateSubjectDto } from "@/queries";
@@ -14,7 +15,6 @@ import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 type Mode = "initial" | "select" | "create";
 
@@ -40,6 +40,7 @@ const initialValues: CreateSubjectDto = {
 	categoryId: "",
 	description: "",
 	name: "",
+	banner: null,
 };
 
 export const AddCourse = ({ onOpenChange, open }: Props) => {
@@ -51,7 +52,15 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient
-				.invalidateQueries({ queryKey: ["get-bundle", "get-subject", "get-subjects"] })
+				.invalidateQueries({
+					queryKey: [
+						"get-bundle",
+						"get-bundles",
+						"get-subject",
+						"get-subjects",
+						"get-bundle-for-subjects",
+					],
+				})
 				.then(() => {
 					onOpenChange(false);
 				});
@@ -65,6 +74,18 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 			} else {
 				toast.error("Something went wrong");
 			}
+		},
+		onSettled: () => {
+			setMode("initial");
+			queryClient.invalidateQueries({
+				queryKey: [
+					"get-bundle",
+					"get-bundles",
+					"get-subject",
+					"get-subjects",
+					"get-bundle-for-subjects",
+				],
+			});
 		},
 	});
 
@@ -81,6 +102,9 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
+			<Button size="sm" className="w-fit" onClick={() => onOpenChange(!open)}>
+				<RiAddLine /> Add New Course
+			</Button>
 			<DialogContent className="w-[400px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 					<IconLabel icon={RiBookLine} />
@@ -143,6 +167,7 @@ const Initial = (props: InnerProps) => {
 			<DialogTitle>Add New Course</DialogTitle>
 			<DialogDescription hidden>Add New Course</DialogDescription>
 			<div className="w-full space-y-4">
+				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
 				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
 				<Textarea
 					label="Describe what the students will learn"

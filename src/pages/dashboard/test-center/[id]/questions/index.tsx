@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { toast } from "sonner";
 import React from "react";
 import {
 	RiAddLine,
@@ -9,11 +8,12 @@ import {
 	RiEyeLine,
 } from "@remixicon/react";
 
+import { useTestCenterStore, getEmptyQuestion } from "@/store/z-store/test-center";
 import type { BreadcrumbItemProps } from "@/components/shared";
-import type { QuestionDto } from "@/store/z-store/quizz";
+import { QuestionCard } from "@/components/test-center";
 import { Breadcrumbs, Seo } from "@/components/shared";
+import type { TestCenterQuestionProps } from "@/types";
 import { DashboardLayout } from "@/components/layout";
-import { Question } from "@/components/test-center";
 import { Button } from "@/components/ui/button";
 
 const tabs = [{ icon: RiBook2Line, label: "Create Questions", name: "create" }];
@@ -22,52 +22,36 @@ const Page = () => {
 	const [current, setCurrent] = React.useState(0);
 	const [tab, setTab] = React.useState("create");
 	const router = useRouter();
-	const id = router.query.id as string;
+	const sectorId = router.query.id as string;
 
-	const [questions, setQuestions] = React.useState<QuestionDto[]>([
-		{
-			content: "",
-			images: [],
-			options: [],
-			question_type: "MULTICHOICE",
-			sequence: 0,
-			sequence_number: 0,
-		},
-	]);
+	const { removeQuestion } = useTestCenterStore();
+
+	const existingQuestions: TestCenterQuestionProps[] = [];
+
+	const [questions, setQuestions] = React.useState<TestCenterQuestionProps[]>(() => {
+		const initialQuestions = existingQuestions.map((question, index) => ({
+			...question,
+			sequence: index,
+		}));
+
+		return initialQuestions;
+	});
 
 	const addQuestion = () => {
-		setQuestions((prev) => [
-			...prev,
-			{
-				content: "",
-				images: [],
-				options: [],
-				question_type: "MULTICHOICE",
-				sequence: 0,
-				sequence_number: prev.length + 1,
-			},
-		]);
-	};
-
-	const deleteQuestion = (index: number) => {
-		if (questions.length === 1) {
-			toast.error("You cannot delete all questions");
-			return;
-		}
-		setQuestions((prev) => prev.filter((_, i) => i !== index));
-		setCurrent((prev) => (index === 0 ? 0 : prev - 1));
+		const question = getEmptyQuestion(questions.length + 1);
+		setQuestions((prev) => [...prev, question]);
 	};
 
 	const links: BreadcrumbItemProps[] = [
 		{ href: "/dashboard/test-center", label: "Manage Test Center", active: true },
-		{ href: `/dashboard/test-center/${id}`, label: `test exam`, active: true },
-		{ href: `/dashboard/test-center/${id}/questions`, label: `test section`, active: true },
+		{ href: `/dashboard/test-center/${sectorId}`, label: `test exam`, active: true },
+		{ href: `/dashboard/test-center/${sectorId}/questions`, label: `test section`, active: true },
 		{ href: ``, label: "Change Directory", variant: "warning" },
 	];
 
 	return (
 		<>
-			<Seo title={id} />
+			<Seo title={sectorId} />
 			<DashboardLayout>
 				<div className="h-full w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
@@ -78,7 +62,7 @@ const Page = () => {
 								</Button>
 								<p className="text-sm font-medium">Test Title</p>
 							</div>
-							<Breadcrumbs courseId={id} links={links} />
+							<Breadcrumbs courseId={sectorId} links={links} />
 						</div>
 						<div className="flex items-center gap-x-4">
 							<Button className="w-fit" size="sm" variant="destructive-outline">
@@ -118,7 +102,14 @@ const Page = () => {
 										<RiAddLine className="size-4" /> Add New Question
 									</button>
 								</div>
-								<Question index={current} onDelete={deleteQuestion} question={questions[current]} />
+								<QuestionCard
+									sectionId=""
+									sequence={current}
+									question={questions[current]}
+									onDelete={(sequence) => removeQuestion(sectorId, sequence)}
+									onDuplicate={() => {}}
+									onReorder={() => {}}
+								/>
 							</div>
 							<div className="col-span-5 px-8">
 								<div className="w-[285px] space-y-5 rounded-md border p-3">

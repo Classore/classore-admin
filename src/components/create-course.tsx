@@ -23,7 +23,7 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 	});
 
 	return (
-		<TabPanel innerClassName="grid grid-cols-7 pt-5 gap-2 bg-white p-4" selected={tab} value="course">
+		<TabPanel innerClassName="grid grid-cols-7 pt-5 gap-2" selected={tab} value="course">
 			<Chapters
 				setLessonTab={setLessonTab}
 				lessonTab={lessonTab}

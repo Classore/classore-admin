@@ -23,6 +23,7 @@ const items: Record<string, React.ReactNode> = {
 };
 
 const { addValue, setValues } = quizSettingsActions;
+
 export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 	const queryClient = useQueryClient();
 	const setting = useQuizSettingsStore((state) => state);

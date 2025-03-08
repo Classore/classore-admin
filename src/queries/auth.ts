@@ -39,6 +39,8 @@ export interface CreateRoleDto {
 	videos_write: "NO" | "YES";
 	waitlist_read: "NO" | "YES";
 	waitlist_write: "NO" | "YES";
+	marketer_read: "NO" | "YES";
+	marketer_write: "NO" | "YES";
 }
 
 export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;
@@ -64,6 +66,12 @@ const CreateRoleMutation = async (payload: CreateRoleDto) => {
 const GetRolesQuery = async (params?: PaginationProps) => {
 	return axios
 		.get<HttpResponse<PaginatedResponse<PaginatedRoleProps>>>(endpoints().auth.get_roles, { params })
+		.then((res) => res.data);
+};
+
+const UpdateRole = async (id: string, payload: CreateRoleDto) => {
+	return axios
+		.put<HttpResponse<Node & RoleProps>>(endpoints(id).auth.update_role, payload)
 		.then((res) => res.data);
 };
 
@@ -95,4 +103,5 @@ export {
 	GetRolesQuery,
 	GetWaitlistQuery,
 	SignInMutation,
+	UpdateRole,
 };

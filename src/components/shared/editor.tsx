@@ -269,7 +269,7 @@ const ActionButton = React.memo(
 		<button
 			title={title}
 			onClick={onClick}
-			className={`hover:bg-primary-00 grid place-items-center bg-primary-100 p-1.5 text-primary-400 transition-colors ${buttonSize[size]}`}>
+			className={`grid place-items-center rounded-md bg-primary-100 p-1 text-primary-400 transition-colors duration-300 hover:bg-primary-50 active:scale-95 ${buttonSize[size]}`}>
 			{children}
 		</button>
 	)

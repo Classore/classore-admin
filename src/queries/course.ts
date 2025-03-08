@@ -12,6 +12,7 @@ import type {
 	PaginatedResponse,
 	PaginationProps,
 	QuestionTypeProps,
+	VideoProps,
 } from "@/types";
 
 export interface CreateChapterDto {
@@ -21,6 +22,9 @@ export interface CreateChapterDto {
 	sequence: number;
 	subject_id: string;
 	videos: File[];
+	banner?: File | string;
+	tags?: string[];
+	tutor?: string;
 }
 
 export interface CreateChapterModuleDto {
@@ -33,7 +37,8 @@ export interface CreateChapterModuleDto {
 	images: (File | string)[];
 	attachments: (File | string)[];
 	image_urls: string[];
-	video_urls: string[];
+	video_urls: VideoProps[];
+	tags?: string[];
 }
 
 export interface CreateQuestionDto {
@@ -66,6 +71,11 @@ export type UpdateChapterModuleDto = MakeOptional<
 >;
 
 export type GetChapterModuleResponse = HttpResponse<PaginatedResponse<CastedChapterModuleProps>>;
+export type GetQuestionsResponse = HttpResponse<PaginatedResponse<CastedQuestionProps>>;
+export type PaginatedQuestions = {
+	data: CastedQuestionProps[];
+	meta: PaginatedResponse<CastedQuestionProps>["meta"];
+};
 
 const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
@@ -111,6 +121,7 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 			}
 		});
 	});
+
 	return axios
 		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, formData)
 		.then((res) => res.data);
@@ -121,6 +132,7 @@ type GetChaptersParams = Partial<
 		subject_id: string;
 	}
 >;
+
 const GetChapters = async (params?: GetChaptersParams) => {
 	if (params) {
 		for (const key in params) {
@@ -149,7 +161,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 		.then((res) => res.data);
 };
 
-const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) => {
+const GetQuestions = async (params?: PaginationProps & { module_id: string }) => {
 	if (params) {
 		for (const key in params) {
 			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
@@ -158,9 +170,7 @@ const GetQuestions = async (params?: PaginationProps & { chapter_id: string }) =
 		}
 	}
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedQuestionProps>>
-		>(endpoints().school.get_questions, { params })
+		.get<GetQuestionsResponse>(endpoints().school.get_questions, { params })
 		.then((res) => res.data);
 };
 
@@ -188,24 +198,20 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	if (payload.sequence) formData.append("sequence", String(payload.sequence));
 	if (payload.tutor) formData.append("tutor", payload.tutor);
 	if (payload.attachments?.length) {
-		payload.attachments.forEach((attachment) => {
-			formData.append("attachments[]", attachment);
+		payload.attachments.forEach((attachment, i) => {
+			formData.append(`attachments[${i}]`, attachment);
 		});
 	}
 	if (payload.images?.length) {
-		payload.images.forEach((image) => {
-			formData.append("images[]", image);
-		});
-	}
-	if (payload.videos?.length) {
-		payload.videos.forEach((video) => {
-			formData.append("videos[]", video);
+		payload.images.forEach((image, i) => {
+			formData.append(`images[${i}]`, image);
 		});
 	}
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
 const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
+	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
 	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
 };
 
@@ -230,14 +236,24 @@ export type UpdateQuizSettingsPayload = {
 	attempt_limit: number;
 	attempt_reset: number;
 };
+
 const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload) => {
 	return axios.put(endpoints(id).school.update_quiz_settings, payload).then((res) => res.data);
 };
 
 export type DeleteEntitiesPayload = {
 	ids: string[];
-	model_type: "CHAPTER" | "CHAPTER_MODULE" | "QUESTION" | "EXAM_BUNDLE" | "EXAMINATION" | "SUBJECT";
+	model_type:
+		| "ADMIN"
+		| "CHAPTER"
+		| "CHAPTER_MODULE"
+		| "QUESTION"
+		| "EXAM_BUNDLE"
+		| "EXAMINATION"
+		| "SUBJECT"
+		| "USER";
 };
+
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
 	return axios
 		.delete(endpoints().school.delete_entities, {

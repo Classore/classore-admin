@@ -1,18 +1,16 @@
-import { RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React from "react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { toast } from "sonner";
+import React from "react";
 
-import { convertNumberToWord } from "@/lib";
-import { queryClient } from "@/providers";
 import { CreateQuestions, GetQuestions } from "@/queries";
-import type { QuestionDto } from "@/store/z-store";
-import { useChapterStore } from "@/store/z-store/chapter";
-import { useQuizStore } from "@/store/z-store/quizz";
-import type { HttpError } from "@/types";
 import { QuestionCard } from "./dashboard/question-card";
-import { Spinner } from "./shared";
+import { useQuizStore } from "@/store/z-store/quizz";
+import type { QuestionDto } from "@/store/z-store";
+import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import { Button } from "./ui/button";
+import { Spinner } from "./shared";
 
 interface Props {
 	chapterId: string | undefined;
@@ -24,12 +22,9 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	const { addQuestion, duplicateQuestion, questions, removeQuestion, reorderQuestion } =
 		useQuizStore();
 
-	const lessons = useChapterStore((state) => state.lessons);
-	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
-
 	const {} = useQuery({
 		queryKey: ["get-questions", lessonTab],
-		queryFn: () => GetQuestions({ chapter_id: lessonTab, limit: 100, page: 1 }),
+		queryFn: () => GetQuestions({ module_id: lessonTab, limit: 100, page: 1 }),
 		enabled: !!chapterId,
 		select: (data) => ({
 			questions: data.data.data.map((question) => {
@@ -143,10 +138,7 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	return (
 		<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
 			<div className="flex w-full items-center justify-between">
-				<p className="text-xs uppercase tracking-widest">
-					Lesson {lesson && convertNumberToWord(lesson?.sequence)} - Chapter{" "}
-					{lesson && convertNumberToWord(lesson?.chapter_sequence)}
-				</p>
+				<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
 				<button
 					type="button"
 					onClick={() => setCurrentTab("lesson")}

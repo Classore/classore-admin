@@ -22,6 +22,11 @@ type Chunk = {
 	end_size: number;
 };
 
+type VideoUploadStatus = {
+	status: string;
+	progress: number;
+};
+
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
@@ -29,6 +34,7 @@ const MAX_TIMEOUT = 60000; // 60 seconds
 const MAX_RETRIES = 3;
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
+	const [processingProgress, setProcessingProgress] = useState(0);
 	const abortController = useRef<AbortController | null>(null);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const [retryCount, setRetryCount] = React.useState(0);
@@ -43,7 +49,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const hasVideo = Boolean(video_array.length > 0);
 
 	useEffect(() => {
-		socket.current = io(API_URL, {
+		socket.current = io(process.env.NEXT_PUBLIC_WSS_URL, {
 			transports: ["websocket"],
 		});
 		socket.current.on("connect", () => {
@@ -52,7 +58,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		socket.current.on("error", (error) => {
 			Logger.error("Socket error", error);
 		});
-		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
+		socket.current.on(`video_upload_status.${moduleId}`, (data: VideoUploadStatus) => {
+			toast.success(`Video upload progress: ${data.progress}%`);
+			setProcessingProgress(data.progress);
 			Logger.info("Video upload status", data);
 		});
 
@@ -62,94 +70,106 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			socket.current?.off(`video_upload_status.${moduleId}`);
 			socket.current?.disconnect();
 		};
-	}, []);
+	}, [moduleId]);
 
-	const uploadChunk = async (chunks: Chunk[], file: File): Promise<void> => {
-		for (const chunk of chunks) {
-			const bytesUploaded = chunk.start_size + file.size;
-			const progress = (bytesUploaded / file.size) * 100;
+	React.useEffect(() => {
+		Logger.log("processing progress", processingProgress);
+	}, [processingProgress]);
 
-			const formData = new FormData();
-			const fileChunk = file.slice(chunk.start_size, chunk.end_size);
+	const uploadChunk = useCallback(
+		async (chunks: Chunk[], file: File): Promise<void> => {
+			for (const chunk of chunks) {
+				// const bytesUploaded = chunk.start_size + file.size;
+				// const progress = (bytesUploaded / file.size) * 100;
 
-			const blob = new Blob([fileChunk], { type: file.type });
+				const formData = new FormData();
+				const fileChunk = file.slice(chunk.start_size, chunk.end_size);
 
-			formData.append("chunk_index", chunk.index_number.toString());
-			formData.append("total_chunks", chunks.length.toString());
-			formData.append("upload_id", upload_id);
-			formData.append("file", blob);
+				const blob = new Blob([fileChunk], { type: file.type });
 
-			try {
-				setIsLoading(true);
-				setIsUploading(true);
-				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
-				const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
-					method: "PUT",
-					body: formData,
-					headers: {
-						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-						Accept: "application/json",
-					},
-					signal: controller.signal,
-				});
+				formData.append("chunk_index", chunk.index_number.toString());
+				formData.append("total_chunks", chunks.length.toString());
+				formData.append("upload_id", upload_id);
+				formData.append("file", blob);
 
-				clearTimeout(timeoutId);
+				try {
+					setIsLoading(true);
+					setIsUploading(true);
+					const controller = new AbortController();
+					const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
+					const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+							Accept: "application/json",
+						},
+						signal: controller.signal,
+					});
 
-				if (!response.ok) {
-					const errorData = await response.json();
-					throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-				}
+					clearTimeout(timeoutId);
 
-				const data = await response.json();
-				Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
-				setUploadProgress(Math.round(progress * 100) / 100);
-			} catch (error) {
-				Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
-				throw error;
-			} finally {
-				queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-				if (chunk.index_number === chunks.length) {
-					setUploadProgress(100);
-					setIsLoading(false);
-					setIsUploading(false);
-					setUploadProgress(0);
-					setRetryCount(0);
-					toast.success("File upload completed");
-				}
-			}
-		}
-	};
+					if (!response.ok) {
+						const errorData = await response.json();
+						throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+					}
 
-	const uploadChunkWithRetry = async (chunks: Chunk[], file: File): Promise<void> => {
-		while (retryCount < MAX_RETRIES) {
-			try {
-				return await uploadChunk(chunks, file);
-			} catch (error) {
-				setRetryCount((prev) => prev + 1);
-				if (retryCount === MAX_RETRIES) {
+					const data = await response.json();
+					Logger.success(`Chunk ${chunk.index_number} of ${chunks.length} uploaded:`, data);
+					setUploadProgress(Math.round(chunk.index_number / chunks.length) / 100);
+				} catch (error) {
+					Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
 					throw error;
+				} finally {
+					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+					if (chunk.index_number === chunks.length) {
+						setUploadProgress(100);
+						setIsLoading(false);
+						setIsUploading(false);
+						setUploadProgress(0);
+						setRetryCount(0);
+						toast.success("File upload completed");
+					}
 				}
-				await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
 			}
-		}
-	};
+		},
+		[moduleId, upload_id]
+	);
 
-	const uploader = React.useCallback(async (file: File, moduleId: string) => {
-		if (!file || !moduleId) {
-			toast.error("Please save this lesson before trying to upload a video");
-			return;
-		}
+	const uploadChunkWithRetry = useCallback(
+		async (chunks: Chunk[], file: File): Promise<void> => {
+			while (retryCount < MAX_RETRIES) {
+				try {
+					return await uploadChunk(chunks, file);
+				} catch (error) {
+					setRetryCount((prev) => prev + 1);
+					if (retryCount === MAX_RETRIES) {
+						throw error;
+					}
+					await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
+				}
+			}
+		},
+		[retryCount, uploadChunk]
+	);
 
-		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-		if (!token) {
-			toast.error("Authentication token missing");
-			return;
-		}
-		// console.log(file, moduleId);
-		const chunks = getFileChunks(file.size);
-		uploadChunkWithRetry(chunks, file);
-	}, []);
+	const uploader = React.useCallback(
+		async (file: File, moduleId: string) => {
+			if (!file || !moduleId) {
+				toast.error("Please save this lesson before trying to upload a video");
+				return;
+			}
+
+			const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
+			if (!token) {
+				toast.error("Authentication token missing");
+				return;
+			}
+			const chunks = getFileChunks(file.size);
+			uploadChunkWithRetry(chunks, file);
+		},
+		[uploadChunkWithRetry]
+	);
 
 	const handleFileChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,8 +228,9 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	}, []);
 
 	useEffect(() => {
+		const toastId = `upload-${moduleId}-${sequence}`;
+
 		if (isLoading) {
-			const toastId = `upload-${moduleId}-${sequence}`;
 			toast.loading("Uploading video", {
 				description: (
 					<div className="space-y-2">
@@ -231,12 +252,18 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 					fontSize: "12px",
 				},
 			});
-
-			return () => {
-				toast.dismiss(toastId);
-			};
+		} else {
+			if (uploadProgress === 100) {
+				toast.success("Upload completed successfully", { id: toastId });
+			}
 		}
-	}, [handleCancelUpload, isLoading, moduleId, sequence, uploadProgress]);
+
+		return () => {
+			if (!isLoading && uploadProgress !== 100) {
+				toast.dismiss(toastId);
+			}
+		};
+	}, [isLoading, moduleId, sequence, uploadProgress, handleCancelUpload]);
 
 	const video = video_array[0];
 	const uploadedVideo = typeof video === "string" ? video : "";
@@ -331,8 +358,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 									<RiVideoAddLine size={50} className="text-neutral-400" />
 
 									<p className="text-center text-sm">
-										You can only upload a video, add a quiz once the lesson has been saved. <br /> Please save the lesson
-										first.
+										You can only upload a video, add a quiz once the lesson has been saved. <br /> Please save
+										the lesson first.
 									</p>
 								</div>
 							)}

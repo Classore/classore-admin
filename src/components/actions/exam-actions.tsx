@@ -2,6 +2,7 @@ import { RiDeleteBin6Line, RiEdit2Line, RiInformationLine } from "@remixicon/rea
 import Link from "next/link";
 import React from "react";
 
+import type { CastedExamBundleProps } from "@/types";
 import { EditSubcategory } from "../dashboard";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
@@ -15,9 +16,10 @@ import {
 
 interface Props {
 	id: string;
+	subcategory: CastedExamBundleProps;
 }
 
-export const ExamActions = ({ id }: Props) => {
+export const ExamActions = ({ id, subcategory }: Props) => {
 	const [open, setOpen] = React.useState({ edit: false, remove: false });
 
 	return (
@@ -36,7 +38,11 @@ export const ExamActions = ({ id }: Props) => {
 					</button>
 				</DialogTrigger>
 				<DialogContent className="max-h-[80vh] w-[500px] overflow-y-auto p-1">
-					<EditSubcategory id={id} onOpenChange={(edit) => setOpen({ ...open, edit })} />
+					<EditSubcategory
+						id={id}
+						onOpenChange={(edit) => setOpen({ ...open, edit })}
+						subcategory={subcategory}
+					/>
 				</DialogContent>
 			</Dialog>
 			<Dialog open={open.remove} onOpenChange={(remove) => setOpen({ ...open, remove })}>

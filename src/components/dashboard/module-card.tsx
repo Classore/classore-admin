@@ -53,114 +53,149 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const hasVideo = Boolean(module?.video_array.length && module.video_array.length > 0);
 	const moduleId = String(module?.id || "");
 
-	const uploadChunk = async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
-		const chunkSize = 1024 * 1024 * 2;
-		const start = chunkNumber * chunkSize;
-		const end = Math.min(start + chunkSize, file.size);
-		const chunk = file.slice(start, end);
-		const formData = new FormData();
+	const {
+		clearFiles,
+		handleClick,
+		handleDragLeave,
+		handleDragOver,
+		handleDrop,
+		handleDragEnter,
+		handleFileChange,
+		inputRef,
+		isDragging,
+	} = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			if (file) {
+				handleFiles(file);
+			}
+		},
+		fileType: "video",
+		validationRules: {
+			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
+			maxSize: 1024 * 1024 * 1024 * 5, // 500MB
+			maxFiles: 1,
+			minFiles: 1,
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+	});
 
-		const totalChunks = Math.ceil(file.size / chunkSize);
-		const chunkBlob = new Blob([chunk], { type: file.type });
-		formData.append("videos", chunkBlob, `${file.name}.part${chunkNumber}`);
-		formData.append("sequence", sequence.toString());
-		formData.append("chunkNumber", chunkNumber.toString());
-		formData.append("totalChunks", totalChunks.toString());
-		formData.append("totalSize", file.size.toString());
-		formData.append("chunkSize", chunkSize.toString());
-		formData.append("originalName", file.name);
+	const uploadChunk = React.useCallback(
+		async (chunkNumber: number, file: File, sequence: number): Promise<void> => {
+			const chunkSize = 1024 * 1024 * 2;
+			const start = chunkNumber * chunkSize;
+			const end = Math.min(start + chunkSize, file.size);
+			const chunk = file.slice(start, end);
+			const formData = new FormData();
 
-		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 30000);
+			const totalChunks = Math.ceil(file.size / chunkSize);
+			const chunkBlob = new Blob([chunk], { type: file.type });
+			formData.append("videos", chunkBlob, `${file.name}.part${chunkNumber}`);
+			formData.append("sequence", sequence.toString());
+			formData.append("chunkNumber", chunkNumber.toString());
+			formData.append("totalChunks", totalChunks.toString());
+			formData.append("totalSize", file.size.toString());
+			formData.append("chunkSize", chunkSize.toString());
+			formData.append("originalName", file.name);
 
-			console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
-				start,
-				end,
-				size: chunk.size,
-				type: file.type,
-			});
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
-				{
-					method: "PUT",
-					body: formData,
-					headers: {
-						Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
-						Accept: "application/json",
-					},
-					signal: controller.signal,
+				console.log(`Uploading chunk ${chunkNumber + 1}/${totalChunks}`, {
+					start,
+					end,
+					size: chunk.size,
+					type: file.type,
+				});
+
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/admin/learning/chapter-module/update-one/${moduleId}`,
+					{
+						method: "PUT",
+						body: formData,
+						headers: {
+							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
+							Accept: "application/json",
+						},
+						signal: controller.signal,
+					}
+				);
+
+				clearTimeout(timeoutId);
+
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
 				}
-			);
 
-			clearTimeout(timeoutId);
+				const data = await response.json();
+				console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+				setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
+			} catch (error) {
+				console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
+				throw error;
+			}
+		},
+		[moduleId]
+	);
+
+	const uploader = React.useCallback(
+		async (file: File, moduleId: string, sequence: number) => {
+			if (!file) {
+				toast.error("No file selected");
+				return;
 			}
 
-			const data = await response.json();
-			console.log(`Chunk ${chunkNumber + 1} uploaded successfully:`, data);
-
-			setUploadProgress(Math.round(((chunkNumber + 1) / totalChunks) * 100));
-		} catch (error) {
-			console.error(`Chunk ${chunkNumber + 1} upload failed:`, error);
-			throw error;
-		}
-	};
-
-	const uploader = React.useCallback(async (file: File, moduleId: string, sequence: number) => {
-		if (!file) {
-			toast.error("No file selected");
-			return;
-		}
-
-		if (!moduleId) {
-			toast.error("Invalid module ID");
-			return;
-		}
-
-		const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
-		if (!token) {
-			toast.error("Authentication token missing");
-			return;
-		}
-
-		const chunkSize = 2 * 1024 * 1024; // 2MB chunks
-		const totalChunks = Math.ceil(file.size / chunkSize);
-
-		try {
-			setIsLoading(true);
-			abortController.current = new AbortController();
-
-			console.log("Starting chunked upload:", {
-				fileName: file.name,
-				fileSize: file.size,
-				totalChunks,
-				chunkSize,
-			});
-
-			for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
-				if (abortController.current?.signal.aborted) {
-					throw new Error("Upload cancelled");
-				}
-				await uploadChunk(chunkNumber, file, sequence);
+			if (!moduleId) {
+				toast.error("Invalid module ID");
+				return;
 			}
 
-			setUploadProgress(100);
-			toast.success("File upload completed");
-		} catch (error) {
-			console.error("Upload failed:", error);
-			toast.error(error instanceof Error ? error.message : "Upload failed");
-		} finally {
-			setIsLoading(false);
-			setUploadProgress(0);
-			clearFiles();
-			abortController.current = null;
-		}
-	}, []);
+			const token = Cookies.get("CLASSORE_ADMIN_TOKEN");
+			if (!token) {
+				toast.error("Authentication token missing");
+				return;
+			}
+
+			const chunkSize = 2 * 1024 * 1024; // 2MB chunks
+			const totalChunks = Math.ceil(file.size / chunkSize);
+
+			try {
+				setIsLoading(true);
+				abortController.current = new AbortController();
+
+				console.log("Starting chunked upload:", {
+					fileName: file.name,
+					fileSize: file.size,
+					totalChunks,
+					chunkSize,
+				});
+
+				for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
+					if (abortController.current?.signal.aborted) {
+						throw new Error("Upload cancelled");
+					}
+					await uploadChunk(chunkNumber, file, sequence);
+				}
+
+				setUploadProgress(100);
+				toast.success("File upload completed");
+			} catch (error) {
+				console.error("Upload failed:", error);
+				toast.error(error instanceof Error ? error.message : "Upload failed");
+			} finally {
+				setIsLoading(false);
+				setUploadProgress(0);
+				clearFiles();
+				abortController.current = null;
+			}
+		},
+		[clearFiles, uploadChunk]
+	);
 
 	React.useEffect(() => {
 		if (isLoading && moduleId) {
@@ -202,35 +237,6 @@ export const ModuleCard = ({ chapter, module }: CourseCardProps) => {
 	const { getDragProps } = useDrag({
 		items: module?.attachments ?? [],
 		onReorder: () => {},
-	});
-
-	const {
-		clearFiles,
-		handleClick,
-		handleDragLeave,
-		handleDragOver,
-		handleDrop,
-		handleDragEnter,
-		handleFileChange,
-		inputRef,
-		isDragging,
-	} = useFileHandler({
-		onValueChange: (files) => {
-			const file = files[0];
-			if (file) {
-				handleFiles(file);
-			}
-		},
-		fileType: "video",
-		validationRules: {
-			allowedTypes: ["video/mp4", "video/webm", "video/ogg"],
-			maxSize: 1024 * 1024 * 1024 * 5, // 500MB
-			maxFiles: 1,
-			minFiles: 1,
-		},
-		onError: (error) => {
-			toast.error(error);
-		},
 	});
 
 	const handleCancelUpload = React.useCallback(() => {
@@ -384,11 +390,18 @@ export const PasteLink = ({
 			toast.error("Please enter a valid url");
 			return;
 		}
-		const video_urls: string[] = [];
-		video_urls.push(url);
 		mutate({
 			module_id: String(module?.id),
-			module: { sequence, video_urls },
+			module: {
+				sequence,
+				video_urls: [
+					{
+						derived_url: "",
+						duration: 0,
+						secure_url: "",
+					},
+				],
+			},
 		});
 	};
 

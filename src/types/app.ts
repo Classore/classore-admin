@@ -158,6 +158,8 @@ export type PaginatedRoleProps = {
 	role_name: string;
 	role_admin_read: "NO" | "YES";
 	role_admin_write: "NO" | "YES";
+	role_marketer_read: "NO" | "YES";
+	role_marketer_write: "NO" | "YES";
 	role_student_read: "NO" | "YES";
 	role_student_write: "NO" | "YES";
 	role_transactions_read: "NO" | "YES";
@@ -395,8 +397,4 @@ export type RatingProps = {
 	rating: number;
 	review: string;
 	user_id: string;
-};
-
-export type TestCenterProps = Node & {
-	__typename?: "TestCenter";
 };

@@ -11,6 +11,7 @@ export const endpoints = (id?: string) => {
 			approve_reset: "/admin/staff/password/approve-reset-request",
 			reset: "/admin/staff/password/reset",
 			delete_entity: `/auth/delete-entity`,
+			update_role: `/admin/role/update-one/${id}`,
 		},
 		calendar: {
 			create: "/admin/calendar/events/new",
@@ -42,7 +43,7 @@ export const endpoints = (id?: string) => {
 			get_questions: "/admin/learning/question/fetch-all",
 			add_video: `/admin/learning/chunk_uploads/${id}`,
 			update_exam: `${id}`,
-			update_exam_bundle: `${id}`,
+			update_exam_bundle: `/admin/examination/update-exam-bundle/${id}`,
 			update_class: `${id}`,
 			update_subject: `${id}`,
 			update_chapter: `${id}`,

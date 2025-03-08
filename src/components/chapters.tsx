@@ -164,7 +164,7 @@ export const Chapters = ({
 				<button
 					type="button"
 					onClick={addChapter}
-					className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100">
+					className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 					<RiAddLine className="size-4" />
 					<span>Add New Chapter</span>
 				</button>
@@ -217,12 +217,10 @@ export const Chapters = ({
 
 							<div className="flex flex-col gap-2">
 								{isPendingModules ? (
-									chapterId === chapter.id ? (
-										<div className="flex w-full items-center justify-center p-2">
-											<Spinner variant="primary" />
-											<p className="pl-2 text-xs">Getting chapter lessons...</p>
-										</div>
-									) : null
+									<div className="flex w-full items-center justify-center p-2">
+										<Spinner variant="primary" />
+										<p className="pl-2 text-xs">Getting chapter lessons...</p>
+									</div>
 								) : (
 									lessons
 										.filter((lesson) => lesson.chapter_sequence === chapter.sequence)

@@ -100,6 +100,28 @@ export const processImageToBase64 = (file?: File): Promise<string> => {
 	});
 };
 
+export const chunkFile = (file: File, chunkSize = 1024 * 1024 * 3) => {
+	const chunks = [];
+	const totalChunks = Math.ceil(file.size / chunkSize);
+
+	for (let i = 0; i < totalChunks; i++) {
+		const start = i * chunkSize;
+		const end = Math.min(file.size, start + chunkSize);
+		const chunk = file.slice(start, end);
+
+		chunks.push({
+			chunk,
+			end,
+			index: i,
+			size: chunk.size,
+			start,
+			totalChunks,
+		});
+	}
+
+	return chunks;
+};
+
 export type Chunk = {
 	index_number: number;
 	start_size: number;

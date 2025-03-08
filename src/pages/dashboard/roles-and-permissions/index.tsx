@@ -11,13 +11,13 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { AddAdmin, AddRoles, UserCard } from "@/components/dashboard";
 import { DashboardLayout, Unauthorized } from "@/components/layout";
-import { SearchInput, Seo } from "@/components/shared";
-import { AdminTable } from "@/components/tables";
+import { SearchInput, Seo, TabPanel } from "@/components/shared";
+import { AdminTable, RoleTable } from "@/components/tables";
+import { GetRolesQuery, GetStaffs } from "@/queries";
 import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/z-store";
 import { useDebounce } from "@/hooks";
-import { GetStaffs } from "@/queries";
 import {
 	Select,
 	SelectContent,
@@ -29,22 +29,28 @@ import {
 const user_types = ["all", "super admin", "view only", "edit access"] as const;
 const sort_options = ["NAME", "DATE_CREATED"];
 type User_Type = (typeof user_types)[number];
+const tabs = ["admins", "roles"];
 
 const Page = () => {
 	const [open, setOpen] = React.useState({ admin: false, roles: false });
 	const [user_type, setUserType] = React.useState<User_Type>("all");
 	const [sort_by, setSortBy] = React.useState("");
+	const [tab, setTab] = React.useState("admins");
 	const [name, setName] = React.useState("");
 	const [page, setPage] = React.useState(1);
 	const { user } = useUserStore();
 
 	const search = useDebounce(name, 500);
 
-	const [{ data, isLoading }] = useQueries({
+	const [{ data: admins, isLoading }, { data: roles }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-staffs", page, search],
 				queryFn: () => GetStaffs({ limit: 10, page, search }),
+			},
+			{
+				queryKey: ["get-roles"],
+				queryFn: () => GetRolesQuery(),
 			},
 		],
 	});
@@ -91,73 +97,117 @@ const Page = () => {
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<UserCard
 								icon={RiTeamLine}
-								value={data?.data.total_no_of_admins ?? 0}
+								value={admins?.data.total_no_of_admins ?? 0}
 								label="Total No of Admin"
 								percentage={10}
 								variant="success"
 							/>
 							<UserCard
 								icon={RiUser5Line}
-								value={data?.data.super_admins ?? 0}
+								value={admins?.data.super_admins ?? 0}
 								label="Super Admin"
 								percentage={10}
 								variant="success"
 							/>
 							<UserCard
 								icon={RiUser2Line}
-								value={data?.data.edit_access ?? 0}
+								value={admins?.data.edit_access ?? 0}
 								label="Edit Access"
 								percentage={10}
 								variant="danger"
 							/>
 							<UserCard
 								icon={RiUserUnfollowLine}
-								value={data?.data.view_only ?? 0}
+								value={admins?.data.view_only ?? 0}
 								label="View Only"
 								percentage={10}
 								variant="danger"
 							/>
 						</div>
 					</div>
-					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
-						<div className="flex w-full items-center justify-between">
-							<div className="flex items-center gap-x-2">
-								<p className="">Roles</p>
-								<div className="flex items-center">
-									{user_types.map((type) => (
-										<button
-											key={type}
-											onClick={() => setUserType(type)}
-											className={`h-6 min-w-[90px] rounded-md text-xs capitalize ${type === user_type ? "bg-primary-100 text-primary-400" : "text-neutral-400"}`}>
-											{type}
-										</button>
-									))}
+					<div className="flex items-center rounded-lg bg-white px-5 py-2">
+						{tabs.map((tb) => (
+							<button
+								key={tb}
+								onClick={() => setTab(tb)}
+								className={`relative flex h-10 items-center gap-x-1 px-4 text-sm font-medium capitalize transition-all duration-500 before:absolute before:bottom-0 before:left-0 before:h-0.5 before:bg-primary-400 ${tb === tab ? "text-primary-400 before:w-full" : "text-neutral-400"}`}>
+								{tb}
+							</button>
+						))}
+					</div>
+					<TabPanel selected={tab} value="admins">
+						<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
+							<div className="flex w-full items-center justify-between">
+								<div className="flex items-center gap-x-2">
+									<p className="">Admins</p>
+									<div className="flex items-center">
+										{user_types.map((type) => (
+											<button
+												key={type}
+												onClick={() => setUserType(type)}
+												className={`h-6 min-w-[90px] rounded-md text-xs capitalize ${type === user_type ? "bg-primary-100 text-primary-400" : "text-neutral-400"}`}>
+												{type}
+											</button>
+										))}
+									</div>
+								</div>
+								<div className="flex items-center gap-x-2">
+									<SearchInput value={name} onChange={(e) => setName(e.target.value)} />
+									<Select value={sort_by} onValueChange={(value) => setSortBy(value)}>
+										<SelectTrigger className="h-8 w-[90px] text-xs">
+											<SelectValue placeholder="Sort by" />
+										</SelectTrigger>
+										<SelectContent>
+											{sort_options.map((option) => (
+												<SelectItem key={option} value={option} className="text-xs">
+													{option}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</div>
 							</div>
-							<div className="flex items-center gap-x-2">
-								<SearchInput value={name} onChange={(e) => setName(e.target.value)} />
-								<Select value={sort_by} onValueChange={(value) => setSortBy(value)}>
-									<SelectTrigger className="h-8 w-[90px] text-xs">
-										<SelectValue placeholder="Sort by" />
-									</SelectTrigger>
-									<SelectContent>
-										{sort_options.map((option) => (
-											<SelectItem key={option} value={option} className="text-xs">
-												{option}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
+							<AdminTable
+								admins={admins?.data.admins.data ?? []}
+								onPageChange={setPage}
+								page={page}
+								total={admins?.data.admins.meta.itemCount ?? 0}
+								isLoading={isLoading}
+							/>
 						</div>
-						<AdminTable
-							admins={data?.data.admins.data ?? []}
-							onPageChange={setPage}
-							page={page}
-							total={data?.data.admins.meta.itemCount ?? 0}
-							isLoading={isLoading}
-						/>
-					</div>
+					</TabPanel>
+					<TabPanel selected={tab} value="roles">
+						<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
+							<div className="flex w-full items-center justify-between">
+								<div className="flex items-center gap-x-2">
+									<p className="">Roles</p>
+								</div>
+								<div className="flex items-center gap-x-2">
+									<SearchInput value={name} onChange={(e) => setName(e.target.value)} />
+									<Select value={sort_by} onValueChange={(value) => setSortBy(value)}>
+										<SelectTrigger className="h-8 w-[90px] text-xs">
+											<SelectValue placeholder="Sort by" />
+										</SelectTrigger>
+										<SelectContent>
+											{sort_options.map((option) => (
+												<SelectItem key={option} value={option} className="text-xs">
+													{option}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+							{/* table */}
+							<RoleTable
+								onPageChange={setPage}
+								page={page}
+								roles={roles?.data.data ?? []}
+								total={roles?.data.meta.itemCount ?? 0}
+								isLoading={isLoading}
+							/>
+						</div>
+					</TabPanel>
 				</div>
 			</DashboardLayout>
 		</>

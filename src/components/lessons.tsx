@@ -13,6 +13,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
 import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { Spinner, TabPanel } from "./shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+// import { RichTextEditor } from "./editor";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -21,10 +26,6 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Editor, Spinner, TabPanel } from "./shared";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -203,11 +204,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			return;
 		}
 
-		if (!lesson.tutor) {
-			toast.error("Please select a tutor for this lesson");
-			return;
-		}
-
 		updateMutate({
 			chapter_id: lessonTab ?? "",
 			module: {
@@ -292,12 +288,16 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					video_array={lesson.videos.map((video) => video)}
 				/> */}
 
-				<Editor
+				<textarea
+					name="lesson.content"
+					value={lesson.content}
+					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
+					className="h-[400px] w-full border border-neutral-400 text-sm transition-all duration-300 focus:border-primary-400"></textarea>
+				{/* <RichTextEditor
 					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
 					defaultValue={lesson.content}
-					size="md"
 					className="h-[400px]"
-				/>
+				/> */}
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}
