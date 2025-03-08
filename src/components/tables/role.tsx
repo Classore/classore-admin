@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import type { PaginatedRoleProps } from "@/types";
+import type { PaginatedRoleProps, RoleProps } from "@/types";
 import { Pagination } from "@/components/shared";
 import { RoleBadge } from "../dashboard";
 import {
@@ -15,6 +15,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { RoleActions } from "../actions";
 
 interface Props {
 	onPageChange: (page: number) => void;
@@ -61,7 +62,7 @@ export const RoleTable = ({ onPageChange, page, roles, total, isLoading }: Props
 	);
 };
 
-const LineItem = ({ role }: { role: PaginatedRoleProps }) => {
+const LineItem = ({ role }: { role: RoleProps }) => {
 	const permissions = React.useMemo(() => {
 		const pattern = /^role_(admin|marketer|student|transactions|utor|videos|waitlist)_(read|write)$/;
 		return Object.entries(role)
@@ -105,7 +106,9 @@ const LineItem = ({ role }: { role: PaginatedRoleProps }) => {
 							<RiMore2Line size={18} />
 						</button>
 					</PopoverTrigger>
-					<PopoverContent className="w-[200px]"></PopoverContent>
+					<PopoverContent className="w-[200px]">
+						<RoleActions role={role} id={role.role_id}/>
+					</PopoverContent>
 				</Popover>
 			</TableCell>
 		</TableRow>
