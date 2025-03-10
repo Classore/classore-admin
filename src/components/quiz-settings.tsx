@@ -95,7 +95,7 @@ export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 	}, [course]);
 
 	return (
-		<TabPanel innerClassName="space-y-4 pt-5" selected={tab} value="quiz">
+		<TabPanel innerClassName="space-y-4 p-3 bg-white" selected={tab} value="quiz">
 			<div className="grid w-full grid-cols-2 gap-x-4">
 				<div className="w-full space-y-3 rounded-lg bg-neutral-100 p-3">
 					<p className="text-xs font-medium text-neutral-500">QUESTION SETTINGS</p>

@@ -26,6 +26,7 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -288,16 +289,11 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					video_array={lesson.videos.map((video) => video)}
 				/> */}
 
-				<textarea
-					name="lesson.content"
+				<TiptapEditor
 					value={lesson.content}
-					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
-					className="h-[400px] w-full border border-neutral-400 text-sm transition-all duration-300 focus:border-primary-400"></textarea>
-				{/* <RichTextEditor
-					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
-					defaultValue={lesson.content}
-					className="h-[400px]"
-				/> */}
+					onChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
+					editorClassName="min-h-64"
+				/>
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}
