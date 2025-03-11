@@ -6,7 +6,7 @@ import React from "react";
 import { Breadcrumbs, Loading, Seo, TabPanel } from "@/components/shared";
 // import { CreateCourseTabPanel } from "@/components/create-course";
 import type { BreadcrumbItemProps } from "@/components/shared";
-import {  QuizSettings } from "@/components/dashboard";
+import { QuizSettings } from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
