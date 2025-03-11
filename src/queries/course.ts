@@ -1,6 +1,6 @@
+import { endpoints } from "@/config";
 import { axios, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
-import { endpoints } from "@/config";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -81,6 +81,13 @@ const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
 		.post<HttpResponse<ChapterProps>>(endpoints(payload.subject_id).school.create_chapter, formData)
+		.then((res) => res.data);
+};
+
+const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
+	const formData = createFormDataFromObject(payload);
+	return axios
+		.put<HttpResponse<ChapterProps>>(endpoints(id).school.update_chapter, formData)
 		.then((res) => res.data);
 };
 
@@ -186,11 +193,6 @@ const GetQuestion = async (id: string) => {
 	return id;
 };
 
-const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
-	const formData = createFormDataFromObject(payload);
-	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
-};
-
 const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
 	const formData = new FormData();
 	if (payload.title) formData.append("title", payload.title);
@@ -199,7 +201,9 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	if (payload.tutor) formData.append("tutor", payload.tutor);
 	if (payload.attachments?.length) {
 		payload.attachments.forEach((attachment, i) => {
-			formData.append(`attachments[${i}]`, attachment);
+			if (attachment instanceof File) {
+				formData.append(`attachments[${i}]`, attachment);
+			}
 		});
 	}
 	if (payload.images?.length) {

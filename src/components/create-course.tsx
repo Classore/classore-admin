@@ -4,10 +4,21 @@ import * as React from "react";
 import { GetChapterModules } from "@/queries";
 import { Chapters } from "./chapters";
 import { Lessons } from "./lessons";
-import { TabPanel } from "./shared";
 import { Quiz } from "./quiz";
+import { TabPanel } from "./shared";
+import { VideoTab } from "./video-tab";
 
-export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
+const requestNotificationPermission = () => {
+	if ("Notification" in window) {
+		Notification.requestPermission().then((permission) => {
+			if (permission === "granted") {
+				console.log("Notification permission granted.");
+			}
+		});
+	}
+};
+
+export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseName: string }) => {
 	const [chapterId, setChapterId] = React.useState<string | undefined>(undefined);
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 	const [lessonTab, setLessonTab] = React.useState("");
@@ -16,18 +27,23 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 		window.scrollTo({ behavior: "smooth", top: 0 });
 	}, [currentTab, lessonTab]);
 
+	React.useEffect(() => {
+		requestNotificationPermission();
+	}, []);
+
 	usePrefetchQuery({
 		queryKey: ["get-modules", { chapterId }],
 		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
 	});
 
 	return (
-		<TabPanel innerClassName="grid grid-cols-7 pt-5 gap-2" selected={tab} value="course">
+		<TabPanel innerClassName="grid grid-cols-7 gap-2 p-3 bg-white" selected={tab} value="course">
 			<Chapters
 				setLessonTab={setLessonTab}
 				lessonTab={lessonTab}
 				onChapterIdChange={setChapterId}
 				chapterId={chapterId}
+				courseName={courseName}
 			/>
 			<div className="col-span-4">
 				<TabPanel selected={currentTab} value="lesson">
@@ -35,6 +51,9 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 				</TabPanel>
 				<TabPanel selected={currentTab} value="quiz">
 					<Quiz chapterId={chapterId} lessonTab={lessonTab} setCurrentTab={setCurrentTab} />
+				</TabPanel>
+				<TabPanel selected={currentTab} value="video">
+					<VideoTab chapterId={chapterId} lessonTab={lessonTab} setCurrentTab={setCurrentTab} />
 				</TabPanel>
 			</div>
 		</TabPanel>

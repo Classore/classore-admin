@@ -3,17 +3,11 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
-import type { HttpResponse, PaginatedResponse } from "@/types";
-import type { CastedCourseProps } from "@/types/casted-types";
-import { DashboardLayout } from "@/components/layout";
-import { useNavigationStore } from "@/store/z-store";
-import type { ExamBundleResponse } from "@/queries";
 import { AddCourse } from "@/components/dashboard";
-import { GetBundle, GetSubjects } from "@/queries";
+import { DashboardLayout } from "@/components/layout";
+import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
 import { CourseTable } from "@/components/tables";
 import { Button } from "@/components/ui/button";
-import { useDebounce } from "@/hooks";
 import {
 	Select,
 	SelectContent,
@@ -21,6 +15,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useDebounce } from "@/hooks";
+import type { ExamBundleResponse } from "@/queries";
+import { GetBundle, GetSubjects } from "@/queries";
+import { useNavigationStore } from "@/store/z-store";
+import type { HttpResponse, PaginatedResponse } from "@/types";
+import type { CastedCourseProps } from "@/types/casted-types";
 
 const course_status = ["all", "published", "unpublished"] as const;
 const sort_options = ["recent", "oldest"] as const;
@@ -109,6 +109,7 @@ const Page = () => {
 						</div>
 						<AddCourse open={open} onOpenChange={setOpen} />
 					</div>
+
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<div className="flex items-center">
