@@ -5,13 +5,13 @@ import Image from "next/image";
 import { toast } from "sonner";
 import * as Yup from "yup";
 
-import { useFileHandler } from "@/hooks";
-import { queryClient } from "@/providers";
 import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
-import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { queryClient } from "@/providers";
+import { useFileHandler } from "@/hooks";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface Props {
 	course: SubjectResponse;
@@ -21,7 +21,7 @@ interface Props {
 }
 
 export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
-	const { isPending } = useMutation({
+	const { isPending, mutateAsync } = useMutation({
 		mutationKey: ["update-subject"],
 		mutationFn: (data: Partial<CreateSubjectDto>) => UpdateSubject(courseId, data),
 		onSuccess: (data) => {
@@ -50,6 +50,7 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 		}),
 		onSubmit: (values) => {
 			console.log(values);
+			mutateAsync(values);
 		},
 	});
 
