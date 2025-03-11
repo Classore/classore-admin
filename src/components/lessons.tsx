@@ -200,10 +200,10 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			return;
 		}
 
-		if (lesson.videos.length === 0) {
-			toast.error("Upload a video for this lesson");
-			return;
-		}
+		// if (lesson.videos.length === 0) {
+		// 	toast.error("Upload a video for this lesson");
+		// 	return;
+		// }
 
 		updateMutate({
 			chapter_id: lessonTab ?? "",

@@ -1,4 +1,10 @@
-import { RiAddLine, RiBookLine, RiCameraLine, RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiBookLine,
+	RiCameraLine,
+	RiDeleteBinLine,
+	RiLoaderLine,
+} from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
 import { useFormik } from "formik";
@@ -168,22 +174,22 @@ const Initial = (props: InnerProps) => {
 		onModeChange("select");
 	};
 
-		const { handleClick, handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
-			onValueChange: (files) => {
-				const file = files[0];
-				setFieldValue("banner", file);
-			},
-			fileType: "image",
-			validationRules: {
-				allowedTypes: ["image/png", "image/jpeg", "image/jpg"],
-				maxSize: 2 * 1024 * 1024, // 2MB
-				maxFiles: 1,
-				minFiles: 1,
-			},
-			onError: (error) => {
-				toast.error(error);
-			},
-		});
+	const { handleClick, handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			setFieldValue("banner", file);
+		},
+		fileType: "image",
+		validationRules: {
+			allowedTypes: ["image/png", "image/jpeg", "image/jpg"],
+			maxSize: 2 * 1024 * 1024, // 2MB
+			maxFiles: 1,
+			minFiles: 1,
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+	});
 
 	return (
 		<div className="my-4 space-y-5">

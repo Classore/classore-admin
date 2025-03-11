@@ -119,12 +119,7 @@ const Page = () => {
 							{/* <Button className="w-fit" size="sm" variant="outline">
 								Save and Exit
 							</Button> */}
-							<EditCourse
-								course={course.data}
-								courseId={courseId}
-								open={open}
-								setOpen={setOpen}
-							/>
+							<EditCourse course={course.data} courseId={courseId} open={open} setOpen={setOpen} />
 							{/* <Button className="w-fit" size="sm">
 								Next <RiArrowLeftSLine className="rotate-180" />
 							</Button> */}

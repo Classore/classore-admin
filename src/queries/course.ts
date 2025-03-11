@@ -201,7 +201,9 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	if (payload.tutor) formData.append("tutor", payload.tutor);
 	if (payload.attachments?.length) {
 		payload.attachments.forEach((attachment, i) => {
-			formData.append(`attachments[${i}]`, attachment);
+			if (attachment instanceof File) {
+				formData.append(`attachments[${i}]`, attachment);
+			}
 		});
 	}
 	if (payload.images?.length) {
