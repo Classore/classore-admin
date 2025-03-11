@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
 import {
@@ -23,6 +24,8 @@ import {
 	type DeleteEntitiesPayload,
 	GetChapterModules,
 	UpdateChapter,
+	UpdateChapterModuleSequence,
+	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { HttpError } from "@/types";
@@ -38,8 +41,15 @@ const question_actions = [
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
-const { addChapter, removeChapter, addChapterName, addChapterContent, removeLesson, addLesson } =
-	chapterActions;
+const {
+	addChapter,
+	removeChapter,
+	addChapterName,
+	addChapterContent,
+	removeLesson,
+	addLesson,
+	setChapterLessons,
+} = chapterActions;
 
 type ChaptersProps = {
 	lessonTab: string;
@@ -65,6 +75,8 @@ export const Chapters = ({
 	const lessons = useChapterStore((state) => state.lessons);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
+
+	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
 
 	// TODO: find a better way to do this
 	const { isPending: isPendingModules } = useQuery({
@@ -127,6 +139,28 @@ export const Chapters = ({
 		},
 	});
 
+	const { mutate: updateModuleSequenceMutate } = useMutation({
+		mutationFn: (payload: UpdateChapterModuleSequencePayload) => UpdateChapterModuleSequence(payload),
+		mutationKey: ["update-chapter-module-sequence"],
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+		},
+	});
+	const { getDragProps } = useDrag({
+		items: lessons,
+		onReorder: (items) => setChapterLessons(items),
+		onReady: (items) => {
+			// This only runs when the user stops dragging (i.e after 3s)
+			updateModuleSequenceMutate({
+				chapter_id: String(chapterId),
+				updates: items.map((item, index) => ({
+					module_id: item.id,
+					sequence: index + 1,
+				})),
+			});
+		},
+	});
+
 	React.useEffect(() => {
 		// This will notify the parent component when chapter.id changes
 		const chapterWithId = chapters.find((chapter) => chapter.id);
@@ -134,8 +168,6 @@ export const Chapters = ({
 			onChapterIdChange(chapterWithId?.id);
 		}
 	}, [chapters, onChapterIdChange]);
-
-	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -260,19 +292,20 @@ export const Chapters = ({
 									/>
 								</div>
 
-								<div className="flex flex-col gap-2">
-									{isPendingModules ? (
-										<div className="flex w-full items-center justify-center p-2">
+								<ul className="flex flex-col gap-2">
+									{isPendingModules && chapter.id === chapterId ? (
+										<li className="flex w-full items-center justify-center p-2">
 											<Spinner variant="primary" />
 											<p className="pl-2 text-xs">Getting chapter lessons...</p>
-										</div>
+										</li>
 									) : (
 										lessons
 											.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
-											.map((lesson) => (
-												<div
+											.map((lesson, idx) => (
+												<li
 													key={lesson.sequence}
 													onClick={() => setLessonTab(lesson.id)}
+													{...getDragProps(idx)}
 													className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
 													<RiDraggable className="size-4" />
 													<p className="flex-1 truncate text-left capitalize">
@@ -321,10 +354,10 @@ export const Chapters = ({
 															<RiDeleteBinLine className="size-4" />
 														</button>
 													)}
-												</div>
+												</li>
 											))
 									)}
-								</div>
+								</ul>
 
 								{chapter.id ? (
 									<div className="flex items-center gap-4 pt-4">

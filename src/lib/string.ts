@@ -318,3 +318,34 @@ export function formatFileSize(bytes: number): string {
 
 	return `${size} ${units[i]}`;
 }
+
+/**
+ * Creates a debounced function that delays invoking the provided function
+ * until after 'delay' milliseconds have elapsed since the last time it was invoked.
+ *
+ * @param func - The function to debounce
+ * @param delay - The number of milliseconds to delay
+ * @returns The debounced function
+ */
+export function debounce<T extends (...args: unknown[]) => unknown>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return function(this: unknown, ...args: Parameters<T>): void {
+    // Store the 'this' context
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const context = this;
+
+    // Clear any existing timeout
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+
+    // Set a new timeout
+    timeoutId = setTimeout(() => {
+      func.apply(context, args);
+    }, delay);
+  };
+}
