@@ -63,7 +63,7 @@ const Page = () => {
 						{!bundles ? (
 							<div className="flex items-center gap-x-4">
 								<RiLoaderLine className="animate-spin text-primary-400" />
-								<span className="text-sm font-medium">Fetching bundles</span>
+								<span className="text-sm font-medium">Fetching channels</span>
 							</div>
 						) : (
 							<>
