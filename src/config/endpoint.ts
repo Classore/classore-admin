@@ -45,7 +45,7 @@ export const endpoints = (id?: string) => {
 			update_exam: `${id}`,
 			update_exam_bundle: `/admin/examination/update-exam-bundle/${id}`,
 			update_class: `${id}`,
-			update_subject: `${id}`,
+			update_subject: `/admin/examination/update-subject/${id}`,
 			update_chapter: `admin/learning/chapter/update-one/${id}`,
 			update_chapter_module: `admin/learning/chapter-module/update-one/${id}`,
 			update_question: `${id}`,

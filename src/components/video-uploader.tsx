@@ -1,19 +1,19 @@
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { type Socket, io } from "socket.io-client";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 import {
 	RiDeleteBin5Line,
 	RiRefreshLine,
 	RiUploadCloud2Line,
 	RiVideoAddLine,
 } from "@remixicon/react";
-import Cookies from "js-cookie";
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { type Socket, io } from "socket.io-client";
-import { toast } from "sonner";
 
 import { Logger, embedUrl, generateUuid, getFileChunks, validateFile } from "@/lib";
+import { UploadProgress } from "./shared/upload-progress";
 import { useQueryClient } from "@tanstack/react-query";
 import { PasteLink } from "./dashboard";
 import { VideoPlayer } from "./shared";
-import { UploadProgress } from "./shared/upload-progress";
 import { Button } from "./ui/button";
 
 interface Props {
