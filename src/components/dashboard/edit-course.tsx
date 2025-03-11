@@ -1,4 +1,4 @@
-import { RiCameraLine, RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
+import { RiCameraLine, RiDeleteBinLine, RiLoaderLine, RiLoopLeftLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import Image from "next/image";
@@ -95,13 +95,30 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 										fill
 										className="size-full rounded-lg object-cover"
 									/>
-									<button
-										onClick={() =>
-											values.banner && typeof values.banner !== "string" && handleRemoveFile(values.banner)
-										}
-										className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
-										<RiDeleteBinLine size={14} />
-									</button>
+									{values.banner && typeof values.banner === "string" ? (
+										<label htmlFor="image-upload">
+											<input
+												type="file"
+												id="image-upload"
+												className="hidden"
+												onChange={handleFileChange}
+												ref={inputRef}
+											/>
+											<button
+												onClick={handleClick}
+												className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
+												<RiLoopLeftLine size={14} />
+											</button>
+										</label>
+									) : (
+										<button
+											onClick={() =>
+												values.banner && typeof values.banner !== "string" && handleRemoveFile(values.banner)
+											}
+											className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
+											<RiDeleteBinLine size={14} />
+										</button>
+									)}
 								</div>
 							) : (
 								<div className="relative size-full rounded-lg bg-gradient-to-br from-secondary-100 to-primary-300">
