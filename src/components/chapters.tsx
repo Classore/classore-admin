@@ -44,6 +44,7 @@ const { addChapter, removeChapter, addChapterName, addChapterContent, removeLess
 type ChaptersProps = {
 	lessonTab: string;
 	chapterId?: string;
+	courseName?: string;
 	onChapterIdChange?: (chapterId: string | undefined) => void;
 	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
 };
@@ -109,7 +110,7 @@ export const Chapters = ({
 		},
 	});
 
-	const { mutateAsync } = useMutation({
+	const { isPending: isDeleting, mutateAsync } = useMutation({
 		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
 		mutationKey: ["delete-entities"],
 		onSuccess: (data) => {
@@ -305,7 +306,7 @@ export const Chapters = ({
 																}}
 																type="button"
 																className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-																Confirm
+																{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
 															</button>
 														</div>
 													) : (

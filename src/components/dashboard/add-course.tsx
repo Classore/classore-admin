@@ -1,4 +1,10 @@
-import { RiAddLine, RiBookLine, RiCameraLine, RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiBookLine,
+	RiCameraLine,
+	RiDeleteBinLine,
+	RiLoaderLine,
+} from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
 import { useFormik } from "formik";
@@ -168,22 +174,22 @@ const Initial = (props: InnerProps) => {
 		onModeChange("select");
 	};
 
-		const { handleClick, handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
-			onValueChange: (files) => {
-				const file = files[0];
-				setFieldValue("banner", file);
-			},
-			fileType: "image",
-			validationRules: {
-				allowedTypes: ["image/png", "image/jpeg", "image/jpg"],
-				maxSize: 2 * 1024 * 1024, // 2MB
-				maxFiles: 1,
-				minFiles: 1,
-			},
-			onError: (error) => {
-				toast.error(error);
-			},
-		});
+	const { handleClick, handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			setFieldValue("banner", file);
+		},
+		fileType: "image",
+		validationRules: {
+			allowedTypes: ["image/png", "image/jpeg", "image/jpg"],
+			maxSize: 2 * 1024 * 1024, // 2MB
+			maxFiles: 1,
+			minFiles: 1,
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+	});
 
 	return (
 		<div className="my-4 space-y-5">
@@ -194,13 +200,13 @@ const Initial = (props: InnerProps) => {
 					{values.banner ? (
 						<div className="relative size-full rounded-lg">
 							<Image
-								src={URL.createObjectURL(values.banner)}
+								src={URL.createObjectURL(values.banner as File)}
 								alt="banner"
 								fill
 								className="size-full rounded-lg object-cover"
 							/>
 							<button
-								onClick={() => values.banner && handleRemoveFile(values.banner)}
+								onClick={() => values.banner && handleRemoveFile(values.banner as File)}
 								className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
 								<RiDeleteBinLine size={14} />
 							</button>
