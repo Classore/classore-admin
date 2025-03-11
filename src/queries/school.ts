@@ -9,8 +9,8 @@ import type {
 	ChapterProps,
 	CourseProps,
 	EntityTypeProps,
-	ExamProps,
 	ExamBundleProps,
+	ExamProps,
 	HttpResponse,
 	PaginatedResponse,
 	PaginationProps,
@@ -25,7 +25,8 @@ export interface CreateSubjectDto {
 	categoryId: string;
 	description: string;
 	name: string;
-	banner: File | null;
+	banner: File | string | null;
+	chapter_dripping: "YES" | "NO";
 }
 
 export interface CreateBundleDto {
@@ -52,6 +53,9 @@ export interface SubjectResponse {
 	examination: ExamProps;
 	examination_bundle: ExamBundleProps;
 	name: string;
+	description: string;
+	chapter_dripping: "YES" | "NO";
+	banner: string;
 }
 
 export interface ChangeDirectoryDto {
@@ -245,11 +249,12 @@ export {
 	CreateExamination,
 	CreateSubject,
 	DeleteEntity,
-	GetBundles,
 	GetBundle,
+	GetBundles,
 	GetExaminations,
-	GetSubjects,
 	GetSubject,
+	GetSubjects,
 	UpdateBundle,
 	UpdateSubject,
 };
+

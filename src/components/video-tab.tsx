@@ -1,6 +1,6 @@
 import { convertNumberToWord } from "@/lib";
 import { useChapterStore } from "@/store/z-store/chapter";
-import { RiArrowLeftSLine, RiRefreshLine } from "@remixicon/react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { VideoUploader } from "./video-uploader";
 
 interface Props {
@@ -37,13 +37,6 @@ export const VideoTab = ({ lessonTab, setCurrentTab }: Props) => {
 				sequence={lesson.sequence}
 				video_array={lesson.videos.map((video) => video)}
 			/>
-
-			<button
-				type="button"
-				className="ml-auto flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-				<RiRefreshLine className="size-4" />
-				<span>Change video</span>
-			</button>
 		</div>
 	);
 };
