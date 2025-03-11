@@ -266,6 +266,19 @@ const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
 		.then((res) => res.data);
 };
 
+export type UpdateChapterModuleSequencePayload = {
+	chapter_id: string;
+	updates: Array<{
+		module_id: string;
+		sequence: number;
+	}>;
+};
+const UpdateChapterModuleSequence = async (payload: UpdateChapterModuleSequencePayload) => {
+	return axios
+		.put(endpoints().school.update_chapter_module_sequence, payload)
+		.then((res) => res.data);
+};
+
 export {
 	CreateChapter,
 	CreateChapterModule,
@@ -282,6 +295,8 @@ export {
 	GetQuestions,
 	UpdateChapter,
 	UpdateChapterModule,
+	UpdateChapterModuleSequence,
 	UpdateQuestion,
-	UpdateQuizSettings,
+	UpdateQuizSettings
 };
+
