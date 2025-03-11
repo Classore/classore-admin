@@ -75,6 +75,7 @@ const LineItem = ({ role }: { role: RoleProps }) => {
 			})
 			.filter((item) => item.permission !== null);
 	}, [role]);
+	console.log(role)
 
 	return (
 		<TableRow>
@@ -107,10 +108,10 @@ const LineItem = ({ role }: { role: RoleProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-[200px]">
-						<RoleActions role={role} id={role.role_id}/>
+						<RoleActions role={role} id={role.role_id} /> {/* Pass the id prop here */}
 					</PopoverContent>
 				</Popover>
 			</TableCell>
 		</TableRow>
 	);
-};
+}; 
