@@ -15,7 +15,7 @@ import { endpoints } from "@/config";
 import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Spinner, TabPanel } from "./shared";
+import { Spinner, TabPanel, VideoPlayer } from "./shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 // import { RichTextEditor } from "./editor";
 import {
@@ -271,23 +271,9 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				</p>
 
 				{/* UPLOAD VIDEO */}
-				{lesson.videos.length > 0 && (
-					<video
-						src={embedUrl(lesson.videos[0])}
-						id="videoPlayer"
-						controlsList="nodownload"
-						className="h-full w-full rounded-lg"
-						width="640"
-						height="360"
-						controls>
-						Your browser does not support the video tag.
-					</video>
-				)}
-				{/* <VideoUploader
-					moduleId={lesson.lesson_chapter}
-					sequence={lesson.sequence}
-					video_array={lesson.videos.map((video) => video)}
-				/> */}
+				{lesson.videos.length > 0 ? (
+					<VideoPlayer src={embedUrl(lesson.videos[0])} className="h-full w-full rounded-lg" />
+				) : null}
 
 				<TiptapEditor
 					value={lesson.content}

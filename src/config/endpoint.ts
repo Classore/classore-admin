@@ -52,6 +52,7 @@ export const endpoints = (id?: string) => {
 			delete: "/admin/learning/delete-entities",
 			delete_entities: "admin/learning/delete-entities",
 			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
+			update_chapter_module_sequence: "admin/learning/chapter-module/update-sequence",
 		},
 		test_center: {
 			create: "",

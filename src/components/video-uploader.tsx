@@ -161,7 +161,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				}
 
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
+				const timeoutSignal = AbortSignal.timeout(MAX_TIMEOUT);
 
 				const formData = new FormData();
 				const fileChunk = file.slice(chunk.start_size, chunk.end_size);
@@ -185,10 +185,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 							Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
 							Accept: "application/json",
 						},
-						signal: controller.signal,
+						signal: AbortSignal.any([timeoutSignal, controller.signal]),
 					});
-
-					clearTimeout(timeoutId);
 
 					if (!response.ok) {
 						const errorData = await response.json();
@@ -203,7 +201,6 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 						chunk: `${chunk.index_number} of ${chunks.length}`,
 					});
 				} catch (error) {
-					clearTimeout(timeoutId);
 					Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
 					if (error instanceof Error) {
 						if (error.name === "AbortError") {
