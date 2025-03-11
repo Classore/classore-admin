@@ -14,11 +14,13 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
 import type { HttpError } from "@/types";
 import { Button } from "./ui/button";
+import { IconLabel } from "./shared";
 import {
 	CreateChapter,
 	type CreateChapterDto,
@@ -39,12 +41,14 @@ const { addChapter, removeChapter, addChapterName, addChapterContent, removeLess
 type ChaptersProps = {
 	lessonTab: string;
 	chapterId?: string;
+	courseName?: string;
 	onChapterIdChange?: (chapterId: string | undefined) => void;
 	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export const Chapters = ({
 	chapterId,
+	courseName,
 	setLessonTab,
 	lessonTab,
 	onChapterIdChange,
@@ -52,6 +56,7 @@ export const Chapters = ({
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
 	const [current, setCurrent] = React.useState(0);
+	const [open, setOpen] = React.useState(false);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
@@ -78,7 +83,7 @@ export const Chapters = ({
 		},
 	});
 
-	const { mutateAsync } = useMutation({
+	const { isPending: isDeleting, mutateAsync } = useMutation({
 		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
 		mutationKey: ["delete-entities"],
 		onSuccess: (data) => {
@@ -179,15 +184,52 @@ export const Chapters = ({
 							<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
 
 							<div className="flex items-center">
-								{question_actions.map(({ icon: Icon, label }, index) => (
-									<button
-										type="button"
-										key={index}
-										onClick={() => handleActions(label, chapter.sequence)}
-										className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
-										<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
-									</button>
-								))}
+								{question_actions.map(({ icon: Icon, label }, index) => {
+									if (label === "delete") {
+										return (
+											<Dialog key={index} onOpenChange={setOpen} open={open}>
+												<DialogTrigger asChild>
+													<button
+														type="button"
+														onClick={() => setOpen(true)}
+														className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+														<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
+													</button>
+												</DialogTrigger>
+												<DialogContent className="w-[400px] p-1">
+													<div className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
+														<IconLabel icon={RiDeleteBin6Line} />
+														<DialogTitle className="my-4">Delete Chapter</DialogTitle>
+														<DialogDescription>
+															Are you sure you want to delete this chapter from {courseName}?
+														</DialogDescription>
+														<div className="mt-6 flex w-full items-center justify-end gap-x-4">
+															<Button onClick={() => setOpen(false)} className="w-fit" variant="outline">
+																Cancel
+															</Button>
+															<Button
+																className="w-fit"
+																variant="destructive"
+																onClick={() => handleActions(label, chapter.sequence)}>
+																{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Yes, delete"}
+															</Button>
+														</div>
+													</div>
+												</DialogContent>
+											</Dialog>
+										);
+									} else {
+										return (
+											<button
+												type="button"
+												key={index}
+												onClick={() => handleActions(label, chapter.sequence)}
+												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
+											</button>
+										);
+									}
+								})}
 							</div>
 						</div>
 						<div className="flex flex-col gap-2 p-5">

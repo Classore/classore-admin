@@ -7,7 +7,7 @@ import { Lessons } from "./lessons";
 import { TabPanel } from "./shared";
 import { Quiz } from "./quiz";
 
-export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
+export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseName: string }) => {
 	const [chapterId, setChapterId] = React.useState<string | undefined>(undefined);
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 	const [lessonTab, setLessonTab] = React.useState("");
@@ -28,6 +28,7 @@ export const CreateCourseTabPanel = ({ tab }: { tab: string }) => {
 				lessonTab={lessonTab}
 				onChapterIdChange={setChapterId}
 				chapterId={chapterId}
+				courseName={courseName}
 			/>
 			<div className="col-span-4">
 				<TabPanel selected={currentTab} value="lesson">

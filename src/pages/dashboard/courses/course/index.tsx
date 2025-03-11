@@ -145,7 +145,7 @@ const Page = () => {
 					</section>
 				</div>
 				<div className="w-full">
-					<CreateCourseTabPanel tab={tab} />
+					<CreateCourseTabPanel tab={tab} courseName={course.data.name} />
 					<QuizSettingsTab tab={tab} />
 					<AssignTeachers tab={tab} />
 				</div>
