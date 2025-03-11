@@ -1,7 +1,3 @@
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -13,13 +9,14 @@ import {
 	RiFolderVideoLine,
 	RiLoaderLine,
 } from "@remixicon/react";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
 import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
-import type { HttpError } from "@/types";
-import { Button } from "./ui/button";
-import { Spinner } from "./shared";
 import {
 	CreateChapter,
 	type CreateChapterDto,
@@ -30,6 +27,12 @@ import {
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError } from "@/types";
+import { DeleteModal } from "./delete-modal";
+import { Spinner } from "./shared";
+import { Button } from "./ui/button";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -62,12 +65,11 @@ export const Chapters = ({
 	lessonTab,
 	onChapterIdChange,
 }: ChaptersProps) => {
-	const [openDuplicateModal, setOpenDuplicateModal] = React.useState(false);
-	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
-	const [currentSequence, setCurrentSequence] = React.useState(0);
-	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [isOpen, setIsOpen] = React.useState(false);
+	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
 	const [current, setCurrent] = React.useState(0);
+	const [currentLesson, setCurrentLesson] = React.useState("");
+	const [currentSequence, setCurrentSequence] = React.useState(0);
 
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
@@ -214,14 +216,13 @@ export const Chapters = ({
 
 		switch (action) {
 			case "up":
-				reorderChapter(chapterId, "up");
+				console.log("up");
 				break;
 			case "down":
-				reorderChapter(chapterId, "down");
-
+				console.log("down");
 				break;
 			case "duplicate":
-				setOpenDuplicateModal(true);
+				console.log("duplicate");
 				break;
 			case "delete":
 				setOpenDeleteModal(true);
@@ -234,12 +235,6 @@ export const Chapters = ({
 
 	return (
 		<>
-			<DuplicateCourse
-				chapterId=""
-				courseId=""
-				onOpenChange={setOpenDuplicateModal}
-				open={openDuplicateModal}
-			/>
 			<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
 				<div className="flex items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
