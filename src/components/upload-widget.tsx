@@ -6,8 +6,8 @@ import React, { useState, useRef } from "react";
 
 import { UpdateChapterModule, type UpdateChapterModuleDto } from "@/queries";
 import type { CloudinaryAssetResponse } from "@/types";
-import { PasteLink } from "./dashboard/module-card";
 import { queryClient } from "@/providers";
+import { PasteLink } from "./dashboard";
 import { Button } from "./ui/button";
 
 interface Props {
