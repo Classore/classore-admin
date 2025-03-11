@@ -9,8 +9,8 @@ import type {
 	ChapterProps,
 	CourseProps,
 	EntityTypeProps,
-	ExamProps,
 	ExamBundleProps,
+	ExamProps,
 	HttpResponse,
 	PaginatedResponse,
 	PaginationProps,
@@ -25,6 +25,8 @@ export interface CreateSubjectDto {
 	categoryId: string;
 	description: string;
 	name: string;
+	banner: File | string | null;
+	chapter_dripping: "YES" | "NO";
 }
 
 export interface CreateBundleDto {
@@ -51,6 +53,9 @@ export interface SubjectResponse {
 	examination: ExamProps;
 	examination_bundle: ExamBundleProps;
 	name: string;
+	description: string;
+	chapter_dripping: "YES" | "NO";
+	banner: string;
 }
 
 export interface ChangeDirectoryDto {
@@ -90,8 +95,14 @@ const CreateBundle = async (payload: CreateBundleDto) => {
 };
 
 const CreateSubject = async (payload: CreateSubjectDto) => {
+	const formData = new FormData();
+	formData.append("examination_bundle", payload.examination_bundle);
+	formData.append("categoryId", payload.categoryId);
+	formData.append("description", payload.description);
+	formData.append("name", payload.name);
+	formData.append("banner", payload.banner as File);
 	return axios
-		.post<HttpResponse<CourseProps>>(endpoints().school.create_subject, payload)
+		.post<HttpResponse<CourseProps>>(endpoints().school.create_subject, formData)
 		.then((res) => res.data);
 };
 
@@ -205,6 +216,28 @@ const UpdateBundle = async (id: string, payload: Partial<CreateBundleDto>) => {
 		.then((res) => res.data);
 };
 
+const UpdateSubject = async (id: string, payload: Partial<CreateSubjectDto>) => {
+	const formData = new FormData();
+	if (payload.examination_bundle) {
+		formData.append("examination_bundle", payload.examination_bundle);
+	}
+	if (payload.categoryId) {
+		formData.append("categoryId", payload.categoryId);
+	}
+	if (payload.description) {
+		formData.append("description", payload.description);
+	}
+	if (payload.name) {
+		formData.append("name", payload.name);
+	}
+	if (payload.banner && payload.banner instanceof File) {
+		formData.append("banner", payload.banner);
+	}
+	return axios
+		.put<HttpResponse<CourseProps>>(endpoints(id).school.update_subject, formData)
+		.then((res) => res.data);
+};
+
 const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
 	return axios
 		.delete<HttpResponse<string>>(endpoints().school.delete, { data: { ids, model_type } })
@@ -216,10 +249,11 @@ export {
 	CreateExamination,
 	CreateSubject,
 	DeleteEntity,
-	GetBundles,
 	GetBundle,
+	GetBundles,
 	GetExaminations,
-	GetSubjects,
 	GetSubject,
+	GetSubjects,
 	UpdateBundle,
+	UpdateSubject,
 };

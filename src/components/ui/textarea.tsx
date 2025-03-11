@@ -23,7 +23,7 @@ const Textarea = React.forwardRef<
 			<div className={cn("relative min-h-20", wrapperClassName)}>
 				<textarea
 					className={cn(
-						"flex h-full w-full resize-none rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-500 focus:border-primary-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-xs",
+						"flex h-full w-full resize-none rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-neutral-500 focus:border-primary-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-xs",
 						className
 					)}
 					ref={ref}

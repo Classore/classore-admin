@@ -1,17 +1,23 @@
-import { RiAddLine, RiDeleteBin5Line, RiFile2Line, RiFileUploadLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiDeleteBin5Line,
+	RiFile2Line,
+	RiFileUploadLine,
+	RiUploadCloud2Line,
+} from "@remixicon/react";
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { axios, convertNumberToWord, formatFileSize } from "@/lib";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Spinner, TabPanel } from "./shared";
-import { VideoUploader } from "./video-uploader";
 import { Button } from "@/components/ui/button";
 import { endpoints } from "@/config";
+import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { Spinner, TabPanel } from "./shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+// import { RichTextEditor } from "./editor";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -20,6 +26,7 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -193,10 +200,10 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			return;
 		}
 
-		if (lesson.videos.length === 0) {
-			toast.error("Upload a video for this lesson");
-			return;
-		}
+		// if (lesson.videos.length === 0) {
+		// 	toast.error("Upload a video for this lesson");
+		// 	return;
+		// }
 
 		updateMutate({
 			chapter_id: lessonTab ?? "",
@@ -229,21 +236,21 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 						{convertNumberToWord(lesson.chapter_sequence)}
 					</p>
 
-					<div className="flex items-center gap-4">
-						{/* <button
+					<div className="flex items-center gap-2">
+						<button
 							type="button"
 							disabled={!lesson.lesson_chapter}
-							onClick={() => setCurrentTab("quiz")}
-							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 disabled:cursor-not-allowed">
-							<RiVideoAddLine className="size-4" />
-							<span>Add Video</span>
-						</button> */}
+							onClick={() => setCurrentTab("video")}
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed">
+							<RiUploadCloud2Line className="size-4" />
+							<span>Upload Video</span>
+						</button>
 
 						<button
 							type="button"
 							disabled={!lesson.lesson_chapter}
 							onClick={() => setCurrentTab("quiz")}
-							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 disabled:cursor-not-allowed">
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed">
 							<RiAddLine className="size-4" />
 							<span>Add Quiz</span>
 						</button>
@@ -258,23 +265,35 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					className="w-full rounded-md border border-neutral-200 bg-transparent bg-white text-base font-semibold text-neutral-600 outline-0 ring-0 placeholder:text-base placeholder:font-normal placeholder:text-neutral-300 focus:border-2 focus:border-b-primary-300 focus:ring-0"
 				/>
 
+				<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
+					<strong>Note:</strong> You can only upload video or add quiz for this lesson after saving. To
+					save, click the <strong>Save</strong> button at the bottom.
+				</p>
+
 				{/* UPLOAD VIDEO */}
-				<VideoUploader
+				{lesson.videos.length > 0 && (
+					<video
+						src={embedUrl(lesson.videos[0])}
+						id="videoPlayer"
+						controlsList="nodownload"
+						className="h-full w-full rounded-lg"
+						width="640"
+						height="360"
+						controls>
+						Your browser does not support the video tag.
+					</video>
+				)}
+				{/* <VideoUploader
 					moduleId={lesson.lesson_chapter}
 					sequence={lesson.sequence}
 					video_array={lesson.videos.map((video) => video)}
-				/>
-
-				<textarea
-					name="lesson.content"
-					value={lesson.content}
-					onChange={(e) => addLessonContent(lesson.sequence, e.target.value, lesson.chapter_sequence)}
-					className="h-[400px] w-full border border-neutral-400 text-sm transition-all duration-300 focus:border-primary-400"></textarea>
-				{/* <Editor
-					onValueChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
-					defaultValue={lesson.content}
-					className="h-[400px]"
 				/> */}
+
+				<TiptapEditor
+					value={lesson.content}
+					onChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
+					editorClassName="min-h-64"
+				/>
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}

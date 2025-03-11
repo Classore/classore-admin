@@ -1,6 +1,6 @@
+import { endpoints } from "@/config";
 import { axios, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
-import { endpoints } from "@/config";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -22,6 +22,7 @@ export interface CreateChapterDto {
 	sequence: number;
 	subject_id: string;
 	videos: File[];
+	banner?: File | string;
 	tags?: string[];
 	tutor?: string;
 }
@@ -80,6 +81,13 @@ const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
 		.post<HttpResponse<ChapterProps>>(endpoints(payload.subject_id).school.create_chapter, formData)
+		.then((res) => res.data);
+};
+
+const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
+	const formData = createFormDataFromObject(payload);
+	return axios
+		.put<HttpResponse<ChapterProps>>(endpoints(id).school.update_chapter, formData)
 		.then((res) => res.data);
 };
 
@@ -185,11 +193,6 @@ const GetQuestion = async (id: string) => {
 	return id;
 };
 
-const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
-	const formData = createFormDataFromObject(payload);
-	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
-};
-
 const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
 	const formData = new FormData();
 	if (payload.title) formData.append("title", payload.title);
@@ -198,24 +201,14 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	if (payload.tutor) formData.append("tutor", payload.tutor);
 	if (payload.attachments?.length) {
 		payload.attachments.forEach((attachment, i) => {
-			formData.append(`attachments[${i}]`, attachment);
+			if (attachment instanceof File) {
+				formData.append(`attachments[${i}]`, attachment);
+			}
 		});
 	}
 	if (payload.images?.length) {
 		payload.images.forEach((image, i) => {
 			formData.append(`images[${i}]`, image);
-		});
-	}
-	if (payload.videos?.length) {
-		payload.videos.forEach((video, i) => {
-			formData.append(`videos[${i}]`, video);
-		});
-	}
-	if (payload.video_urls) {
-		payload.video_urls.forEach((video_url, i) => {
-			formData.append(`video_urls[${i}][derived_url]`, video_url.derived_url);
-			formData.append(`video_urls[${i}][duration]`, video_url.duration.toString());
-			formData.append(`video_urls[${i}][secure_url]`, video_url.secure_url);
 		});
 	}
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
@@ -254,7 +247,15 @@ const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload
 
 export type DeleteEntitiesPayload = {
 	ids: string[];
-	model_type: "CHAPTER" | "CHAPTER_MODULE" | "QUESTION" | "EXAM_BUNDLE" | "EXAMINATION" | "SUBJECT";
+	model_type:
+		| "ADMIN"
+		| "CHAPTER"
+		| "CHAPTER_MODULE"
+		| "QUESTION"
+		| "EXAM_BUNDLE"
+		| "EXAMINATION"
+		| "SUBJECT"
+		| "USER";
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {

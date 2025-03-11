@@ -3,10 +3,11 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { AssignTeachers, CreateCourse, QuizSettings } from "@/components/dashboard";
-import { DashboardLayout } from "@/components/layout";
-import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Loading, Seo, TabPanel } from "@/components/shared";
+// import { CreateCourseTabPanel } from "@/components/create-course";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import {  QuizSettings } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -93,12 +94,12 @@ const Page = () => {
 						</div>
 						<div className="h-full w-full">
 							<TabPanel selected={tab} value="course">
-								<CreateCourse existingChapters={course.data.chapters} />
+								{/* <CreateCourse existingChapters={course.data.chapters} /> */}
 							</TabPanel>
 							<TabPanel selected={tab} value="settings">
 								<QuizSettings />
 							</TabPanel>
-							<AssignTeachers tab={tab} />
+							{/* <AssignTeachers tab={tab} /> */}
 						</div>
 					</div>
 				</div>
