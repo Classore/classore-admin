@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 
 type Chapter = {
@@ -36,8 +37,7 @@ type ChapterActions = {
 	addChapterName: (sequence: number, name: string) => void;
 	addChapterContent: (sequence: number, content: string) => void;
 	setChapters: (chapters: Chapter[]) => void;
-	// moveChapterUp: (sequence: number) => void;
-	// moveChapterDown: (sequence: number) => void;
+	reorderChapter: (chapterId: string, direction: "up" | "down") => void;
 
 	// chapter lessons
 	setChapterLessons: (lessons: Lesson[]) => void;
@@ -135,6 +135,31 @@ const chapterActions: ChapterActions = {
 		useChapterStore.setState(() => ({
 			chapters,
 		}));
+	},
+	reorderChapter: (chapterId: string, direction: "up" | "down") => {
+		useChapterStore.setState((state) => {
+			const chapters = [...state.chapters];
+			const chapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
+
+			if (chapterIndex === -1) {
+				toast.error("Chapter not found");
+				return state;
+			}
+
+			const targetIndex = direction === "up" ? chapterIndex - 1 : chapterIndex + 1;
+
+			if (targetIndex < 0 || targetIndex >= chapters.length) {
+				toast.error("Cannot move chapter further");
+				return state;
+			}
+
+			[chapters[chapterIndex], chapters[targetIndex]] = [
+				chapters[targetIndex],
+				chapters[chapterIndex],
+			];
+
+			return { chapters };
+		});
 	},
 
 	// LESSONS ACTIONS

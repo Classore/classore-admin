@@ -62,7 +62,7 @@ export const validateFile = (file: File | null, options?: ValidationOptions) => 
 	return undefined;
 };
 
-export function debounce<T extends (...args: unknown[]) => unknown>(
+export function debounceFn<T extends (...args: unknown[]) => unknown>(
 	func: T,
 	wait: number
 ): (...args: Parameters<T>) => void {
