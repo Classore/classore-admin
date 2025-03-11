@@ -1,27 +1,26 @@
 import { RiCameraLine, RiDeleteBinLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
-import { toast } from "sonner";
 import Image from "next/image";
+import { toast } from "sonner";
 import * as Yup from "yup";
-import React from "react";
 
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { UpdateSubject, type CreateSubjectDto } from "@/queries";
-import { queryClient } from "@/providers";
-import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
+import { queryClient } from "@/providers";
+import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
-	courseId: string;
+	course: SubjectResponse;
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	subject: string;
+	courseId: string;
 }
 
-export const EditCourse = ({ courseId, open, setOpen, subject }: Props) => {
+export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 	const { isPending } = useMutation({
 		mutationKey: ["update-subject"],
 		mutationFn: (data: Partial<CreateSubjectDto>) => UpdateSubject(courseId, data),
@@ -36,9 +35,9 @@ export const EditCourse = ({ courseId, open, setOpen, subject }: Props) => {
 	});
 
 	const initialValues: Partial<CreateSubjectDto> = {
-		name: subject,
-		description: "",
-		banner: null,
+		name: course.name,
+		description: course.description,
+		banner: course.banner ?? null,
 	};
 
 	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
@@ -89,13 +88,17 @@ export const EditCourse = ({ courseId, open, setOpen, subject }: Props) => {
 							{values.banner ? (
 								<div className="relative size-full rounded-lg">
 									<Image
-										src={URL.createObjectURL(values.banner)}
+										src={
+											typeof values.banner === "string" ? values.banner : URL.createObjectURL(values.banner)
+										}
 										alt="banner"
 										fill
 										className="size-full rounded-lg object-cover"
 									/>
 									<button
-										onClick={() => values.banner && handleRemoveFile(values.banner)}
+										onClick={() =>
+											values.banner && typeof values.banner !== "string" && handleRemoveFile(values.banner)
+										}
 										className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
 										<RiDeleteBinLine size={14} />
 									</button>

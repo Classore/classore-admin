@@ -1,16 +1,13 @@
+import { RiLoaderLine, RiUserAddLine } from "@remixicon/react";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import React from "react";
-import { RiLoaderLine, RiUserAddLine } from "@remixicon/react";
+import * as Yup from "yup";
 
-import { type CreateAdminDto, CreateAdminMutation } from "@/queries";
-import { Button } from "@/components/ui/button";
 import { IconLabel } from "@/components/shared";
-import { Input } from "@/components/ui/input";
-import { GetRolesQuery } from "@/queries";
-import { queryClient } from "@/providers";
+import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
@@ -18,6 +15,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { queryClient } from "@/providers";
+import { type CreateAdminDto, CreateAdminMutation, GetRolesQuery } from "@/queries";
 
 interface Props {
 	setOpen: (open: boolean) => void;
@@ -62,7 +61,12 @@ export const AddAdmin = ({ setOpen }: Props) => {
 					"The name must be two names separated by a single space. No other characters are allowed!"
 				),
 			email: Yup.string().email("Invalid email").required("Email is required"),
-			password: Yup.string().required("Password is required"),
+			password: Yup.string()
+				.required("Password is required")
+				.min(
+					8,
+					"Password must be at least 8 characters and must contain a number, uppercase, lowercase and special characters"
+				),
 			phone_number: Yup.string().optional(),
 			role: Yup.string().required("Role is required"),
 		}),
@@ -106,13 +110,19 @@ export const AddAdmin = ({ setOpen }: Props) => {
 					type="email"
 					error={named_errors.email}
 				/>
-				<Input
-					label="Password"
-					name="password"
-					onChange={handleChange}
-					type="password"
-					error={named_errors.password}
-				/>
+				<div>
+					<Input
+						label="Password"
+						name="password"
+						onChange={handleChange}
+						type="password"
+						error={named_errors.password}
+					/>
+					<p className="pt-1 text-[10px] text-neutral-400">
+						Password must be at least 8 characters and must contain a number, uppercase, lowercase and
+						special characters
+					</p>
+				</div>
 				<div className="space-y-1.5">
 					<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="role">
 						Set Permission
