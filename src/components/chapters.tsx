@@ -235,7 +235,12 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
+			<div
+				className={
+					chapters.length > 0
+						? "col-span-3 flex h-[calc(100vh-150px)] flex-col gap-4 rounded-md bg-neutral-100 p-4"
+						: "col-span-3 flex flex-col gap-4 rounded-md bg-neutral-100 p-4"
+				}>
 				<div className="flex items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
 
@@ -249,7 +254,9 @@ export const Chapters = ({
 				</div>
 
 				{/* chapters */}
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+				<form
+					onSubmit={handleSubmit}
+					className={`flex flex-col gap-4 ${chapters.length > 0 ? "flex-1 overflow-y-auto" : ""}`}>
 					{chapters.map((chapter, index) => (
 						<div
 							key={chapter.id}
@@ -292,72 +299,74 @@ export const Chapters = ({
 									/>
 								</div>
 
-								<ul className="flex flex-col gap-2">
-									{isPendingModules && chapter.id === chapterId ? (
-										<li className="flex w-full items-center justify-center p-2">
-											<Spinner variant="primary" />
-											<p className="pl-2 text-xs">Getting chapter lessons...</p>
-										</li>
-									) : (
-										lessons
-											.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
-											.map((lesson, idx) => (
-												<li
-													key={lesson.sequence}
-													onClick={() => setLessonTab(lesson.id)}
-													{...getDragProps(idx)}
-													className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
-													<RiDraggable className="size-4" />
-													<p className="flex-1 truncate text-left capitalize">
-														{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
-													</p>
+								<div className="max-h-60 overflow-y-auto rounded-md border border-neutral-100">
+									<ul className="flex flex-col gap-2">
+										{isPendingModules && chapter.id === chapterId ? (
+											<li className="flex w-full items-center justify-center p-2">
+												<Spinner variant="primary" />
+												<p className="pl-2 text-xs">Getting chapter lessons...</p>
+											</li>
+										) : (
+											lessons
+												.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
+												.map((lesson, idx) => (
+													<li
+														key={lesson.sequence}
+														onClick={() => setLessonTab(lesson.id)}
+														{...getDragProps(idx)}
+														className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+														<RiDraggable className="size-4" />
+														<p className="flex-1 truncate text-left capitalize">
+															{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
+														</p>
 
-													{isOpen && currentLesson === lesson.id ? (
-														<div className="flex items-center gap-1 text-xs">
+														{isOpen && currentLesson === lesson.id ? (
+															<div className="flex items-center gap-1 text-xs">
+																<button
+																	type="button"
+																	className="rounded bg-neutral-100 px-2 py-1"
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		setIsOpen(false);
+																	}}>
+																	Cancel
+																</button>
+																<button
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		setLessonTab("");
+																		if (lesson?.lesson_chapter) {
+																			// delete the data immediately and send the request in the background
+																			mutateAsync({
+																				ids: [lesson.id],
+																				model_type: "CHAPTER_MODULE",
+																			});
+																		}
+																		removeLesson(chapter.sequence, lesson.sequence);
+																		setIsOpen(false);
+																	}}
+																	type="button"
+																	className="rounded bg-red-600 px-2 py-1 font-medium text-white">
+																	{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																</button>
+															</div>
+														) : (
 															<button
-																type="button"
-																className="rounded bg-neutral-100 px-2 py-1"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	setIsOpen(false);
-																}}>
-																Cancel
-															</button>
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setLessonTab("");
-																	if (lesson?.lesson_chapter) {
-																		// delete the data immediately and send the request in the background
-																		mutateAsync({
-																			ids: [lesson.id],
-																			model_type: "CHAPTER_MODULE",
-																		});
-																	}
-																	removeLesson(chapter.sequence, lesson.sequence);
-																	setIsOpen(false);
+																	setCurrentLesson(lesson.id);
+																	setIsOpen(true);
 																}}
 																type="button"
-																className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-																{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+																<RiDeleteBinLine className="size-4" />
 															</button>
-														</div>
-													) : (
-														<button
-															onClick={(e) => {
-																e.stopPropagation();
-																setCurrentLesson(lesson.id);
-																setIsOpen(true);
-															}}
-															type="button"
-															className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-															<RiDeleteBinLine className="size-4" />
-														</button>
-													)}
-												</li>
-											))
-									)}
-								</ul>
+														)}
+													</li>
+												))
+										)}
+									</ul>
+								</div>
 
 								{chapter.id ? (
 									<div className="flex items-center gap-4 pt-4">
