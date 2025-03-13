@@ -27,7 +27,6 @@ export const RoleActions = ({ role, id }: Props) => {
 	const [permissions, setPermissions] = useState<PermissionItem[]>([]);
 	const [loading, setLoading] = useState(false);
 
-
 	const extractPermissions = () => {
 		if (!role) return;
 
@@ -46,7 +45,6 @@ export const RoleActions = ({ role, id }: Props) => {
 		extractPermissions();
 	}, [role]);
 
-
 	const togglePermission = (permissionKey: string) => {
 		setPermissions((prev) =>
 			prev.map((item) =>
@@ -55,61 +53,57 @@ export const RoleActions = ({ role, id }: Props) => {
 		);
 	};
 
-
 	const handleSave = () => {
 		updateRolePermissions();
 	};
 
-
-
-
 	const updateRolePermissions = async () => {
-    try {
-        setLoading(true);
+		try {
+			setLoading(true);
 
-        if (!id) {
-            alert("Error: Missing ID for role update.");
-            return;
-        }
+			if (!id) {
+				alert("Error: Missing ID for role update.");
+				return;
+			}
 
-      
-        const apiUrl = `https://classore-be-dev.up.railway.app/classore/v1/admin/staff/update/${id}`;
+			const apiUrl = `https://classore-be-dev.up.railway.app/classore/v1/admin/staff/update/${id}`;
 
-        const response = await fetch(apiUrl, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                permissions: permissions.reduce((acc, item) => {
-                    acc[item.permission] = item.hasPermission ? "YES" : "NO";
-                    return acc;
-                }, {} as Record<string, string>),
-            }),
-        });
+			const response = await fetch(apiUrl, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					permissions: permissions.reduce(
+						(acc, item) => {
+							acc[item.permission] = item.hasPermission ? "YES" : "NO";
+							return acc;
+						},
+						{} as Record<string, string>
+					),
+				}),
+			});
 
-        const data = await response.json();
+			const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to update permissions.");
-        }
+			if (!response.ok) {
+				throw new Error(data.message || "Failed to update permissions.");
+			}
 
-        alert("Permissions updated successfully!");
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("API Error:", error.message);
-            alert(`Error updating permissions: ${error.message}`);
-        } else {
-            console.error("Unknown Error:", error);
-            alert("An unknown error occurred. Please try again.");
-        }
-    } finally {
-        setLoading(false);
-        setIsEditOpen(false);
-    }
-};
-
-  
+			alert("Permissions updated successfully!");
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				console.error("API Error:", error.message);
+				alert(`Error updating permissions: ${error.message}`);
+			} else {
+				console.error("Unknown Error:", error);
+				alert("An unknown error occurred. Please try again.");
+			}
+		} finally {
+			setLoading(false);
+			setIsEditOpen(false);
+		}
+	};
 
 	return (
 		<div className="flex w-full flex-col gap-y-1">
@@ -130,7 +124,7 @@ export const RoleActions = ({ role, id }: Props) => {
 
 					<div className="grid grid-cols-1 gap-2 p-2">
 						{permissions.map((permission) => (
-							<div key={permission.permission} className="flex items-center gap-2 justify-between">
+							<div key={permission.permission} className="flex items-center justify-between gap-2">
 								<RoleBadge permission={permission} />
 								<Switch
 									checked={permission.hasPermission}

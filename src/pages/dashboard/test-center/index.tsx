@@ -25,10 +25,13 @@ const Page = () => {
 	const [page, setPage] = React.useState(1);
 	const { user } = useUserStore();
 
-	const { isLoading } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: ["get-tests", { page }],
 		queryFn: () => GetTests({ limit: 10, page }),
-		enabled: false,
+		select: (data) => ({
+			data: data?.data?.data,
+			meta: data?.data?.meta,
+		}),
 	});
 
 	if (!hasPermission(user, ["videos_read"])) {
@@ -81,7 +84,7 @@ const Page = () => {
 							<TestCenterTable
 								onPageChange={setPage}
 								page={page}
-								tests={[]}
+								tests={data?.data || []}
 								total={0}
 								isLoading={isLoading}
 							/>

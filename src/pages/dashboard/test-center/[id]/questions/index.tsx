@@ -22,20 +22,10 @@ const Page = () => {
 	const [current, setCurrent] = React.useState(0);
 	const [tab, setTab] = React.useState("create");
 	const router = useRouter();
-	const sectorId = router.query.id as string;
+	const sectionId = router.query.id as string;
 
+	const [questions, setQuestions] = React.useState<TestCenterQuestionProps[]>([]);
 	const { removeQuestion } = useTestCenterStore();
-
-	const existingQuestions: TestCenterQuestionProps[] = [];
-
-	const [questions, setQuestions] = React.useState<TestCenterQuestionProps[]>(() => {
-		const initialQuestions = existingQuestions.map((question, index) => ({
-			...question,
-			sequence: index,
-		}));
-
-		return initialQuestions;
-	});
 
 	const addQuestion = () => {
 		const question = getEmptyQuestion(questions.length + 1);
@@ -44,14 +34,14 @@ const Page = () => {
 
 	const links: BreadcrumbItemProps[] = [
 		{ href: "/dashboard/test-center", label: "Manage Test Center", active: true },
-		{ href: `/dashboard/test-center/${sectorId}`, label: `test exam`, active: true },
-		{ href: `/dashboard/test-center/${sectorId}/questions`, label: `test section`, active: true },
+		{ href: `/dashboard/test-center/${sectionId}`, label: `test exam`, active: true },
+		{ href: `/dashboard/test-center/${sectionId}/questions`, label: `test section`, active: true },
 		{ href: ``, label: "Change Directory", variant: "warning" },
 	];
 
 	return (
 		<>
-			<Seo title={sectorId} />
+			<Seo title={sectionId} />
 			<DashboardLayout>
 				<div className="h-full w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
@@ -62,7 +52,7 @@ const Page = () => {
 								</Button>
 								<p className="text-sm font-medium">Test Title</p>
 							</div>
-							<Breadcrumbs courseId={sectorId} links={links} />
+							<Breadcrumbs courseId={sectionId} links={links} />
 						</div>
 						<div className="flex items-center gap-x-4">
 							<Button className="w-fit" size="sm" variant="destructive-outline">
@@ -102,14 +92,16 @@ const Page = () => {
 										<RiAddLine className="size-4" /> Add New Question
 									</button>
 								</div>
-								<QuestionCard
-									sectionId=""
-									sequence={current}
-									question={questions[current]}
-									onDelete={(sequence) => removeQuestion(sectorId, sequence)}
-									onDuplicate={() => {}}
-									onReorder={() => {}}
-								/>
+								{!!questions.length && (
+									<QuestionCard
+										sectionId={sectionId}
+										sequence={current}
+										question={questions[current]}
+										onDelete={(sequence) => removeQuestion(sectionId, sequence)}
+										onDuplicate={() => {}}
+										onReorder={() => {}}
+									/>
+								)}
 							</div>
 							<div className="col-span-5 px-8">
 								<div className="w-[285px] space-y-5 rounded-md border p-3">

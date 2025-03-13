@@ -75,7 +75,7 @@ const LineItem = ({ role }: { role: RoleProps }) => {
 			})
 			.filter((item) => item.permission !== null);
 	}, [role]);
-	console.log(role)
+	console.log(role);
 
 	return (
 		<TableRow>
@@ -114,4 +114,4 @@ const LineItem = ({ role }: { role: RoleProps }) => {
 			</TableCell>
 		</TableRow>
 	);
-}; 
+};

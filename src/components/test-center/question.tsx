@@ -16,7 +16,6 @@ import {
 	RiQuestionLine,
 	RiMicLine,
 	RiHeadphoneLine,
-	RiEyeLine,
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -34,17 +33,14 @@ interface Props {
 	question: TestCenterQuestionProps;
 	sectionId: string;
 	sequence: number;
-	// onUpdateQuestions: (question: QuestionDto) => void;
 }
 
-// Extended question types to include speaking, listening, and visual
 const question_types = [
 	{ label: "Multiple Choice", value: "MULTICHOICE", icon: RiCheckboxMultipleLine },
 	{ label: "Short Answer", value: "FILL_IN_THE_GAP", icon: RiAlignLeft },
 	{ label: "Yes/No", value: "YES_OR_NO", icon: RiContrastLine },
 	{ label: "Speaking", value: "SPEAKING", icon: RiMicLine },
 	{ label: "Listening", value: "LISTENING", icon: RiHeadphoneLine },
-	{ label: "Visual", value: "VISUAL", icon: RiEyeLine },
 ];
 
 const question_actions = [
@@ -295,7 +291,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Settings for different question types */}
-			{(question?.question_type === "MULTICHOICE" || question?.question_type === "VISUAL") && (
+			{question?.question_type === "MULTICHOICE" && (
 				<div className="flex w-full items-center justify-center gap-x-4">
 					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
@@ -368,8 +364,6 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			{/* Options for multiple choice, yes/no, fill in the gap, and visual */}
 			{(question?.question_type === "MULTICHOICE" ||
 				question?.question_type === "YES_OR_NO" ||
-				question?.question_type === "FILL_IN_THE_GAP" ||
-				question?.question_type === "VISUAL" ||
 				question?.question_type === "LISTENING") && (
 				<div className="space-y-3">
 					<p className="text-sm text-neutral-400">Options</p>
@@ -437,16 +431,11 @@ const OptionItem = ({
 								</button>
 							)}
 						</div>
-
-						{/* Visual question type option images */}
-						{question?.question_type === "VISUAL" && <div className="mt-2 flex flex-col"></div>}
 					</div>
 				))}
 			</div>
 
-			{question?.question_type === "MULTICHOICE" ||
-			question?.question_type === "VISUAL" ||
-			question?.question_type === "LISTENING" ? (
+			{question?.question_type === "MULTICHOICE" || question?.question_type === "LISTENING" ? (
 				<Button
 					type="button"
 					onClick={() => {
