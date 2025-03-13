@@ -62,6 +62,7 @@ export const endpoints = (id?: string) => {
 			create_section: `/admin/test-mgt/create-new-test-section/${id}`,
 			update_section: `/admin/test-mgt/update-test-section/${id}`,
 			create_question: `/admin/test-mgt/question/create-new/${id}`,
+			get_questions: `/admin/test-mgt/question/fetch-by-test-section/${id}`,
 			update_question: `/admin/test-mgt/question/update/${id}`,
 		},
 		users: {

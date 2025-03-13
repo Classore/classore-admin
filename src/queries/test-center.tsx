@@ -38,6 +38,7 @@ export interface TestQuestionDto {
 	sequence: number;
 	content: string;
 	media: File | null;
+	images: File[];
 	instruction: string;
 	question_type: "MUTILCHOICE" | "LISTENING" | "SPEAKING" | "YES_OR_NO";
 	options: TestOptionDto[];
@@ -154,6 +155,27 @@ const CreateTestQuestion = async (sectionId: string, payload: TestQuestionDto[])
 		.then((res) => res.data);
 };
 
+const GetTestQuestions = async (
+	sectionId: string,
+	params?: PaginationProps & { search?: string }
+) => {
+	if (params) {
+		for (const key in params) {
+			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
+				delete params[key as keyof typeof params];
+			}
+		}
+	}
+	return axios
+		.get<HttpResponse<PaginatedResponse<TestCenterProps>>>(
+			endpoints(sectionId).test_center.get_questions,
+			{
+				params,
+			}
+		)
+		.then((res) => res.data);
+};
+
 const UpdateTestQuestion = async (questionId: string, payload: UpdateQuestionDto) => {
 	const formData = new FormData();
 	if (payload.media) {
@@ -176,6 +198,7 @@ export {
 	CreateTestSection,
 	CreateTestQuestion,
 	GetTest,
+	GetTestQuestions,
 	GetTests,
 	UpdateTest,
 	UpdateTestSection,

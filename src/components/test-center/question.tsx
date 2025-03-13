@@ -19,7 +19,7 @@ import {
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import type { TestCenterQuestionProps } from "@/types";
+import type { TestQuestionDto } from "@/queries/test-center";
 import { useTestCenterStore } from "@/store/z-store";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
@@ -30,13 +30,13 @@ interface Props {
 	onDelete: (sequence: number) => void;
 	onDuplicate: (sequence: number) => void;
 	onReorder: (sequence: number, direction: "up" | "down") => void;
-	question: TestCenterQuestionProps;
+	question: TestQuestionDto;
 	sectionId: string;
 	sequence: number;
 }
 
 const question_types = [
-	{ label: "Multiple Choice", value: "MULTICHOICE", icon: RiCheckboxMultipleLine },
+	{ label: "Multiple Choice", value: "MUTILCHOICE", icon: RiCheckboxMultipleLine },
 	{ label: "Short Answer", value: "FILL_IN_THE_GAP", icon: RiAlignLeft },
 	{ label: "Yes/No", value: "YES_OR_NO", icon: RiContrastLine },
 	{ label: "Speaking", value: "SPEAKING", icon: RiMicLine },
@@ -68,7 +68,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
-			addImagesToQuestion(sectionId, sequence, files);
+			addImagesToQuestion(sequence, files);
 		},
 		fileType: "image",
 		onError: (error) => {
@@ -89,7 +89,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 	} = useFileHandler({
 		onValueChange: (files) => {
 			const file = files[0];
-			addAudioToQuestion(sectionId, sequence, file);
+			addAudioToQuestion(sequence, file);
 		},
 		fileType: "audio",
 		onError: (error) => {
@@ -121,7 +121,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 				const audioUrl = URL.createObjectURL(audioBlob);
 				setAudioPreview(audioUrl);
 				const audioFile = new File([audioBlob], "sample-audio.mp3", { type: "audio/mpeg" });
-				addAudioToQuestion(sectionId, sequence, audioFile);
+				addAudioToQuestion(sequence, audioFile);
 			};
 
 			mediaRecorder.start();
@@ -147,12 +147,12 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			<div className="flex h-7 w-full items-center justify-between">
 				<div className="flex items-center gap-x-1.5">
 					<RiQuestionLine className="size-5 text-neutral-400" />
-					<p className="text-xs text-neutral-400">QUESTION {question?.sequence_number}</p>
+					<p className="text-xs text-neutral-400">QUESTION {question?.sequence}</p>
 				</div>
 				<div className="flex items-center gap-x-2">
 					<Select
 						value={question?.question_type}
-						onValueChange={(value) => handleTypeChange(sectionId, sequence, value)}>
+						onValueChange={(value) => handleTypeChange(sequence, value)}>
 						<SelectTrigger className="h-7 w-40 text-xs">
 							<SelectValue placeholder="Select a type" />
 						</SelectTrigger>
@@ -174,7 +174,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 								key={index}
 								onClick={() => {
 									if (label === "delete") {
-										removeQuestion(sectionId, sequence);
+										removeQuestion(sequence);
 									}
 								}}
 								className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
@@ -188,7 +188,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			<div className="relative flex flex-col gap-2">
 				<Textarea
 					value={question?.content}
-					onChange={(e) => addQuestionContent(sectionId, sequence, e.target.value)}
+					onChange={(e) => addQuestionContent(sequence, e.target.value)}
 					className="h-44 w-full md:text-sm"
 				/>
 
@@ -244,7 +244,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 
 			{/* Audio preview for listening and speaking questions */}
 			{(question?.question_type === "LISTENING" || question?.question_type === "SPEAKING") &&
-				question?.audio && (
+				question?.media && (
 					<div className="flex flex-col gap-2">
 						<p className="text-sm text-neutral-400">Audio Preview</p>
 						<div className="flex items-center gap-x-4 rounded-md border p-2">
@@ -252,9 +252,9 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 							<button
 								type="button"
 								onClick={() => {
-									removeAudioFromQuestion(sectionId, sequence);
-									if (question?.audio) {
-										handleRemoveAudioFile(question?.audio as File);
+									removeAudioFromQuestion(sequence, question.media as File);
+									if (question?.media) {
+										handleRemoveAudioFile(question?.media as File);
 									}
 									setAudioPreview(null);
 									setRecordingState("idle");
@@ -278,7 +278,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 								<button
 									type="button"
 									onClick={() => {
-										removeImagesFromQuestion(sectionId, sequence);
+										removeImagesFromQuestion(sequence, image as File);
 										handleRemoveFile(image as File);
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
@@ -291,13 +291,13 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Settings for different question types */}
-			{question?.question_type === "MULTICHOICE" && (
+			{question?.question_type === "MUTILCHOICE" && (
 				<div className="flex w-full items-center justify-center gap-x-4">
 					<div className="flex h-8 flex-1 items-center rounded-md border border-neutral-300 px-2"></div>
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Randomize options</p>
 						<Switch
-							checked={question?.shuffled_options || false}
+							checked={false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -305,7 +305,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question?.is_required || false}
+							checked={false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -329,7 +329,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question?.is_required || false}
+							checked={false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -353,7 +353,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 					<div className="flex h-8 w-fit items-center gap-x-2 rounded-md border border-neutral-300 px-2">
 						<p className="text-xs text-neutral-400">Mark as required</p>
 						<Switch
-							checked={question?.is_required || false}
+							checked={false}
 							onCheckedChange={() => {}}
 							className="data-[state=checked]:bg-green-500"
 						/>
@@ -362,7 +362,7 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 			)}
 
 			{/* Options for multiple choice, yes/no, fill in the gap, and visual */}
-			{(question?.question_type === "MULTICHOICE" ||
+			{(question?.question_type === "MUTILCHOICE" ||
 				question?.question_type === "YES_OR_NO" ||
 				question?.question_type === "LISTENING") && (
 				<div className="space-y-3">
@@ -375,13 +375,12 @@ export const QuestionCard = ({ sectionId, sequence, question }: Props) => {
 };
 
 const OptionItem = ({
-	sectionId,
 	sequence,
 	question,
 }: {
 	sectionId: string;
 	sequence: number;
-	question: TestCenterQuestionProps;
+	question: TestQuestionDto;
 }) => {
 	const { addOptionContent, addQuestionOption, setCorrectOption, removeQuestionOption } =
 		useTestCenterStore();
@@ -402,9 +401,7 @@ const OptionItem = ({
 									type="text"
 									value={option.content}
 									autoFocus
-									onChange={(e) =>
-										addOptionContent(sectionId, sequence, question?.sequence_number, e.target.value)
-									}
+									onChange={(e) => addOptionContent(sequence, option.sequence_number, e.target.value)}
 									className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 								/>
 								<div className="flex w-fit items-center gap-x-2">
@@ -413,9 +410,7 @@ const OptionItem = ({
 											Correct Answer
 										</div>
 									)}
-									<button
-										type="button"
-										onClick={() => setCorrectOption(sectionId, sequence, question?.sequence_number)}>
+									<button type="button" onClick={() => setCorrectOption(sequence, option?.sequence_number)}>
 										<RiCheckboxCircleFill
 											className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
 										/>
@@ -425,7 +420,7 @@ const OptionItem = ({
 
 							{question?.question_type !== "YES_OR_NO" && (
 								<button
-									onClick={() => removeQuestionOption(sectionId, sequence, index)}
+									onClick={() => removeQuestionOption(sequence, option.sequence_number)}
 									className="grid size-6 place-items-center rounded-md border">
 									<RiDeleteBin6Line className="size-4 text-neutral-400" />
 								</button>
@@ -435,12 +430,12 @@ const OptionItem = ({
 				))}
 			</div>
 
-			{question?.question_type === "MULTICHOICE" || question?.question_type === "LISTENING" ? (
+			{question?.question_type === "MUTILCHOICE" || question?.question_type === "LISTENING" ? (
 				<Button
 					type="button"
 					onClick={() => {
 						const maxOptions = {
-							MULTICHOICE: 4,
+							MUTILCHOICE: 4,
 							VISUAL: 4,
 							LISTENING: 4,
 						};
@@ -452,12 +447,12 @@ const OptionItem = ({
 							return;
 						}
 
-						if (!["MULTICHOICE", "VISUAL", "LISTENING"].includes(question?.question_type)) {
+						if (!["MUTILCHOICE ", "VISUAL", "LISTENING"].includes(question?.question_type)) {
 							toast.error("Options can only be added to multiple choice, visual, or listening questions");
 							return;
 						}
 
-						addQuestionOption(sectionId, sequence);
+						addQuestionOption(sequence);
 					}}
 					className="w-fit focus:border-primary-300"
 					size="xs"

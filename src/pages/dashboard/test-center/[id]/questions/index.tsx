@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 import {
@@ -8,11 +9,11 @@ import {
 	RiEyeLine,
 } from "@remixicon/react";
 
+import { CreateTestQuestion, GetTestQuestions, type TestQuestionDto } from "@/queries/test-center";
 import { useTestCenterStore, getEmptyQuestion } from "@/store/z-store/test-center";
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { QuestionCard } from "@/components/test-center";
 import { Breadcrumbs, Seo } from "@/components/shared";
-import type { TestCenterQuestionProps } from "@/types";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 
@@ -21,10 +22,23 @@ const tabs = [{ icon: RiBook2Line, label: "Create Questions", name: "create" }];
 const Page = () => {
 	const [current, setCurrent] = React.useState(0);
 	const [tab, setTab] = React.useState("create");
+	const [page] = React.useState(1);
 	const router = useRouter();
 	const sectionId = router.query.id as string;
 
-	const [questions, setQuestions] = React.useState<TestCenterQuestionProps[]>([]);
+	const { data } = useQuery({
+		queryKey: ["get-section-questions", sectionId],
+		queryFn: () => GetTestQuestions(sectionId, { limit: 10, page }),
+		enabled: !!sectionId,
+	});
+	console.log(data);
+
+	const {} = useMutation({
+		mutationKey: ["update-question"],
+		mutationFn: (payload: TestQuestionDto[]) => CreateTestQuestion(sectionId, payload),
+	});
+
+	const [questions, setQuestions] = React.useState<TestQuestionDto[]>([]);
 	const { removeQuestion } = useTestCenterStore();
 
 	const addQuestion = () => {
@@ -97,7 +111,7 @@ const Page = () => {
 										sectionId={sectionId}
 										sequence={current}
 										question={questions[current]}
-										onDelete={(sequence) => removeQuestion(sectionId, sequence)}
+										onDelete={(sequence) => removeQuestion(sequence)}
 										onDuplicate={() => {}}
 										onReorder={() => {}}
 									/>
