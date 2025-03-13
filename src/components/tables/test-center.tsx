@@ -65,23 +65,31 @@ export const TestCenterTable = ({ onPageChange, page, tests, total, isLoading }:
 	);
 };
 
-const LineItem = ({}: { test: TestCenterProps }) => {
+const LineItem = ({ test }: { test: TestCenterProps }) => {
 	const admin = useUserStore().user;
 
 	return (
 		<TableRow>
 			<TableCell className="flex items-center gap-x-2">
 				<Avatar className="size-8 rounded-md">
-					<AvatarImage src="" />
+					<AvatarImage src={test.banner} />
 				</Avatar>
-				<span className="text-sm font-medium"></span>
+				<span className="text-sm font-medium uppercase">{test.title}</span>
 			</TableCell>
-			<TableCell></TableCell>
+			<TableCell>{test.sections}</TableCell>
 			<TableCell>{format(new Date(), "MMM dd,yyyy HH:mm a")}</TableCell>
-			<TableCell>
+			<TableCell className="flex items-center justify-center gap-x-2">
 				<RiUser3Line size={18} />
+				<span className="text-sm font-medium">{test.participants}</span>
 			</TableCell>
-			<TableCell></TableCell>
+			<TableCell className="max-w-[200px]">
+				<div className="flex w-full items-center justify-center">
+					<div
+						className={`w-fit rounded-md px-3 py-0.5 text-xs font-medium ${test.is_published === "YES" ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
+						{test.is_published === "YES" ? "Published" : "Unpublished"}
+					</div>
+				</div>
+			</TableCell>
 			<TableCell>
 				<Popover>
 					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
@@ -90,7 +98,7 @@ const LineItem = ({}: { test: TestCenterProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<TestCenterAction id="" />
+						<TestCenterAction id={test.id} is_published={test.is_published === "YES"} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>

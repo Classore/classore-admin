@@ -216,19 +216,6 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 
 const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
 	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
-	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
-};
-
-const DeleteChapter = async (id: string) => {
-	return id;
-};
-
-const DeleteChapterModule = async (id: string) => {
-	return id;
-};
-
-const DeleteQuestion = async (id: string) => {
-	return id;
 };
 
 export type UpdateQuizSettingsPayload = {
@@ -283,10 +270,7 @@ export {
 	CreateChapter,
 	CreateChapterModule,
 	CreateQuestions,
-	DeleteChapter,
-	DeleteChapterModule,
 	DeleteEntities,
-	DeleteQuestion,
 	GetChapter,
 	GetChapterModule,
 	GetChapterModules,
@@ -297,6 +281,5 @@ export {
 	UpdateChapterModule,
 	UpdateChapterModuleSequence,
 	UpdateQuestion,
-	UpdateQuizSettings
+	UpdateQuizSettings,
 };
-

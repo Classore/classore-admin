@@ -1,29 +1,30 @@
-import type { Node, OptionalString } from "./app";
+import type { Maybe, Node } from "./app";
 
 export type TestCenterProps = Node & {
 	__typename?: "TestCenter";
-	allowed_attempts: number;
-	allowed_time: number;
+	banner: string;
+	createdOn: Date;
 	description: string;
-	name: string;
+	id: string;
+	is_published: "NO" | "YES";
 	participants: number;
-	pass_mark: number;
-	sections: TestCenterSectionProps[];
-	shuffle_questions: boolean;
-	skip_questions: boolean;
-	status: "PUBLISHED" | "UNPUBLISHED";
+	sections: number;
+	title: string;
+	updatedOn: Maybe<Date>;
 };
 
 export type TestCenterSectionProps = Node & {
 	__typename?: "Section";
+	id: string;
+	title: string;
 	description: string;
-	name: string;
-	questions: TestCenterQuestionProps[];
+	banner: string;
+	sections: number;
+	average_pass_score: number;
+	is_published: "NO" | "YES";
 };
 
-export type TestCenterQuestionTypeProps = OptionalString<
-	"MULTICHOICE" | "YES_OR_NO" | "FILL_IN_THE_GAP" | "SPEAKING" | "LISTENING"
->;
+export type TestCenterQuestionTypeProps = "MULTICHOICE" | "YES_OR_NO" | "SPEAKING" | "LISTENING";
 
 export type TestCenterQuestionProps = Node & {
 	__typename?: "Question";

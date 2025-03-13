@@ -33,7 +33,7 @@ interface FileHandlerReturn {
 }
 
 // Memoized MIME type configurations
-const DEFAULT_MIME_TYPES = {
+export const DEFAULT_MIME_TYPES = {
 	audio: ["audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg"],
 	document: [
 		"application/pdf",
