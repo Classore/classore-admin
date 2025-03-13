@@ -328,24 +328,24 @@ export function formatFileSize(bytes: number): string {
  * @returns The debounced function
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  delay: number
+	func: T,
+	delay: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+	let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  return function(this: unknown, ...args: Parameters<T>): void {
-    // Store the 'this' context
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const context = this;
+	return function (this: unknown, ...args: Parameters<T>): void {
+		// Store the 'this' context
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const context = this;
 
-    // Clear any existing timeout
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId);
-    }
+		// Clear any existing timeout
+		if (timeoutId !== undefined) {
+			clearTimeout(timeoutId);
+		}
 
-    // Set a new timeout
-    timeoutId = setTimeout(() => {
-      func.apply(context, args);
-    }, delay);
-  };
+		// Set a new timeout
+		timeoutId = setTimeout(() => {
+			func.apply(context, args);
+		}, delay);
+	};
 }

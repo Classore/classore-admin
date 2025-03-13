@@ -146,55 +146,53 @@ export type EntityTypeProps =
 	| "SCORE"
 	| "SUBJECT";
 
-	export type PaginatedRoleProps = {
-		id: string;
-		createdOn: Date | string;
-		deletedBy?: Maybe<string>;
-		deletedOn?: Maybe<Date | string>;
-		isDeleted?: boolean;
-		updatedBy?: Maybe<string>;
-		updatedOn?: Maybe<Date | string>;
-		isBlocked: boolean;
-		permissions: string[];
-		name: string;
-		admin_read: "NO" | "YES";
-		admin_write: "NO" | "YES";
-		student_read: "NO" | "YES";
-		student_write: "NO" | "YES";
-		transactions_read: "NO" | "YES";
-		transactions_write: "NO" | "YES";
-		tutor_read: "NO" | "YES";
-		tutor_write: "NO" | "YES";
-		videos_read: "NO" | "YES";
-		videos_write: "NO" | "YES";
-		waitlist_read: "NO" | "YES";
-		waitlist_write: "NO" | "YES";
-		role_id: string;
-		role_createdOn: Date | string;
-		role_deletedBy?: Maybe<string>;
-		role_deletedOn?: Maybe<Date | string>;
-		role_isDeleted?: boolean;
-		role_updatedBy?: Maybe<string>;
-		role_updatedOn?: Maybe<Date | string>;
-		role_isBlocked: boolean;
-		role_name: string;
-		role_admin_read: "NO" | "YES";
-		role_admin_write: "NO" | "YES";
-		role_marketer_read: "NO" | "YES";
-		role_marketer_write: "NO" | "YES";
-		role_student_read: "NO" | "YES";
-		role_student_write: "NO" | "YES";
-		role_transactions_read: "NO" | "YES";
-		role_transactions_write: "NO" | "YES";
-		role_tutor_read: "NO" | "YES";
-		role_tutor_write: "NO" | "YES";
-		role_videos_read: "NO" | "YES";
-		role_videos_write: "NO" | "YES";
-		role_waitlist_read: "NO" | "YES";
-		role_waitlist_write: "NO" | "YES";
-	};
-
-
+export type PaginatedRoleProps = {
+	id: string;
+	createdOn: Date | string;
+	deletedBy?: Maybe<string>;
+	deletedOn?: Maybe<Date | string>;
+	isDeleted?: boolean;
+	updatedBy?: Maybe<string>;
+	updatedOn?: Maybe<Date | string>;
+	isBlocked: boolean;
+	permissions: string[];
+	name: string;
+	admin_read: "NO" | "YES";
+	admin_write: "NO" | "YES";
+	student_read: "NO" | "YES";
+	student_write: "NO" | "YES";
+	transactions_read: "NO" | "YES";
+	transactions_write: "NO" | "YES";
+	tutor_read: "NO" | "YES";
+	tutor_write: "NO" | "YES";
+	videos_read: "NO" | "YES";
+	videos_write: "NO" | "YES";
+	waitlist_read: "NO" | "YES";
+	waitlist_write: "NO" | "YES";
+	role_id: string;
+	role_createdOn: Date | string;
+	role_deletedBy?: Maybe<string>;
+	role_deletedOn?: Maybe<Date | string>;
+	role_isDeleted?: boolean;
+	role_updatedBy?: Maybe<string>;
+	role_updatedOn?: Maybe<Date | string>;
+	role_isBlocked: boolean;
+	role_name: string;
+	role_admin_read: "NO" | "YES";
+	role_admin_write: "NO" | "YES";
+	role_marketer_read: "NO" | "YES";
+	role_marketer_write: "NO" | "YES";
+	role_student_read: "NO" | "YES";
+	role_student_write: "NO" | "YES";
+	role_transactions_read: "NO" | "YES";
+	role_transactions_write: "NO" | "YES";
+	role_tutor_read: "NO" | "YES";
+	role_tutor_write: "NO" | "YES";
+	role_videos_read: "NO" | "YES";
+	role_videos_write: "NO" | "YES";
+	role_waitlist_read: "NO" | "YES";
+	role_waitlist_write: "NO" | "YES";
+};
 
 export type RoleProps = {
 	id: string;
@@ -242,7 +240,6 @@ export type RoleProps = {
 	role_videos_write: "NO" | "YES";
 	role_waitlist_read: "NO" | "YES";
 };
-
 
 export type AdminProps = Node & {
 	__typename?: "User";

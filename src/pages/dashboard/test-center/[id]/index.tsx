@@ -30,10 +30,17 @@ const Page = () => {
 	const router = useRouter();
 	const id = router.query.id as string;
 
-	const { isLoading } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: ["get-test-sections", id],
-		queryFn: () => GetTest({ testId: id, limit: 10, page }),
-		enabled: false,
+		queryFn: () => GetTest(id, { limit: 10, page }),
+		enabled: !!id,
+		select: (data) => ({
+			banner: data?.data?.banner,
+			createdOn: data?.data?.createdOn,
+			description: data?.data?.description,
+			title: data?.data?.title,
+			sections: data?.data?.sections,
+		}),
 	});
 
 	const links: BreadcrumbItemProps[] = [
@@ -45,11 +52,11 @@ const Page = () => {
 		return <Unauthorized />;
 	}
 
-	if (!isLoading) return <Loading />;
+	if (isLoading) return <Loading />;
 
 	return (
 		<>
-			<Seo title={id} />
+			<Seo title={data?.title || "Test Section"} />
 			<DashboardLayout>
 				<div className="w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
@@ -58,7 +65,7 @@ const Page = () => {
 								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
-								<p className="text-sm font-medium">Test Title</p>
+								<p className="text-sm font-medium uppercase">{data?.title}</p>
 							</div>
 							<Breadcrumbs courseId={id} links={links} />
 						</div>
@@ -95,7 +102,7 @@ const Page = () => {
 						<TestCenterSectionTable
 							onPageChange={setPage}
 							page={page}
-							sections={[]}
+							sections={data?.sections.data || []}
 							total={0}
 							isLoading={isLoading}
 						/>
