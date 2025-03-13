@@ -1,6 +1,12 @@
-import type { HttpResponse, PaginatedResponse, PaginationProps, TestCenterProps } from "@/types";
 import { axios, createFormDataFromObject } from "@/lib";
 import { endpoints } from "@/config";
+import type {
+	HttpResponse,
+	PaginatedResponse,
+	PaginationProps,
+	TestCenterProps,
+	TestCenterSectionProps,
+} from "@/types";
 
 export interface CreateTestDto {
 	title: string;
@@ -51,7 +57,7 @@ export type GetTestResponse = {
 	banner: string;
 	createdOn: Date;
 	description: string;
-	sections: PaginatedResponse<any>;
+	sections: PaginatedResponse<TestCenterSectionProps>;
 	title: string;
 };
 

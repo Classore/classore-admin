@@ -43,7 +43,7 @@ export const RoleActions = ({ role, id }: Props) => {
 
 	useEffect(() => {
 		extractPermissions();
-	}, [role]);
+	}, [extractPermissions, role]);
 
 	const togglePermission = (permissionKey: string) => {
 		setPermissions((prev) =>
