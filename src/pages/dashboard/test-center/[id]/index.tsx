@@ -13,6 +13,7 @@ import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
 import { GetTest } from "@/queries/test-center";
 import { useUserStore } from "@/store/z-store";
+import { capitalize } from "@/lib";
 import {
 	Select,
 	SelectContent,
@@ -56,7 +57,7 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title={data?.title || "Test Section"} />
+			<Seo title={capitalize(data?.title || "Test Section")} />
 			<DashboardLayout>
 				<div className="w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">

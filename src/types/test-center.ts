@@ -24,31 +24,53 @@ export type TestCenterSectionProps = Node & {
 	is_published: "NO" | "YES";
 };
 
-export type TestCenterQuestionTypeProps = "MULTICHOICE" | "YES_OR_NO" | "SPEAKING" | "LISTENING";
+export type TestCenterQuestionTypeProps =
+	| "MULTIPLE_CHOICE"
+	| "YES_OR_NO"
+	| "SPEAKING"
+	| "LISTENING";
 
 export type TestCenterQuestionProps = Node & {
 	__typename?: "Question";
+	audio: string[];
+	chapter: Maybe<string>;
 	content: string;
-	is_required: boolean;
+	copied_from: Maybe<string>;
+	id: string;
+	images: string[];
+	instructions: Maybe<string>;
+	isBlocked: boolean;
+	isDeleted: boolean;
+	media: Maybe<string>;
+	module: Maybe<string>;
 	options: TestCenterOptionProps[];
-	question_type: TestCenterQuestionTypeProps;
+	question_type: "MULTIPLE_CHOICE" | "YES_OR_NO" | "SPEAKING" | "LISTENING";
+	score: 0;
+	section: string;
 	sequence: number;
-	sequence_number: number;
-	audio?: File | string;
-	images?: (File | string)[];
-	max_recording_duration?: number;
-	max_replays_allowed?: number;
-	shuffled_options?: boolean;
+	subject: Maybe<string>;
+	test: string;
+	test_section: string;
+	videos: string[];
 };
 
 export type TestCenterOptionProps = Node & {
 	__typename?: "Options";
-	content: string;
-	is_correct: "YES" | "NO";
-	questionId: string;
+	id: string;
+	copied_from: Maybe<string>;
+	isDeleted: boolean;
+	isBlocked: boolean;
 	sequence_number: number;
-	audio?: File | string;
-	images?: (File | string)[];
+	content: string;
+	images: string[];
+	videos: string[];
+	media: Maybe<string>;
+	subject: Maybe<string>;
+	chapter: Maybe<string>;
+	test: string;
+	test_section: string;
+	question: string;
+	is_correct: boolean;
 };
 
 export type TestCenterAnswerProps = Node & {
