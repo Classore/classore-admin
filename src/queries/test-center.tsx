@@ -2,10 +2,12 @@ import { axios, createFormDataFromObject } from "@/lib";
 import { endpoints } from "@/config";
 import type {
 	HttpResponse,
+	Maybe,
 	PaginatedResponse,
 	PaginationProps,
 	TestCenterProps,
 	TestCenterSectionProps,
+	TestCenterQuestionProps,
 } from "@/types";
 
 export interface CreateTestDto {
@@ -37,10 +39,10 @@ export interface UpdateQuestionDto {
 export interface TestQuestionDto {
 	sequence: number;
 	content: string;
-	media: File | null;
-	images: File[];
-	instruction: string;
-	question_type: "MUTILCHOICE" | "LISTENING" | "SPEAKING" | "YES_OR_NO";
+	media: (File | string)[];
+	images: (File | string)[];
+	instruction: Maybe<string>;
+	question_type: "MULTIPLE_CHOICE" | "LISTENING" | "SPEAKING" | "YES_OR_NO" | (string & {});
 	options: TestOptionDto[];
 }
 
@@ -129,9 +131,11 @@ const CreateTestQuestion = async (sectionId: string, payload: TestQuestionDto[])
 		formData.append(`questions[${index}][sequence]`, question.sequence.toString());
 		formData.append(`questions[${index}][content]`, question.content);
 		formData.append(`questions[${index}][question_type]`, question.question_type);
-		formData.append(`questions[${index}][instruction]`, question.instruction);
+		formData.append(`questions[${index}][instruction]`, question.instruction || "");
 		if (question.media) {
-			formData.append(`questions[${index}][media]`, question.media);
+			question.media.forEach((medium) => {
+				formData.append(`questions[${index}][media]`, medium);
+			});
 		}
 		question.options.forEach((option, optionIndex) => {
 			formData.append(
@@ -167,7 +171,7 @@ const GetTestQuestions = async (
 		}
 	}
 	return axios
-		.get<HttpResponse<PaginatedResponse<TestCenterProps>>>(
+		.get<HttpResponse<PaginatedResponse<TestCenterQuestionProps>>>(
 			endpoints(sectionId).test_center.get_questions,
 			{
 				params,
