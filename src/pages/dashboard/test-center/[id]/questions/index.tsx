@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
 import React from "react";
 import {
 	RiAddLine,
@@ -10,13 +11,20 @@ import {
 } from "@remixicon/react";
 
 import { CreateTestQuestion, GetTestQuestions, type TestQuestionDto } from "@/queries/test-center";
-import { useTestCenterStore, getEmptyQuestion } from "@/store/z-store/test-center";
+import { getEmptyQuestion, useTestCenterStore } from "@/store/z-store/test-center";
 import type { BreadcrumbItemProps } from "@/components/shared";
 import { QuestionCard } from "@/components/test-center";
 import { Breadcrumbs, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
+import { capitalize } from "@/lib";
 
+type QueryKey = {
+	sectionId: string;
+	sectionTitle: string;
+};
+
+const MAX_QUESTIONS = 50;
 const tabs = [{ icon: RiBook2Line, label: "Create Questions", name: "create" }];
 
 const Page = () => {
@@ -24,26 +32,60 @@ const Page = () => {
 	const [tab, setTab] = React.useState("create");
 	const [page] = React.useState(1);
 	const router = useRouter();
-	const sectionId = router.query.id as string;
+	const { sectionId, sectionTitle } = router.query as QueryKey;
+
+	const { addQuestion, questions, updateQuestions } = useTestCenterStore();
 
 	const { data } = useQuery({
 		queryKey: ["get-section-questions", sectionId],
-		queryFn: () => GetTestQuestions(sectionId, { limit: 10, page }),
+		queryFn: () => GetTestQuestions(sectionId, { limit: 100, page }),
 		enabled: !!sectionId,
+		select: (data) =>
+			data.data.data.map((question) => {
+				const mutatedQuestion: TestQuestionDto = {
+					content: question.content,
+					images: question.images,
+					instruction: question.instructions,
+					media: question.audio,
+					options: question.options.map((option) => {
+						return {
+							content: option.content,
+							is_correct: option.is_correct ? "YES" : "NO",
+							sequence_number: option.sequence_number,
+						};
+					}),
+					question_type: question.question_type,
+					sequence: 0,
+				};
+				return mutatedQuestion;
+			}),
 	});
-	console.log(data);
+
+	React.useEffect(() => {
+		if (data) {
+			updateQuestions(data);
+		}
+	}, [data, updateQuestions]);
 
 	const {} = useMutation({
 		mutationKey: ["update-question"],
 		mutationFn: (payload: TestQuestionDto[]) => CreateTestQuestion(sectionId, payload),
+		onSuccess: (data) => {
+			console.log(data);
+		},
+		onError: (error) => {
+			console.log(error);
+		},
 	});
 
-	const [questions, setQuestions] = React.useState<TestQuestionDto[]>([]);
-	const { removeQuestion } = useTestCenterStore();
-
-	const addQuestion = () => {
+	const handleAddQuestion = () => {
+		if (questions.length >= MAX_QUESTIONS) {
+			toast.error("You have reached the maximum number of questions");
+			return;
+		}
 		const question = getEmptyQuestion(questions.length + 1);
-		setQuestions((prev) => [...prev, question]);
+		addQuestion(question);
+		setCurrent(questions.length);
 	};
 
 	const links: BreadcrumbItemProps[] = [
@@ -55,7 +97,7 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title={sectionId} />
+			<Seo title={capitalize(sectionTitle)} />
 			<DashboardLayout>
 				<div className="h-full w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
@@ -80,7 +122,7 @@ const Page = () => {
 							</Button>
 						</div>
 					</div>
-					<div className="h-[calc(100%-118px)] w-full space-y-6 rounded-2xl bg-white p-5">
+					<div className="w-full space-y-6 rounded-2xl bg-white p-5">
 						<div className="flex h-10 w-full items-center justify-between border-b">
 							<div className="flex items-center gap-x-4">
 								{tabs.map(({ icon: Icon, label, name }) => (
@@ -101,20 +143,13 @@ const Page = () => {
 								<div className="flex w-full items-center justify-between bg-white px-4 py-3">
 									<p className="text-sm text-neutral-400">ALL QUESTIONS</p>
 									<button
-										onClick={addQuestion}
+										onClick={handleAddQuestion}
 										className="flex h-7 items-center gap-x-2 rounded-md border border-neutral-400 bg-neutral-100 px-1 text-xs font-medium text-neutral-400 transition-all duration-300 active:scale-95">
 										<RiAddLine className="size-4" /> Add New Question
 									</button>
 								</div>
-								{!!questions.length && (
-									<QuestionCard
-										sectionId={sectionId}
-										sequence={current}
-										question={questions[current]}
-										onDelete={(sequence) => removeQuestion(sequence)}
-										onDuplicate={() => {}}
-										onReorder={() => {}}
-									/>
+								{questions.length > 0 && (
+									<QuestionCard sequence={current} sectionId={sectionId} question={questions[current]} />
 								)}
 							</div>
 							<div className="col-span-5 px-8">

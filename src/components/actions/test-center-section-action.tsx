@@ -22,9 +22,10 @@ import {
 interface Props {
 	is_published: boolean;
 	sectionId: string;
+	sectionTitle: string;
 }
 
-export const TestCenterSectionAction = ({ is_published, sectionId }: Props) => {
+export const TestCenterSectionAction = ({ is_published, sectionId, sectionTitle }: Props) => {
 	const router = useRouter();
 	const id = router.query.id as string;
 
@@ -46,7 +47,7 @@ export const TestCenterSectionAction = ({ is_published, sectionId }: Props) => {
 				</DialogContent>
 			</Dialog>
 			<Link
-				href={`/dashboard/test-center/${id}/questions?sectionId=${sectionId}`}
+				href={`/dashboard/test-center/${id}/questions?sectionTitle=${sectionTitle}&sectionId=${sectionId}`}
 				className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 				<RiEditBoxLine className="size-5" /> Edit Section
 			</Link>

@@ -102,6 +102,7 @@ const LineItem = ({ section }: { section: TestCenterSectionProps }) => {
 						<TestCenterSectionAction
 							is_published={section.is_published === "YES"}
 							sectionId={section.id}
+							sectionTitle={section.title}
 						/>
 					</PopoverContent>
 				</Popover>
