@@ -155,9 +155,9 @@ input[type="search"]::-webkit-search-results-decoration {
 
 /* tiptap editor */
 .tiptap-btn-container button {
-	@apply rounded bg-neutral-200 py-1 px-3 hover:bg-primary-300 transition-colors hover:text-white
+	@apply rounded bg-neutral-200 px-3 py-1.5 transition-colors hover:bg-primary-300 hover:text-white;
 }
 
 .tiptap-btn-container .is-active {
-	@apply bg-primary-300 text-white
+	@apply bg-primary-300 text-white;
 }

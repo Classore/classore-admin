@@ -5,13 +5,13 @@ import Image from "next/image";
 import { toast } from "sonner";
 import * as Yup from "yup";
 
-import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Textarea } from "../ui/textarea";
-import { queryClient } from "@/providers";
 import { useFileHandler } from "@/hooks";
+import { queryClient } from "@/providers";
+import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	course: SubjectResponse;
