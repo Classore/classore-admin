@@ -8,6 +8,7 @@ import { QuestionCard } from "./dashboard/question-card";
 import { useQuizStore } from "@/store/z-store/quizz";
 import type { QuestionDto } from "@/store/z-store";
 import { quizQuestionFromXlsxToJSON } from "@/lib";
+import { ScrollArea } from "./ui/scroll-area";
 import { queryClient } from "@/providers";
 import type { HttpError } from "@/types";
 import { useFileHandler } from "@/hooks";
@@ -166,67 +167,69 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
-			<div className="flex w-full items-center justify-between">
-				<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
-				<div className="flex items-center gap-x-2">
-					<label htmlFor="xlsx-upload">
-						<input
-							type="file"
-							id="xlsx-upload"
-							className="sr-only hidden"
-							ref={inputRef}
-							onChange={handleFileChange}
-							accept=".xlsx"
-						/>
+		<ScrollArea className="h-full w-full">
+			<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
+				<div className="flex w-full items-center justify-between">
+					<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
+					<div className="flex items-center gap-x-2">
+						<label htmlFor="xlsx-upload">
+							<input
+								type="file"
+								id="xlsx-upload"
+								className="sr-only hidden"
+								ref={inputRef}
+								onChange={handleFileChange}
+								accept=".xlsx"
+							/>
+							<button
+								type="button"
+								onClick={handleClick}
+								className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+								<RiImportLine className="size-4" />
+								<span>Import Questions</span>
+							</button>
+						</label>
 						<button
 							type="button"
-							onClick={handleClick}
+							onClick={() => setCurrentTab("lesson")}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-							<RiImportLine className="size-4" />
-							<span>Import Questions</span>
+							<RiArrowLeftSLine className="size-4" />
+							<span>Back to Lesson</span>
 						</button>
-					</label>
-					<button
-						type="button"
-						onClick={() => setCurrentTab("lesson")}
-						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-						<RiArrowLeftSLine className="size-4" />
-						<span>Back to Lesson</span>
-					</button>
+					</div>
 				</div>
-			</div>
-			<div className="w-full space-y-2">
 				<div className="w-full space-y-2">
-					{moduleQuestions?.map((question, index) => (
-						<QuestionCard
-							key={index}
-							chapterId={String(chapterId)}
-							moduleId={lessonTab}
-							onDelete={(sequence) => removeQuestion(String(chapterId), lessonTab, sequence)}
-							onDuplicate={(sequence) => duplicateQuestion(String(chapterId), lessonTab, sequence)}
-							onReorder={(sequence, direction) =>
-								reorderQuestion(String(chapterId), lessonTab, sequence, direction)
-							}
-							question={question}
-						/>
-					))}
+					<div className="w-full space-y-2">
+						{moduleQuestions?.map((question, index) => (
+							<QuestionCard
+								key={index}
+								chapterId={String(chapterId)}
+								moduleId={lessonTab}
+								onDelete={(sequence) => removeQuestion(String(chapterId), lessonTab, sequence)}
+								onDuplicate={(sequence) => duplicateQuestion(String(chapterId), lessonTab, sequence)}
+								onReorder={(sequence, direction) =>
+									reorderQuestion(String(chapterId), lessonTab, sequence, direction)
+								}
+								question={question}
+							/>
+						))}
+					</div>
+					<div className="flex items-center gap-2">
+						<Button disabled={isPending} className="w-32" size="sm" type="submit">
+							{isPending ? <Spinner /> : "Save Quiz"}
+						</Button>
+						<Button
+							disabled={isPending}
+							className="w-32"
+							variant="outline"
+							size="sm"
+							type="button"
+							onClick={handleAddQuestion}>
+							Add Question
+						</Button>
+					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					<Button disabled={isPending} className="w-32" size="sm" type="submit">
-						{isPending ? <Spinner /> : "Save Quiz"}
-					</Button>
-					<Button
-						disabled={isPending}
-						className="w-32"
-						variant="outline"
-						size="sm"
-						type="button"
-						onClick={handleAddQuestion}>
-						Add Question
-					</Button>
-				</div>
-			</div>
-		</form>
+			</form>
+		</ScrollArea>
 	);
 };

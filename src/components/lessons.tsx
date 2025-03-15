@@ -1,3 +1,7 @@
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
@@ -5,19 +9,16 @@ import {
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { endpoints } from "@/config";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { Spinner, TabPanel, VideoPlayer } from "./shared";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-// import { RichTextEditor } from "./editor";
+import { TiptapEditor } from "./ui/tiptap-editor";
+import { Spinner, VideoPlayer } from "./shared";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { endpoints } from "@/config";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -26,7 +27,6 @@ import {
 	GetSubject,
 	UpdateChapterModule,
 } from "@/queries";
-import { TiptapEditor } from "./ui/tiptap-editor";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -225,10 +225,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 	if (!lesson) return null;
 
 	return (
-		<TabPanel
-			className="col-span-4 rounded-md bg-neutral-100 p-4"
-			selected={lessonTab}
-			value={lessonTab}>
+		<ScrollArea className="col-span-4 h-full w-full overflow-y-auto rounded-md bg-neutral-100 p-4">
 			<div className="flex flex-col gap-4">
 				<header className="flex items-center justify-between gap-1">
 					<p className="text-xs uppercase tracking-widest">
@@ -377,6 +374,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					)}
 				</div>
 			</div>
-		</TabPanel>
+		</ScrollArea>
 	);
 };
