@@ -4,11 +4,12 @@ import type { TestQuestionDto, TestOptionDto } from "@/queries/test-center";
 import { createReportableStore } from "../middleware";
 
 const MAX_AUDIO_SIZE_MB = 5;
-const MAX_IMAGE_SIZE_MB = 1;
+const MAX_IMAGE_SIZE_MB = 2;
 
 interface TestCenterStore {
 	questions: TestQuestionDto[];
 	addQuestion: (question: TestQuestionDto) => void;
+	setQuestions: (questions: TestQuestionDto[]) => void;
 	updateQuestions: (questions: TestQuestionDto[]) => void;
 	removeQuestion: (sequence: number) => void;
 	addQuestionContent: (sequence: number, content: string) => void;
@@ -26,6 +27,7 @@ interface TestCenterStore {
 const initialState: TestCenterStore = {
 	questions: [],
 	addQuestion: () => {},
+	setQuestions: () => {},
 	updateQuestions: () => {},
 	removeQuestion: () => {},
 	addQuestionContent: () => {},
@@ -47,35 +49,35 @@ export const getEmptyQuestion = (sequence: number): TestQuestionDto => {
 		options: [],
 		question_type: "",
 		instruction: "",
-		media: [],
+		media: null,
 		images: [],
 	};
 };
 
-const getEmptyOption = (sequence: number): TestOptionDto => ({
+export const getEmptyOption = (sequence: number): TestOptionDto => ({
 	content: "",
 	is_correct: "NO",
 	sequence_number: sequence,
 });
 
-const validateImageSize = (file: File): boolean => {
+export const validateImageSize = (file: File): boolean => {
 	const sizeInMB = file.size / (1024 * 1024);
 	return sizeInMB <= MAX_IMAGE_SIZE_MB;
 };
 
-const validateAudioSize = (file: File): boolean => {
+export const validateAudioSize = (file: File): boolean => {
 	const sizeInMB = file.size / (1024 * 1024);
 	return sizeInMB <= MAX_AUDIO_SIZE_MB;
 };
 
-const resequenceQuestions = (questions: TestQuestionDto[]): TestQuestionDto[] => {
+export const resequenceQuestions = (questions: TestQuestionDto[]): TestQuestionDto[] => {
 	return questions.map((q, idx) => ({
 		...q,
 		sequence: idx + 1,
 	}));
 };
 
-const resequenceOptions = (options: TestOptionDto[]): TestOptionDto[] => {
+export const resequenceOptions = (options: TestOptionDto[]): TestOptionDto[] => {
 	return options.map((opt, idx) => ({
 		...opt,
 		sequence_number: idx + 1,
@@ -95,7 +97,9 @@ const useTestCenterStore = createReportableStore<TestCenterStore>((set) => ({
 				questions: resequenceQuestions(updatedQuestions),
 			};
 		}),
-	updateQuestions: (questions) => set({ questions }),
+	setQuestions: (questions) => set({ questions }),
+	updateQuestions: (questions) =>
+		set((state) => ({ questions: [...state.questions, ...questions] })),
 	addQuestionContent: (sequence: number, content: string) => {
 		set((state) => {
 			const question = state.questions[sequence];
@@ -123,7 +127,7 @@ const useTestCenterStore = createReportableStore<TestCenterStore>((set) => ({
 				return { questions: [...state.questions] };
 			}
 			if (question) {
-				question.media[0] = audio;
+				question.media = audio;
 			}
 			return { questions: [...state.questions] };
 		});
@@ -132,7 +136,7 @@ const useTestCenterStore = createReportableStore<TestCenterStore>((set) => ({
 		set((state) => {
 			const question = state.questions[sequence];
 			if (question) {
-				question.media = [];
+				question.media = null;
 			}
 			return { questions: [...state.questions] };
 		});

@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { createPersistMiddleware } from "../middleware";
 import type { QuestionTypeProps } from "@/types";
 
-type Option = {
+export type Option = {
 	content: string;
 	is_correct: "YES" | "NO";
 	sequence_number: number;
@@ -57,6 +57,7 @@ interface QuizStore {
 	setCorrectOption: (chapterId: string, moduleId: string, id: number, option_id: number) => void;
 	setQuestions: (chapterId: string, moduleId: string, questions: QuestionDto[]) => void;
 	submitQuestions: (chapterId: string, moduleId: string) => Promise<boolean>;
+	updateQuestions: (chapterId: string, moduleId: string, questions: QuestionDto[]) => void;
 }
 
 const MAX_IMAGES_PER_QUESTION = 5;
@@ -478,6 +479,17 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 	submitQuestions: async (chapterId, moduleId) => {
 		const questions = get().questions[chapterId]?.[moduleId] || [];
 		return questions.length > 0;
+	},
+	updateQuestions: (chapterId, moduleId, questions) => {
+		set((state) => ({
+			questions: {
+				...state.questions,
+				[chapterId]: {
+					...state.questions[chapterId],
+					[moduleId]: resequenceQuestions(questions),
+				},
+			},
+		}));
 	},
 }));
 

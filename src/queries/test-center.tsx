@@ -39,11 +39,19 @@ export interface UpdateQuestionDto {
 export interface TestQuestionDto {
 	sequence: number;
 	content: string;
-	media: (File | string)[];
+	media: File | string | null;
 	images: (File | string)[];
 	instruction: Maybe<string>;
-	question_type: "MULTIPLE_CHOICE" | "LISTENING" | "SPEAKING" | "YES_OR_NO" | (string & {});
+	question_type:
+		| "FILL_IN_THE_GAP"
+		| "LISTENING"
+		| "MULTIPLE_CHOICE"
+		| "SHORT_ANSWER"
+		| "SPEAKING"
+		| "YES_OR_NO"
+		| (string & {});
 	options: TestOptionDto[];
+	id?: string;
 }
 
 export interface TestOptionDto {
@@ -104,7 +112,7 @@ const GetTest = async (
 		.then((res) => res.data);
 };
 
-const UpdateTest = async (testId: string, payload: UpdateTestDto) => {
+const UpdateTest = async (testId: string, payload: Partial<UpdateTestDto>) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
 		.put<HttpResponse<TestCenterProps>>(endpoints(testId).test_center.update, formData)
@@ -133,9 +141,7 @@ const CreateTestQuestion = async (sectionId: string, payload: TestQuestionDto[])
 		formData.append(`questions[${index}][question_type]`, question.question_type);
 		formData.append(`questions[${index}][instruction]`, question.instruction || "");
 		if (question.media) {
-			question.media.forEach((medium) => {
-				formData.append(`questions[${index}][media]`, medium);
-			});
+			formData.append(`questions[${index}][media]`, question.media);
 		}
 		question.options.forEach((option, optionIndex) => {
 			formData.append(
