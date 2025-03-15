@@ -1,3 +1,7 @@
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -7,16 +11,19 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiFolderVideoLine,
+	RiListOrdered,
 	RiLoaderLine,
 } from "@remixicon/react";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 
-import { useDrag } from "@/hooks";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { TiptapEditor } from "./ui/tiptap-editor";
+import { DeleteModal } from "./delete-modal";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
+import { Button } from "./ui/button";
+import { Spinner } from "./shared";
+import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	type CreateChapterDto,
@@ -27,12 +34,6 @@ import {
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { HttpError } from "@/types";
-import { DeleteModal } from "./delete-modal";
-import { Spinner } from "./shared";
-import { Button } from "./ui/button";
-import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -65,16 +66,20 @@ export const Chapters = ({
 	lessonTab,
 	onChapterIdChange,
 }: ChaptersProps) => {
-	const [isOpen, setIsOpen] = React.useState(false);
+	const [isChapterListOpen, setIsChapterListOpen] = React.useState(false);
 	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
-	const [current, setCurrent] = React.useState(0);
-	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [currentSequence, setCurrentSequence] = React.useState(0);
+	const [currentLesson, setCurrentLesson] = React.useState("");
+	const [isOpen, setIsOpen] = React.useState(false);
+	const [current, setCurrent] = React.useState(0);
 
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
+
+	const chapterRefs = React.useRef<Record<string, HTMLDivElement>>({});
+	const chaptersContainerRef = React.useRef<HTMLFormElement>(null);
 
 	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
 
@@ -150,7 +155,6 @@ export const Chapters = ({
 		items: lessons,
 		onReorder: (items) => setChapterLessons(items),
 		onReady: (items) => {
-			// This only runs when the user stops dragging (i.e after 3s)
 			updateModuleSequenceMutate({
 				chapter_id: String(chapterId),
 				updates: items.map((item, index) => ({
@@ -162,12 +166,25 @@ export const Chapters = ({
 	});
 
 	React.useEffect(() => {
-		// This will notify the parent component when chapter.id changes
 		const chapterWithId = chapters.find((chapter) => chapter.id);
 		if (onChapterIdChange) {
 			onChapterIdChange(chapterWithId?.id);
 		}
 	}, [chapters, onChapterIdChange]);
+
+	React.useEffect(() => {
+		if (chapterId && chapterRefs.current[chapterId]) {
+			const container = chaptersContainerRef.current;
+			const chapterElement = chapterRefs.current[chapterId];
+
+			if (container && chapterElement) {
+				container.scrollTo({
+					top: chapterElement.offsetTop - container.offsetTop,
+					behavior: "smooth",
+				});
+			}
+		}
+	}, [chapterId]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -235,9 +252,14 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="col-span-3 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
-				<div className="flex items-center justify-between gap-2">
-					<p className="text-xs uppercase tracking-widest">All chapters</p>
+			<div className="col-span-4 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
+				<div className="flex flex-1 items-center justify-between gap-2">
+					<div className="flex items-center gap-x-2">
+						<button onClick={() => setIsChapterListOpen(!isChapterListOpen)}>
+							<RiListOrdered className="size-4" />
+						</button>
+						<p className="text-xs uppercase tracking-widest">All chapters</p>
+					</div>
 
 					<button
 						type="button"
@@ -249,147 +271,172 @@ export const Chapters = ({
 				</div>
 
 				{/* chapters */}
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-					{chapters.map((chapter, index) => (
-						<div
-							key={chapter.id}
-							onClick={() => {
-								onChapterIdChange?.(chapter.id);
-								setCurrent(index);
-							}}
-							className={`"rounded-md rounded border bg-white ${chapterId === chapter.id ? "border-primary-400" : ""}`}>
-							<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
-								<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
+				<div className="flex w-full items-start gap-x-4">
+					<div
+						className={`space-y-4 rounded-lg bg-white px-3 py-4 transition-all duration-500 ${isChapterListOpen ? "block w-52" : "hidden w-0"}`}>
+						<p className="text-sm font-medium">Chapter List</p>
+						<div className="flex flex-col gap-y-2">
+							{chapters.map((chapter, index) => (
+								<button
+									key={index}
+									className={`relative flex items-start text-xs font-medium capitalize before:absolute before:top-1/2 before:size-1 before:-translate-y-1/2 before:rounded-full before:bg-neutral-500 ${current === index ? "underline underline-offset-1" : ""}`}
+									onClick={() => {
+										onChapterIdChange?.(chapter.id);
+										setCurrent(index);
+									}}>
+									<span className="ml-2">{chapter.name}</span>
+								</button>
+							))}
+						</div>
+					</div>
+					<form
+						onSubmit={handleSubmit}
+						ref={chaptersContainerRef}
+						className="flex flex-1 flex-col gap-4 transition-all duration-500">
+						{chapters.map((chapter, index) => (
+							<div
+								key={chapter.id}
+								ref={(el) => {
+									if (el) chapterRefs.current[chapter.id] = el;
+								}}
+								onClick={() => {
+									onChapterIdChange?.(chapter.id);
+									setCurrent(index);
+								}}
+								className={`"rounded-md rounded border bg-white ${chapterId === chapter.id ? "border-primary-400" : ""}`}>
+								<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
+									<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
 
-								<div className="flex items-center">
-									{question_actions.map(({ icon: Icon, label }, index) => (
-										<button
-											type="button"
-											key={index}
-											onClick={() => handleActions(label, chapter.sequence)}
-											className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
-											<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
-										</button>
-									))}
+									<div className="flex items-center">
+										{question_actions.map(({ icon: Icon, label }, index) => (
+											<button
+												type="button"
+												key={index}
+												onClick={() => handleActions(label, chapter.sequence)}
+												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
+											</button>
+										))}
+									</div>
 								</div>
-							</div>
-							<div className="flex flex-col gap-4 p-5">
-								<div className="flex flex-col items-center gap-2 border-b border-b-neutral-200 pb-2">
-									<div className="relative w-full">
-										<RiFolderVideoLine className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-										<input
-											type="text"
-											value={chapter.name}
-											onChange={(e) => addChapterName(chapter.sequence, e.target.value)}
-											placeholder="Enter chapter title"
-											className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
+								<div className="flex flex-col gap-4 p-5">
+									<div className="flex flex-col items-center gap-2 border-b border-b-neutral-200 pb-2">
+										<div className="relative w-full">
+											<RiFolderVideoLine className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+											<input
+												type="text"
+												value={chapter.name}
+												onChange={(e) => addChapterName(chapter.sequence, e.target.value)}
+												placeholder="Enter chapter title"
+												className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
+											/>
+										</div>
+
+										<TiptapEditor
+											value={chapter.content}
+											onChange={(val) => addChapterContent(chapter.sequence, val)}
 										/>
 									</div>
 
-									<TiptapEditor
-										value={chapter.content}
-										onChange={(val) => addChapterContent(chapter.sequence, val)}
-									/>
-								</div>
+									<ul className="flex flex-col gap-2">
+										{isPendingModules && chapter.id === chapterId ? (
+											<li className="flex w-full items-center justify-center p-2">
+												<Spinner variant="primary" />
+												<p className="pl-2 text-xs">Getting chapter lessons...</p>
+											</li>
+										) : (
+											lessons
+												.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
+												.map((lesson, idx) => (
+													<li
+														key={lesson.sequence}
+														onClick={() => setLessonTab(lesson.id)}
+														{...getDragProps(idx)}
+														className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+														<RiDraggable className="size-4" />
+														<p className="flex-1 truncate text-left capitalize">
+															{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
+														</p>
 
-								<ul className="flex flex-col gap-2">
-									{isPendingModules && chapter.id === chapterId ? (
-										<li className="flex w-full items-center justify-center p-2">
-											<Spinner variant="primary" />
-											<p className="pl-2 text-xs">Getting chapter lessons...</p>
-										</li>
-									) : (
-										lessons
-											.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
-											.map((lesson, idx) => (
-												<li
-													key={lesson.sequence}
-													onClick={() => setLessonTab(lesson.id)}
-													{...getDragProps(idx)}
-													className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
-													<RiDraggable className="size-4" />
-													<p className="flex-1 truncate text-left capitalize">
-														{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
-													</p>
-
-													{isOpen && currentLesson === lesson.id ? (
-														<div className="flex items-center gap-1 text-xs">
+														{isOpen && currentLesson === lesson.id ? (
+															<div className="flex items-center gap-1 text-xs">
+																<button
+																	type="button"
+																	className="rounded bg-neutral-100 px-2 py-1"
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		setIsOpen(false);
+																	}}>
+																	Cancel
+																</button>
+																<button
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		setLessonTab("");
+																		if (lesson?.lesson_chapter) {
+																			// delete the data immediately and send the request in the background
+																			mutateAsync({
+																				ids: [lesson.id],
+																				model_type: "CHAPTER_MODULE",
+																			});
+																		}
+																		removeLesson(chapter.sequence, lesson.sequence);
+																		setIsOpen(false);
+																	}}
+																	type="button"
+																	className="rounded bg-red-600 px-2 py-1 font-medium text-white">
+																	{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																</button>
+															</div>
+														) : (
 															<button
-																type="button"
-																className="rounded bg-neutral-100 px-2 py-1"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	setIsOpen(false);
-																}}>
-																Cancel
-															</button>
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setLessonTab("");
-																	if (lesson?.lesson_chapter) {
-																		// delete the data immediately and send the request in the background
-																		mutateAsync({
-																			ids: [lesson.id],
-																			model_type: "CHAPTER_MODULE",
-																		});
-																	}
-																	removeLesson(chapter.sequence, lesson.sequence);
-																	setIsOpen(false);
+																	setCurrentLesson(lesson.id);
+																	setIsOpen(true);
 																}}
 																type="button"
-																className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-																{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+																<RiDeleteBinLine className="size-4" />
 															</button>
-														</div>
-													) : (
-														<button
-															onClick={(e) => {
-																e.stopPropagation();
-																setCurrentLesson(lesson.id);
-																setIsOpen(true);
-															}}
-															type="button"
-															className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-															<RiDeleteBinLine className="size-4" />
-														</button>
-													)}
-												</li>
-											))
-									)}
-								</ul>
+														)}
+													</li>
+												))
+										)}
+									</ul>
 
-								{chapter.id ? (
-									<div className="flex items-center gap-4 pt-4">
-										<button
-											disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
-											onClick={() => handleUpdate(chapter.id)}
-											type="button"
-											className="flex items-center justify-center gap-1 rounded-md bg-primary-100 px-4 py-1.5 text-sm text-primary-300 transition-colors hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50">
-											{updateChapterIsPending ? (
-												<RiLoaderLine className="size-4 animate-spin" />
-											) : (
-												"Update Chapter"
-											)}
-										</button>
-										<button
-											disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
-											onClick={() => addLesson(chapter.sequence)}
-											type="button"
-											className="flex items-center justify-center gap-1 rounded-md bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">
-											<RiAddLine className="size-4" />
-											<span>Add new Lesson</span>
-										</button>
-									</div>
-								) : (
-									<Button type="submit" className="w-40 text-sm font-medium">
-										{isPending ? <RiLoaderLine className="size-6 animate-spin" /> : "Save Chapter"}
-									</Button>
-								)}
+									{chapter.id ? (
+										<div className="flex items-center gap-4 pt-4">
+											<button
+												disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
+												onClick={() => handleUpdate(chapter.id)}
+												type="button"
+												className="flex items-center justify-center gap-1 rounded-md bg-primary-100 px-4 py-1.5 text-sm text-primary-300 transition-colors hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50">
+												{updateChapterIsPending ? (
+													<RiLoaderLine className="size-4 animate-spin" />
+												) : (
+													"Update Chapter"
+												)}
+											</button>
+											<button
+												disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
+												onClick={() => addLesson(chapter.sequence)}
+												type="button"
+												className="flex items-center justify-center gap-1 rounded-md bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">
+												<RiAddLine className="size-4" />
+												<span>Add new Lesson</span>
+											</button>
+										</div>
+									) : (
+										<Button type="submit" className="w-40 text-sm font-medium">
+											{isPending ? <RiLoaderLine className="size-6 animate-spin" /> : "Save Chapter"}
+										</Button>
+									)}
+								</div>
 							</div>
-						</div>
-					))}
-				</form>
+						))}
+					</form>
+				</div>
 			</div>
 
 			<DeleteModal

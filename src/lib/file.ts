@@ -1,4 +1,7 @@
-import { utils, write } from "xlsx";
+import { read, utils, write } from "xlsx";
+
+import type { TestQuestionDto } from "@/queries/test-center";
+import type { QuestionDto } from "@/store/z-store/quizz";
 
 interface ExportOptions {
 	filename: string;
@@ -8,24 +11,19 @@ interface ExportOptions {
 type ExportData<T> = Record<string, T>[];
 
 export const exportToCSV = <T>(data: ExportData<T>, options: ExportOptions): void => {
-	// Convert data to CSV string
 	const headers = Object.keys(data[0]);
 	const csvContent = [
-		// Add headers
 		headers.join(","),
-		// Add data rows
 		...data.map((row) =>
 			headers
 				.map((header) => {
 					const cell = row[header];
-					// Handle cells that contain commas by wrapping in quotes
 					return typeof cell === "string" && cell.includes(",") ? `"${cell}"` : cell;
 				})
 				.join(",")
 		),
 	].join("\n");
 
-	// Create blob and download
 	const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 	const link = document.createElement("a");
 	const url = URL.createObjectURL(blob);
@@ -38,20 +36,13 @@ export const exportToCSV = <T>(data: ExportData<T>, options: ExportOptions): voi
 };
 
 export const exportToXLSX = <T>(data: ExportData<T>, options: ExportOptions): void => {
-	// Create workbook and worksheet
 	const wb = utils.book_new();
 	const ws = utils.json_to_sheet(data);
-
-	// Add worksheet to workbook
 	utils.book_append_sheet(wb, ws, options.sheet || "Sheet1");
-
-	// Generate buffer and create blob
 	const excelBuffer = write(wb, { bookType: "xlsx", type: "array" });
 	const blob = new Blob([excelBuffer], {
 		type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	});
-
-	// Create download link and trigger download
 	const link = document.createElement("a");
 	const url = URL.createObjectURL(blob);
 
@@ -165,4 +156,135 @@ export const getFileChunks = (fileSize: number): Chunk[] => {
 	}
 
 	return chunks;
+};
+
+export const testQuestionFromXlsxToJSON = (
+	file: File,
+	lastIndex: number
+): Promise<TestQuestionDto[]> => {
+	return new Promise((resolve, reject) => {
+		if (!file) {
+			throw new Error("No file provided");
+		}
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const data = new Uint8Array(e.target?.result as ArrayBuffer);
+				const workbook = read(data, { type: "array" });
+				const worksheetName = workbook?.SheetNames[0];
+				const worksheet = workbook?.Sheets[worksheetName];
+				const rawJson = utils.sheet_to_json(worksheet);
+
+				type SheetRow = {
+					content: string;
+					media: string;
+					options: string;
+					instruction: string;
+					question_type: string;
+					images: string;
+					is_correct: string;
+				};
+
+				const questions: TestQuestionDto[] = rawJson?.map((row, rowIndex) => {
+					const sheetRow = row as SheetRow;
+					return {
+						sequence: lastIndex + rowIndex + 1,
+						content: sheetRow?.content,
+						media: sheetRow?.media || null,
+						images: sheetRow?.images ? sheetRow?.images.split(",").map((img: string) => img.trim()) : [],
+						instruction: sheetRow?.instruction || null,
+						question_type: sheetRow?.question_type,
+						options:
+							sheetRow?.options && typeof sheetRow?.options === "string"
+								? sheetRow?.options.split(",").map((option: string, index) => {
+										const is_correct = Number(sheetRow?.is_correct) === index + 1 ? "YES" : "NO";
+										console.log({
+											optionIndex: `option ${index + 1}`,
+											option,
+											is_correct,
+											sheetRow,
+											sheetRowIsCorrect: sheetRow?.is_correct,
+										});
+										return {
+											content: option,
+											is_correct: Number(sheetRow?.is_correct) === index + 1 ? "YES" : "NO",
+											sequence_number: index + 1,
+										};
+									})
+								: [],
+					};
+				});
+
+				resolve(questions);
+			} catch (error) {
+				reject(error);
+			}
+		};
+		reader.onerror = () => {
+			reject(new Error("Error reading the Excel file"));
+		};
+		reader.readAsArrayBuffer(file);
+	});
+};
+
+export const quizQuestionFromXlsxToJSON = (
+	file: File,
+	lastIndex: number
+): Promise<QuestionDto[]> => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+
+		reader.onload = (e) => {
+			try {
+				const data = new Uint8Array(e.target?.result as ArrayBuffer);
+				const workbook = read(data, { type: "array" });
+				const worksheetName = workbook.SheetNames[0];
+				const worksheet = workbook.Sheets[worksheetName];
+				const rawJson = utils.sheet_to_json(worksheet);
+
+				type SheetRow = {
+					content: string;
+					media: string;
+					options: string;
+					instruction: string;
+					question_type: string;
+					images: string;
+					is_correct: string;
+				};
+
+				const questions: QuestionDto[] = rawJson.map((row, rowIndex) => {
+					const sheetRow = row as SheetRow;
+					return {
+						sequence: lastIndex + rowIndex + 1,
+						sequence_number: rowIndex + 1,
+						content: sheetRow.content,
+						images: [],
+						instruction: sheetRow.instruction || null,
+						question_type: sheetRow.question_type,
+						options:
+							sheetRow.options && typeof sheetRow.options === "string"
+								? sheetRow.options.split(",").map((option: string, optionIndex) => {
+										// const	is_correct = (Number(sheetRow.is_correct) === optionIndex + 1)
+										console.log();
+										return {
+											content: option,
+											is_correct: Number(sheetRow.is_correct) === optionIndex + 1 ? "YES" : "NO",
+											sequence_number: optionIndex + 1,
+											images: [],
+										};
+									})
+								: [],
+					};
+				});
+
+				resolve(questions);
+			} catch (error) {
+				reject(error);
+			}
+		};
+		reader.onerror = () => {
+			reject(new Error("Error reading the Excel file"));
+		};
+		reader.readAsArrayBuffer(file);
+	});
 };

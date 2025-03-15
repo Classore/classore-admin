@@ -162,9 +162,15 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 		}
 	}
 	return axios
-		.get<
-			HttpResponse<PaginatedResponse<CastedChapterModuleProps>>
-		>(endpoints().school.get_chapter_modules, { params })
+		.get<HttpResponse<PaginatedResponse<CastedChapterModuleProps>>>(
+			endpoints().school.get_chapter_modules,
+			{
+				params: {
+					limit: 15,
+					...params,
+				},
+			}
+		)
 		.then((res) => res.data);
 };
 

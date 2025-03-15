@@ -1,5 +1,5 @@
+import { RiArrowLeftSLine, RiImportLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { RiArrowLeftSLine } from "@remixicon/react";
 import { toast } from "sonner";
 import React from "react";
 
@@ -7,8 +7,10 @@ import { CreateQuestions, GetQuestions } from "@/queries";
 import { QuestionCard } from "./dashboard/question-card";
 import { useQuizStore } from "@/store/z-store/quizz";
 import type { QuestionDto } from "@/store/z-store";
+import { quizQuestionFromXlsxToJSON } from "@/lib";
 import { queryClient } from "@/providers";
 import type { HttpError } from "@/types";
+import { useFileHandler } from "@/hooks";
 import { Button } from "./ui/button";
 import { Spinner } from "./shared";
 
@@ -19,8 +21,36 @@ interface Props {
 }
 
 export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
-	const { addQuestion, duplicateQuestion, questions, removeQuestion, reorderQuestion } =
-		useQuizStore();
+	const {
+		addQuestion,
+		duplicateQuestion,
+		questions,
+		removeQuestion,
+		reorderQuestion,
+		updateQuestions,
+	} = useQuizStore();
+
+	const { handleClick, handleFileChange, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			quizQuestionFromXlsxToJSON(file, 0).then((questions) => {
+				updateQuestions(String(chapterId), lessonTab, questions);
+			});
+		},
+		fileType: "document",
+		onError: (error) => {
+			toast.error(error);
+		},
+		validationRules: {
+			allowedTypes: [
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				"application/vnd.ms-excel",
+			],
+			maxFiles: Infinity,
+			maxSize: 10 * 1024 * 1024, // 10MB
+			minFiles: 1,
+		},
+	});
 
 	const {} = useQuery({
 		queryKey: ["get-questions", lessonTab],
@@ -139,13 +169,32 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
 			<div className="flex w-full items-center justify-between">
 				<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
-				<button
-					type="button"
-					onClick={() => setCurrentTab("lesson")}
-					className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-					<RiArrowLeftSLine className="size-4" />
-					<span>Back to Lesson</span>
-				</button>
+				<div className="flex items-center gap-x-2">
+					<label htmlFor="xlsx-upload">
+						<input
+							type="file"
+							id="xlsx-upload"
+							className="sr-only hidden"
+							ref={inputRef}
+							onChange={handleFileChange}
+							accept=".xlsx"
+						/>
+						<button
+							type="button"
+							onClick={handleClick}
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+							<RiImportLine className="size-4" />
+							<span>Import Questions</span>
+						</button>
+					</label>
+					<button
+						type="button"
+						onClick={() => setCurrentTab("lesson")}
+						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+						<RiArrowLeftSLine className="size-4" />
+						<span>Back to Lesson</span>
+					</button>
+				</div>
 			</div>
 			<div className="w-full space-y-2">
 				<div className="w-full space-y-2">

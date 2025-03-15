@@ -71,7 +71,7 @@ const Page = () => {
 							<Breadcrumbs courseId={id} links={links} />
 						</div>
 						<div className="flex items-center gap-x-4">
-							<TestSettings />
+							<TestSettings testId={id} />
 							<AddSection testId={id} />
 						</div>
 					</div>

@@ -8,16 +8,18 @@ import {
 	RiArrowRightSLine,
 	RiBook2Line,
 	RiEyeLine,
+	RiImportLine,
 } from "@remixicon/react";
 
 import { CreateTestQuestion, GetTestQuestions, type TestQuestionDto } from "@/queries/test-center";
-import { getEmptyQuestion, useTestCenterStore } from "@/store/z-store/test-center";
+import { getEmptyQuestion, getEmptyOption, useTestCenterStore } from "@/store/z-store/test-center";
 import type { BreadcrumbItemProps } from "@/components/shared";
+import { capitalize, testQuestionFromXlsxToJSON } from "@/lib";
 import { QuestionCard } from "@/components/test-center";
 import { Breadcrumbs, Seo } from "@/components/shared";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { capitalize } from "@/lib";
+import { useFileHandler } from "@/hooks";
 
 type QueryKey = {
 	sectionId: string;
@@ -34,7 +36,29 @@ const Page = () => {
 	const router = useRouter();
 	const { sectionId, sectionTitle } = router.query as QueryKey;
 
-	const { addQuestion, questions, updateQuestions } = useTestCenterStore();
+	const { addQuestion, questions, setQuestions, updateQuestions } = useTestCenterStore();
+
+	const { handleClick, handleFileChange, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			testQuestionFromXlsxToJSON(file, questions.length).then((questions) => {
+				updateQuestions(questions);
+			});
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+		fileType: "document",
+		validationRules: {
+			allowedTypes: [
+				"application/vnd.ms-excel",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			],
+			maxFiles: Infinity,
+			maxSize: 5 * 1024 * 1024,
+			minFiles: 1,
+		},
+	});
 
 	const { data } = useQuery({
 		queryKey: ["get-section-questions", sectionId],
@@ -46,7 +70,7 @@ const Page = () => {
 					content: question.content,
 					images: question.images,
 					instruction: question.instructions,
-					media: question.audio,
+					media: question.media,
 					options: question.options.map((option) => {
 						return {
 							content: option.content,
@@ -56,6 +80,7 @@ const Page = () => {
 					}),
 					question_type: question.question_type,
 					sequence: 0,
+					id: question.id,
 				};
 				return mutatedQuestion;
 			}),
@@ -63,9 +88,9 @@ const Page = () => {
 
 	React.useEffect(() => {
 		if (data) {
-			updateQuestions(data);
+			setQuestions(data);
 		}
-	}, [data, updateQuestions]);
+	}, [data, setQuestions]);
 
 	const {} = useMutation({
 		mutationKey: ["update-question"],
@@ -84,6 +109,8 @@ const Page = () => {
 			return;
 		}
 		const question = getEmptyQuestion(questions.length + 1);
+		const option = getEmptyOption(1);
+		question.options.push(option);
 		addQuestion(question);
 		setCurrent(questions.length);
 	};
@@ -111,6 +138,19 @@ const Page = () => {
 							<Breadcrumbs courseId={sectionId} links={links} />
 						</div>
 						<div className="flex items-center gap-x-4">
+							<label htmlFor="xlsx-upload">
+								<input
+									type="file"
+									id="xlsx-upload"
+									className="sr-only hidden"
+									onChange={handleFileChange}
+									accept=".xlsx"
+									ref={inputRef}
+								/>
+								<Button onClick={handleClick} className="w-fit" size="sm" variant="outline">
+									<RiImportLine className="size-4" /> Import Questions
+								</Button>
+							</label>
 							<Button className="w-fit" size="sm" variant="destructive-outline">
 								Delete
 							</Button>
@@ -149,7 +189,12 @@ const Page = () => {
 									</button>
 								</div>
 								{questions.length > 0 && (
-									<QuestionCard sequence={current} sectionId={sectionId} question={questions[current]} />
+									<QuestionCard
+										sequence={current}
+										sectionId={sectionId}
+										question={questions[current]}
+										setCurrent={setCurrent}
+									/>
 								)}
 							</div>
 							<div className="col-span-5 px-8">

@@ -1,8 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import React from "react";
+import Image from "next/image";
 import { toast } from "sonner";
+import React from "react";
 import {
 	RiAddLine,
+	RiAlignLeft,
 	RiArrowDownLine,
 	RiArrowUpLine,
 	RiCheckboxCircleFill,
@@ -11,27 +13,32 @@ import {
 	RiDeleteBin6Line,
 	RiDraggable,
 	RiFileCopyLine,
+	RiHeadphoneLine,
 	RiImageAddLine,
 	RiLoaderLine,
-	RiQuestionLine,
+	RiLoopLeftLine,
 	RiMicLine,
-	RiHeadphoneLine,
+	RiQuestionLine,
+	RiSpace,
+	RiSpeakLine,
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { CreateTestQuestion, type TestQuestionDto } from "@/queries/test-center";
 import { useTestCenterStore } from "@/store/z-store";
+import { AudioPlayer } from "../audio-player";
 import { queryClient } from "@/providers";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
 import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";
-import type { HttpError } from "@/types";
 
 interface Props {
 	question: TestQuestionDto;
 	sectionId: string;
 	sequence: number;
+	setCurrent: React.Dispatch<React.SetStateAction<number>>;
 }
 
 type AudioState = "idle" | "recording" | "recorded";
@@ -45,8 +52,10 @@ type QuestionTypes = {
 const QUESTION_TYPES: QuestionTypes[] = [
 	{ label: "Multiple Choice", value: "MULTIPLE_CHOICE", icon: RiCheckboxMultipleLine },
 	{ label: "Yes/No", value: "YES_OR_NO", icon: RiContrastLine },
-	{ label: "Speaking", value: "SPEAKING", icon: RiMicLine },
+	{ label: "Speaking", value: "SPEAKING", icon: RiSpeakLine },
 	{ label: "Listening", value: "LISTENING", icon: RiHeadphoneLine },
+	{ label: "Short Answer", value: "SHORT_ANSWER", icon: RiAlignLeft },
+	{ label: "Fill in the gap", value: "FILL_IN_THE_GAP", icon: RiSpace },
 ];
 
 const QUESTION_ACTIONS: { label: QuestionActions; icon: React.ElementType }[] = [
@@ -59,19 +68,27 @@ const QUESTION_ACTIONS: { label: QuestionActions; icon: React.ElementType }[] = 
 const CONFIG = {
 	audio: {
 		allowedTypes: ["audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg"],
-		maxFiles: 1,
+		maxFiles: Infinity,
 		maxSize: 5 * 1024 * 1024, // 5MB
 		minFiles: 1,
 	},
 	image: {
 		allowedTypes: ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"],
 		maxFiles: 5,
-		maxSize: 1 * 1024 * 1024, // 1MB
+		maxSize: 2 * 1024 * 1024, // 1MB
 		minFiles: 1,
 	},
 };
 
-export const QuestionCard = ({ sectionId, sequence }: Props) => {
+const MULTIPLE_CHOICE: Array<TestQuestionDto["question_type"]> = ["LISTENING", "MULTIPLE_CHOICE"];
+
+const CORRECT_OPTION: Array<TestQuestionDto["question_type"]> = [
+	"LISTENING",
+	"MULTIPLE_CHOICE",
+	"YES_OR_NO",
+];
+
+export const QuestionCard = ({ sectionId, sequence, setCurrent }: Props) => {
 	const [recordingState, setRecordingState] = React.useState<AudioState>("idle");
 	const [mediaType, setMediaType] = React.useState<"audio" | "image">("audio");
 	const [, setAudioPreview] = React.useState<string | null>(null);
@@ -84,20 +101,15 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 		addQuestionContent,
 		addOptionContent,
 		handleTypeChange,
-		// removeAudioFromQuestion,
-		// removeImagesFromQuestion,
+		removeAudioFromQuestion,
+		removeImagesFromQuestion,
 		removeQuestion,
 		setCorrectOption,
 		removeQuestionOption,
 		questions,
 	} = useTestCenterStore();
 
-	const {
-		handleClick,
-		handleFileChange,
-		// handleRemoveFile,
-		inputRef,
-	} = useFileHandler({
+	const { handleClick, handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
 			addImagesToQuestion(sequence, files);
 		},
@@ -111,7 +123,7 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 	const {
 		handleClick: handleAudioClick,
 		handleFileChange: handleAudioFileChange,
-		// handleRemoveFile: handleRemoveAudioFile,
+		handleRemoveFile: handleRemoveAudioFile,
 		inputRef: audioInputRef,
 	} = useFileHandler({
 		onValueChange: (files) => {
@@ -177,10 +189,11 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 		}
 	};
 
-	const handleActions = (action: QuestionActions, sequence: number) => {
+	const handleActions = async (action: QuestionActions, sequence: number) => {
 		switch (action) {
 			case "delete":
-				removeQuestion(sequence);
+				await removeQuestion(sequence);
+				setCurrent((prev) => prev - 1);
 				break;
 			case "duplicate":
 				const questionToDuplicate = questions.find((q) => q.sequence === sequence);
@@ -212,51 +225,70 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 		handleAudioClick();
 	};
 
+	const handleImageDelete = (file: File) => {
+		removeImagesFromQuestion(sequence, file);
+		handleRemoveFile(file);
+	};
+
+	const getNewQuestions = (questions: TestQuestionDto[]) => {
+		return questions.filter((question) => !question.id);
+	};
+
 	const handleSubmit = () => {
-		if (!questions.length) {
+		const sanitized = getNewQuestions(questions);
+		if (!sanitized.length) {
 			toast.error("Please add at least one question");
 			return;
 		}
-		if (questions.some((question) => question.content === "")) {
+		if (sanitized.some((question) => question.content === "")) {
 			toast.error("Please fill in all question contents");
 			return;
 		}
-		if (questions.some((question) => question.question_type === "")) {
-			toast.error("Please select a question type for all questions");
-			return;
-		}
-		if (questions.some((question) => question.options.length === 0)) {
-			toast.error("Please add at least one option for all questions");
-			return;
-		}
-		if (
-			questions.some(
-				(question) => question.question_type === "MULTIPLE_CHOICE" && question.options.length !== 4
-			)
-		) {
-			toast.error("Multiple choice questions must have 4 options");
-			return;
-		}
-		if (questions.some((question) => question.question_type === "LISTENING" && !question.media)) {
+		if (sanitized.some((question) => question.question_type === "LISTENING" && !question.media)) {
 			toast.error("Listening questions must have an audio file");
 			return;
 		}
-		if (questions.some((question) => question.options.some((option) => option.content === ""))) {
+		if (sanitized.some((question) => question.question_type === "")) {
+			toast.error("Please select a question type for all questions");
+			return;
+		}
+		if (
+			sanitized.some(
+				(question) => CORRECT_OPTION.includes(question.question_type) && question.options.length === 0
+			)
+		) {
+			toast.error(
+				"Please add at least one option for multiple choice, listening and yes/no questions"
+			);
+			return;
+		}
+		if (
+			sanitized.some(
+				(question) => MULTIPLE_CHOICE.includes(question.question_type) && question.options.length !== 4
+			)
+		) {
+			toast.error("Multiple choice and listening questions must have 4 options");
+			return;
+		}
+		if (sanitized.some((question) => question.question_type === "LISTENING" && !question.media)) {
+			toast.error("Listening questions must have an audio file");
+			return;
+		}
+		if (sanitized.some((question) => question.options.some((option) => option.content === ""))) {
 			toast.error("Please fill in all option contents");
 			return;
 		}
 		if (
-			questions?.some(
+			sanitized.some(
 				(question) =>
-					(question.question_type === "MULTIPLE_CHOICE" || question.question_type === "YES_OR_NO") &&
+					CORRECT_OPTION.includes(question.question_type) &&
 					question.options.every((option) => option.is_correct !== "YES")
 			)
 		) {
-			toast.error("Multiple choice and boolean questions must have a correct answer");
+			toast.error("Multiple choice, listening and yes/no questions must have a correct answer");
 			return;
 		}
-		console.log(questions);
-		mutateAsync(questions);
+		mutateAsync(sanitized);
 	};
 
 	const currentQuestion = questions[sequence];
@@ -308,8 +340,7 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 					className="h-44 w-full md:text-sm"
 				/>
 
-				{currentQuestion?.question_type === "LISTENING" ||
-				currentQuestion?.question_type === "SPEAKING" ? (
+				{currentQuestion?.question_type === "LISTENING" ? (
 					<div className="absolute bottom-2 right-2 flex gap-x-2">
 						<label className="ml-auto">
 							<input
@@ -362,10 +393,65 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 				)}
 			</div>
 
+			{/* QUESTION IMAGES */}
+			{!!currentQuestion?.images?.length && (
+				<div className="grid w-full grid-cols-4 gap-x-2">
+					{currentQuestion.images.map((image, index) => (
+						<div key={index} className="relative aspect-square w-full">
+							<Image
+								src={typeof image === "string" ? image : URL.createObjectURL(image)}
+								alt={`image-${index}`}
+								fill
+								sizes="100%"
+								className="size-full rounded-lg object-cover"
+							/>
+							{typeof image === "string" ? (
+								<label htmlFor="image-upload">
+									<input
+										ref={inputRef}
+										type="file"
+										id="image-upload"
+										className="sr-only hidden"
+										accept="image/*"
+										onChange={handleFileChange}
+									/>
+									<button onClick={handleClick} className="absolute right-2 top-2 rounded-md bg-white p-1">
+										<RiLoopLeftLine className="size-4 text-red-500" />
+									</button>
+								</label>
+							) : (
+								<button
+									onClick={() => handleImageDelete(image)}
+									className="absolute right-2 top-2 rounded-md bg-white p-1">
+									<RiDeleteBin6Line className="size-4 text-red-500" />
+								</button>
+							)}
+						</div>
+					))}
+				</div>
+			)}
+
+			{/* QUESTION AUDIO */}
+			{!!currentQuestion?.media && (
+				<div className="flex h-8 w-full items-center justify-between gap-x-4">
+					<AudioPlayer source={currentQuestion.media} />
+					{currentQuestion.media instanceof File && (
+						<button
+							onClick={() => {
+								removeAudioFromQuestion(sequence);
+								handleRemoveAudioFile(currentQuestion.media as File);
+							}}
+							className="grid size-8 place-items-center rounded-md border border-neutral-300 bg-white text-red-600">
+							<RiDeleteBin6Line className="size-4" />
+						</button>
+					)}
+				</div>
+			)}
+
 			{/* QUESTION SETTINGS */}
 			<div className="grid h-8 w-full grid-cols-3 gap-x-3">
-				<div className="col-span-2 h-full rounded-md border border-neutral-400"></div>
-				<div className="flex h-full w-full items-center justify-between rounded-md border border-neutral-400 px-2">
+				<div className="col-span-2 h-full rounded-md border border-neutral-300"></div>
+				<div className="flex h-full w-full items-center justify-between rounded-md border border-neutral-300 px-2">
 					<p className="text-xs text-neutral-400">Randomized options</p>
 					<Switch />
 				</div>
@@ -378,7 +464,7 @@ export const QuestionCard = ({ sectionId, sequence }: Props) => {
 					{currentQuestion?.options.map((option, index) => (
 						<div
 							key={index}
-							className="flex h-auto min-h-10 w-full flex-col rounded-lg border border-neutral-400 px-3 py-2">
+							className="flex h-auto min-h-10 w-full flex-col rounded-lg border border-neutral-300 px-3 py-2">
 							<div className="flex w-full items-center gap-x-4">
 								<div className="flex flex-1 items-center gap-x-2">
 									<button type="button" className={`grid size-6 place-items-center p-1`}>

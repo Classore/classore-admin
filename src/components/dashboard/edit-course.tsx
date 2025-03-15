@@ -5,13 +5,13 @@ import Image from "next/image";
 import { toast } from "sonner";
 import * as Yup from "yup";
 
-import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Textarea } from "../ui/textarea";
-import { queryClient } from "@/providers";
 import { useFileHandler } from "@/hooks";
+import { queryClient } from "@/providers";
+import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	course: SubjectResponse;
@@ -49,7 +49,6 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 			banner: Yup.mixed(),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
 			mutateAsync(values);
 		},
 	});
@@ -106,13 +105,15 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 												ref={inputRef}
 											/>
 											<button
+												type="button"
 												onClick={handleClick}
-												className="absolute right-3 top-3 rounded-md bg-white p-1 text-red-500">
+												className="absolute right-3 top-3 rounded-md bg-white p-1 text-primary-500">
 												<RiLoopLeftLine size={14} />
 											</button>
 										</label>
 									) : (
 										<button
+											type="button"
 											onClick={() =>
 												values.banner && typeof values.banner !== "string" && handleRemoveFile(values.banner)
 											}
@@ -131,6 +132,7 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 										ref={inputRef}
 									/>
 									<button
+										type="button"
 										onClick={handleClick}
 										className="absolute bottom-3 right-3 flex items-center gap-x-2 rounded-md border bg-white px-3 py-0.5 text-xs font-medium">
 										<RiCameraLine size={14} /> Update Banner
