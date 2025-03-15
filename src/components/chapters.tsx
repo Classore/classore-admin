@@ -17,6 +17,8 @@ import {
 
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { TiptapEditor } from "./ui/tiptap-editor";
+import { useGlobalStore } from "@/store/z-store";
+import { ScrollArea } from "./ui/scroll-area";
 import { DeleteModal } from "./delete-modal";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
@@ -66,7 +68,6 @@ export const Chapters = ({
 	lessonTab,
 	onChapterIdChange,
 }: ChaptersProps) => {
-	const [isChapterListOpen, setIsChapterListOpen] = React.useState(false);
 	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
 	const [currentSequence, setCurrentSequence] = React.useState(0);
 	const [currentLesson, setCurrentLesson] = React.useState("");
@@ -78,10 +79,15 @@ export const Chapters = ({
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
-	const chapterRefs = React.useRef<Record<string, HTMLDivElement>>({});
-	const chaptersContainerRef = React.useRef<HTMLFormElement>(null);
-
+	const { isChapterListOpen, selectedChapter, setIsChapterListOpen, setSelectedChapter } =
+		useGlobalStore();
 	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
+
+	React.useEffect(() => {
+		if (chapters.length) {
+			setSelectedChapter(chapters[0]);
+		}
+	}, [chapters, setSelectedChapter]);
 
 	// TODO: find a better way to do this
 	const { isPending: isPendingModules } = useQuery({
@@ -151,6 +157,7 @@ export const Chapters = ({
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
 	});
+
 	const { getDragProps } = useDrag({
 		items: lessons,
 		onReorder: (items) => setChapterLessons(items),
@@ -171,20 +178,6 @@ export const Chapters = ({
 			onChapterIdChange(chapterWithId?.id);
 		}
 	}, [chapters, onChapterIdChange]);
-
-	React.useEffect(() => {
-		if (chapterId && chapterRefs.current[chapterId]) {
-			const container = chaptersContainerRef.current;
-			const chapterElement = chapterRefs.current[chapterId];
-
-			if (container && chapterElement) {
-				container.scrollTo({
-					top: chapterElement.offsetTop - container.offsetTop,
-					behavior: "smooth",
-				});
-			}
-		}
-	}, [chapterId]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -252,7 +245,7 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="col-span-4 flex max-h-fit flex-col gap-4 rounded-md bg-neutral-100 p-4">
+			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<div className="flex items-center gap-x-2">
 						<button onClick={() => setIsChapterListOpen(!isChapterListOpen)}>
@@ -271,39 +264,15 @@ export const Chapters = ({
 				</div>
 
 				{/* chapters */}
-				<div className="flex w-full items-start gap-x-4">
-					<div
-						className={`space-y-4 rounded-lg bg-white px-3 py-4 transition-all duration-500 ${isChapterListOpen ? "block w-52" : "hidden w-0"}`}>
-						<p className="text-sm font-medium">Chapter List</p>
-						<div className="flex flex-col gap-y-2">
-							{chapters.map((chapter, index) => (
-								<button
-									key={index}
-									className={`relative flex items-start text-xs font-medium capitalize before:absolute before:top-1/2 before:size-1 before:-translate-y-1/2 before:rounded-full before:bg-neutral-500 ${current === index ? "underline underline-offset-1" : ""}`}
-									onClick={() => {
-										onChapterIdChange?.(chapter.id);
-										setCurrent(index);
-									}}>
-									<span className="ml-2">{chapter.name}</span>
-								</button>
-							))}
-						</div>
-					</div>
+				<ScrollArea className="flex h-full w-full items-start gap-x-4">
 					<form
 						onSubmit={handleSubmit}
-						ref={chaptersContainerRef}
 						className="flex flex-1 flex-col gap-4 transition-all duration-500">
-						{chapters.map((chapter, index) => (
+						{chapters.map((chapter) => (
 							<div
 								key={chapter.id}
-								ref={(el) => {
-									if (el) chapterRefs.current[chapter.id] = el;
-								}}
-								onClick={() => {
-									onChapterIdChange?.(chapter.id);
-									setCurrent(index);
-								}}
-								className={`"rounded-md rounded border bg-white ${chapterId === chapter.id ? "border-primary-400" : ""}`}>
+								onClick={() => onChapterIdChange?.(chapter.id)}
+								className={`rounded-md border bg-white ${selectedChapter === chapter ? "block" : "hidden"}`}>
 								<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
 									<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
 
@@ -436,7 +405,7 @@ export const Chapters = ({
 							</div>
 						))}
 					</form>
-				</div>
+				</ScrollArea>
 			</div>
 
 			<DeleteModal
