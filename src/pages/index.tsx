@@ -1,21 +1,20 @@
-import { useMutation } from "@tanstack/react-query";
 import { RiLoader2Line } from "@remixicon/react";
-import { useRouter } from "next/router";
+import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { toast } from "sonner";
-import React from "react";
 
-import AuthLayout from "@/components/layout/auth";
-import { Button } from "@/components/ui/button";
-import { useUserStore } from "@/store/z-store";
-import { Input } from "@/components/ui/input";
 import { AuthGraphic } from "@/assets/icons";
+import AuthLayout from "@/components/layout/auth";
+import { Seo } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { SignInDto } from "@/queries";
 import { SignInMutation } from "@/queries";
-import { Seo } from "@/components/shared";
-import type { HttpError } from "@/types";
 import { signinSchema } from "@/schema";
+import { useUserStore } from "@/store/z-store";
+import type { HttpError } from "@/types";
 
 const initialValues: SignInDto = {
 	email: "",
@@ -31,6 +30,7 @@ const Page = () => {
 		onSuccess: (data) => {
 			const { data: user } = data;
 			signIn(user, user.access_token);
+			toast.success("Logged in successfully");
 			router.push("/dashboard");
 		},
 		onError: ({ response }: HttpError) => {
