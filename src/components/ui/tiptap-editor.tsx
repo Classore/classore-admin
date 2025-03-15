@@ -5,6 +5,7 @@ import {
 	RiH1,
 	RiH2,
 	RiH3,
+	RiH4,
 	RiItalic,
 	RiListOrdered,
 	RiListUnordered,
@@ -29,12 +30,14 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 	return (
 		<div className="tiptap-btn-container flex flex-wrap items-center gap-1.5 border-b border-b-neutral-200 p-2 text-[10px]">
 			<button
+				type="button"
 				title="Paragraph"
 				onClick={() => editor.chain().focus().setParagraph().run()}
 				className={editor.isActive("paragraph") ? "is-active" : ""}>
 				<RiParagraph className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Bold"
 				onClick={() => editor.chain().focus().toggleBold().run()}
 				disabled={!editor.can().chain().focus().toggleBold().run()}
@@ -42,6 +45,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				<RiBold className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Italic"
 				onClick={() => editor.chain().focus().toggleItalic().run()}
 				disabled={!editor.can().chain().focus().toggleItalic().run()}
@@ -49,6 +53,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				<RiItalic className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Underline"
 				onClick={() => editor.chain().focus().toggleUnderline().run()}
 				disabled={!editor.can().chain().focus().toggleUnderline().run()}
@@ -56,6 +61,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				<RiUnderline className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Strikethrough"
 				onClick={() => editor.chain().focus().toggleStrike().run()}
 				disabled={!editor.can().chain().focus().toggleStrike().run()}
@@ -66,28 +72,34 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				<button onClick={() => editor.chain().focus().clearNodes().run()}>Clear nodes</button> */}
 
 			<button
+				type="button"
 				title="Heading 1"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
 				className={editor.isActive("heading", { level: 1 }) ? "is-active" : ""}>
 				<RiH1 className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Heading 2"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
 				className={editor.isActive("heading", { level: 2 }) ? "is-active" : ""}>
 				<RiH2 className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Heading 3"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
 				className={editor.isActive("heading", { level: 3 }) ? "is-active" : ""}>
 				<RiH3 className="size-3" />
 			</button>
-			{/* <button
+			<button
+				type="button"
+				title="Heading 4"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
 				className={editor.isActive("heading", { level: 4 }) ? "is-active" : ""}>
-				H4
+				<RiH4 className="size-3" />
 			</button>
+			{/*
 			<button
 				onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
 				className={editor.isActive("heading", { level: 5 }) ? "is-active" : ""}>
@@ -100,24 +112,28 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 			</button> */}
 
 			<button
+				type="button"
 				title="Subscript"
 				onClick={() => editor.chain().focus().toggleSubscript().run()}
 				className={editor.isActive("subscript") ? "is-active" : ""}>
 				<RiSubscript className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Superscript"
 				onClick={() => editor.chain().focus().toggleSuperscript().run()}
 				className={editor.isActive("superscript") ? "is-active" : ""}>
 				<RiSuperscript className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Unordered List"
 				onClick={() => editor.chain().focus().toggleBulletList().run()}
 				className={editor.isActive("bulletList") ? "is-active" : ""}>
 				<RiListUnordered className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Ordered List"
 				onClick={() => editor.chain().focus().toggleOrderedList().run()}
 				className={editor.isActive("orderedList") ? "is-active" : ""}>
@@ -125,13 +141,17 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 			</button>
 			{/* <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>Horizontal rule</button> */}
 			<button
+				type="button"
 				title="Undo"
+				className="cursor-pointer"
 				onClick={() => editor.chain().focus().undo().run()}
 				disabled={!editor.can().chain().focus().undo().run()}>
 				<Undo2 className="size-3" />
 			</button>
 			<button
+				type="button"
 				title="Redo"
+				className="cursor-pointer"
 				onClick={() => editor.chain().focus().redo().run()}
 				disabled={!editor.can().chain().focus().redo().run()}>
 				<Redo2 className="size-3" />
@@ -171,7 +191,7 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 		},
 		editorProps: {
 			attributes: {
-				class: cn("prose-sm focus:outline-none min-h-32 pb-2 px-3", editorClassName),
+				class: cn("prose-sm focus:outline-none prose-li:list-item min-h-32 pb-2 px-3", editorClassName),
 			},
 		},
 	});

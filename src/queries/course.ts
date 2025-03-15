@@ -2,17 +2,17 @@ import { endpoints } from "@/config";
 import { axios, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
 import type {
-	CastedChapterModuleProps,
-	CastedChapterProps,
-	CastedQuestionProps,
-	ChapterModuleProps,
-	ChapterProps,
-	HttpResponse,
-	MakeOptional,
-	PaginatedResponse,
-	PaginationProps,
-	QuestionTypeProps,
-	VideoProps,
+    CastedChapterModuleProps,
+    CastedChapterProps,
+    CastedQuestionProps,
+    ChapterModuleProps,
+    ChapterProps,
+    HttpResponse,
+    MakeOptional,
+    PaginatedResponse,
+    PaginationProps,
+    QuestionTypeProps,
+    VideoProps,
 } from "@/types";
 
 export interface CreateChapterDto {
@@ -164,7 +164,12 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 	return axios
 		.get<
 			HttpResponse<PaginatedResponse<CastedChapterModuleProps>>
-		>(endpoints().school.get_chapter_modules, { params })
+		>(endpoints().school.get_chapter_modules, {
+			params: {
+				limit: 15,
+				...params
+			}
+	 })
 		.then((res) => res.data);
 };
 
@@ -267,19 +272,20 @@ const UpdateChapterModuleSequence = async (payload: UpdateChapterModuleSequenceP
 };
 
 export {
-	CreateChapter,
-	CreateChapterModule,
-	CreateQuestions,
-	DeleteEntities,
-	GetChapter,
-	GetChapterModule,
-	GetChapterModules,
-	GetChapters,
-	GetQuestion,
-	GetQuestions,
-	UpdateChapter,
-	UpdateChapterModule,
-	UpdateChapterModuleSequence,
-	UpdateQuestion,
-	UpdateQuizSettings,
+    CreateChapter,
+    CreateChapterModule,
+    CreateQuestions,
+    DeleteEntities,
+    GetChapter,
+    GetChapterModule,
+    GetChapterModules,
+    GetChapters,
+    GetQuestion,
+    GetQuestions,
+    UpdateChapter,
+    UpdateChapterModule,
+    UpdateChapterModuleSequence,
+    UpdateQuestion,
+    UpdateQuizSettings
 };
+
