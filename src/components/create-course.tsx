@@ -45,7 +45,7 @@ export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseN
 				chapterId={chapterId}
 				courseName={courseName}
 			/>
-			<div className="col-span-4">
+			<div className="col-span-3">
 				<TabPanel selected={currentTab} value="lesson">
 					<Lessons lessonTab={lessonTab} chapterId={chapterId} setCurrentTab={setCurrentTab} />
 				</TabPanel>
