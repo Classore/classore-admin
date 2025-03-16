@@ -333,7 +333,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				</button>
 			</div>
 
-			{!hasVideo && isLoading ? (
+			{isLoading ? (
 				<UploadProgress
 					progress={uploadStatus.progress}
 					title={UPLOAD_STATUS[uploadStatus.status as keyof typeof UPLOAD_STATUS]}

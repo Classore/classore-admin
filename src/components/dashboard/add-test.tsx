@@ -1,10 +1,13 @@
 import { RiAddLine, RiLoaderLine, RiSpeedUpLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import * as Yup from "yup";
 import React from "react";
 
+import { CreateTest, type CreateTestDto } from "@/queries/test-center";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUploader } from "../image-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { queryClient } from "@/providers";
@@ -17,13 +20,16 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 
+const initialValues: CreateTestDto = { title: "", description: "", banner: null };
+
 export const AddTest = () => {
 	const [open, setOpen] = React.useState(false);
 
-	const { isPending } = useMutation({
+	const { isPending, mutateAsync } = useMutation({
+		mutationFn: (payload: CreateTestDto) => CreateTest(payload),
 		mutationKey: ["add-test"],
 		onSuccess: (data) => {
-			console.log(data);
+			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-tests"] });
 		},
 		onError: (error) => {
@@ -34,20 +40,26 @@ export const AddTest = () => {
 		},
 	});
 
-	const { errors, handleChange, handleSubmit, touched } = useFormik({
-		initialValues: { title: "", description: "" },
+	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
+		initialValues,
 		enableReinitialize: true,
 		validationSchema: Yup.object({
 			title: Yup.string().required("Title is required").min(5, "Title is too short"),
-			description: Yup.string()
-				.required("Description is required")
-				.min(100, "Description is too short"),
+			description: Yup.string().required("Description is required"),
+			banner: Yup.mixed().required("Banner is required"),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
-			setOpen(false);
+			mutateAsync(values);
 		},
 	});
+
+	React.useEffect(() => {
+		if (open) {
+			setFieldValue("banner", null);
+			setFieldValue("title", "");
+			setFieldValue("description", "");
+		}
+	}, [open, setFieldValue]);
 
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
@@ -64,6 +76,14 @@ export const AddTest = () => {
 						<DialogDescription hidden>add New Test</DialogDescription>
 					</div>
 					<form onSubmit={handleSubmit} className="w-full space-y-4">
+						<div>
+							<ImageUploader
+								fileType="image"
+								onValueChange={(file) => setFieldValue("banner", file)}
+								value={values.banner}
+							/>
+						</div>
+						{errors.title && <span className="text-xs text-red-500">{errors.banner}</span>}
 						<Input
 							label="Enter Test Title"
 							name="title"
@@ -73,6 +93,7 @@ export const AddTest = () => {
 						<Textarea
 							label="Enter Test Description"
 							name="description"
+							onChange={handleChange}
 							className="h-28"
 							error={touched.description && errors.description ? errors.description : ""}
 						/>

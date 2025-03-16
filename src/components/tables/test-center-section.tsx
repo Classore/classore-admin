@@ -5,10 +5,10 @@ import React from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import type { TestCenterSectionProps } from "@/types";
+import { TestCenterSectionAction } from "../actions";
 import { Pagination } from "@/components/shared";
 import { hasPermission } from "@/lib/permission";
 import { useUserStore } from "@/store/z-store";
-import { TestCenterSectionAction } from "../actions";
 import {
 	Table,
 	TableBody,
@@ -75,14 +75,22 @@ const LineItem = ({ section }: { section: TestCenterSectionProps }) => {
 
 	return (
 		<TableRow>
-			<TableCell className="flex items-center gap-x-2">
+			<TableCell className="flex min-w-[350px] items-center gap-x-2">
 				<Avatar className="size-8 rounded-md">
-					<AvatarImage src="" />
+					<AvatarImage src={section.banner} />
 				</Avatar>
-				<span className="text-sm font-medium"></span>
+				<span className="text-sm font-medium capitalize">{section.title}</span>
 			</TableCell>
 			<TableCell>{format(new Date(), "MMM dd,yyyy HH:mm a")}</TableCell>
-			<TableCell></TableCell>
+			<TableCell className="text-center">{section.average_pass_score}</TableCell>
+			<TableCell className="max-w-[200px]">
+				<div className="flex w-full items-center justify-center">
+					<div
+						className={`w-fit rounded-md px-3 py-0.5 text-xs font-medium ${section.is_published === "YES" ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
+						{section.is_published === "YES" ? "Published" : "Unpublished"}
+					</div>
+				</div>
+			</TableCell>
 			<TableCell>
 				<Popover>
 					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
@@ -91,7 +99,11 @@ const LineItem = ({ section }: { section: TestCenterSectionProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<TestCenterSectionAction id={section.id} />
+						<TestCenterSectionAction
+							is_published={section.is_published === "YES"}
+							sectionId={section.id}
+							sectionTitle={section.title}
+						/>
 					</PopoverContent>
 				</Popover>
 			</TableCell>

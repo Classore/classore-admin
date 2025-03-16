@@ -91,8 +91,8 @@ const Page = () => {
 		<>
 			<Seo title="New Course" />
 			<DashboardLayout>
-				<div className="flex w-full flex-col gap-y-2">
-					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
+				<div className="flex h-full w-full flex-col gap-y-2">
+					<div className="flex w-full items-center justify-between rounded-lg bg-white px-5 py-3">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
 								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
@@ -125,8 +125,8 @@ const Page = () => {
 							</Button> */}
 						</div>
 					</div>
-					<section className="mt-2 rounded-md bg-white p-6">
-						<div className="flex h-10 w-full items-center justify-between border-b">
+					<section className="mt-2 h-[calc(100%-84px)] w-full overflow-hidden rounded-md bg-white">
+						<div className="flex h-10 w-full items-center justify-between border-b px-5 py-3">
 							<div className="flex items-center gap-x-6">
 								{create_course_tabs.map(({ action, icon: Icon, label }) => (
 									<button
@@ -141,12 +141,12 @@ const Page = () => {
 								<RiEyeLine size={16} /> Preview
 							</button>
 						</div>
+						<div className="h-[calc(100%-40px)] w-full">
+							<CreateCourseTabPanel tab={tab} courseName={course.data.name} />
+							<QuizSettingsTab tab={tab} />
+							{/* <AssignTeachers tab={tab} /> */}
+						</div>
 					</section>
-				</div>
-				<div className="w-full">
-					<CreateCourseTabPanel tab={tab} courseName={course.data.name} />
-					<QuizSettingsTab tab={tab} />
-					{/* <AssignTeachers tab={tab} /> */}
 				</div>
 			</DashboardLayout>
 		</>

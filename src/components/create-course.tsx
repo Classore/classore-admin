@@ -2,11 +2,11 @@ import { skipToken, usePrefetchQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { GetChapterModules } from "@/queries";
+import { VideoTab } from "./video-tab";
 import { Chapters } from "./chapters";
 import { Lessons } from "./lessons";
-import { Quiz } from "./quiz";
 import { TabPanel } from "./shared";
-import { VideoTab } from "./video-tab";
+import { Quiz } from "./quiz";
 
 const requestNotificationPermission = () => {
 	if ("Notification" in window) {
@@ -37,7 +37,7 @@ export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseN
 	});
 
 	return (
-		<TabPanel innerClassName="grid grid-cols-7 gap-2 p-3 bg-white" selected={tab} value="course">
+		<TabPanel innerClassName="grid grid-cols-2 gap-2 p-3 bg-white" selected={tab} value="course">
 			<Chapters
 				setLessonTab={setLessonTab}
 				lessonTab={lessonTab}
@@ -45,7 +45,7 @@ export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseN
 				chapterId={chapterId}
 				courseName={courseName}
 			/>
-			<div className="col-span-4">
+			<div className="h-full overflow-y-auto">
 				<TabPanel selected={currentTab} value="lesson">
 					<Lessons lessonTab={lessonTab} chapterId={chapterId} setCurrentTab={setCurrentTab} />
 				</TabPanel>

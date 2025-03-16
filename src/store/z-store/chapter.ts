@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { create } from "zustand";
 
-type Chapter = {
+export type Chapter = {
 	// if chapter has this "id", then it means its coming from the backend, i.e user can update chapter and add lesson
 	id: string;
 	name: string;
@@ -9,7 +9,7 @@ type Chapter = {
 	sequence: number;
 };
 
-type Lesson = {
+export type Lesson = {
 	id: string;
 	chapter_sequence: number;
 	// if lesson has this "lesson_chapter", then it means its coming from the backend, i.e user can update the module/lesson

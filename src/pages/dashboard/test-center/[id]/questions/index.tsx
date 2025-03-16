@@ -1,4 +1,6 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
 import React from "react";
 import {
 	RiAddLine,
@@ -6,52 +8,123 @@ import {
 	RiArrowRightSLine,
 	RiBook2Line,
 	RiEyeLine,
+	RiImportLine,
 } from "@remixicon/react";
 
-import { useTestCenterStore, getEmptyQuestion } from "@/store/z-store/test-center";
+import { CreateTestQuestion, GetTestQuestions, type TestQuestionDto } from "@/queries/test-center";
+import { getEmptyQuestion, getEmptyOption, useTestCenterStore } from "@/store/z-store/test-center";
 import type { BreadcrumbItemProps } from "@/components/shared";
+import { capitalize, testQuestionFromXlsxToJSON } from "@/lib";
 import { QuestionCard } from "@/components/test-center";
 import { Breadcrumbs, Seo } from "@/components/shared";
-import type { TestCenterQuestionProps } from "@/types";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
+import { useFileHandler } from "@/hooks";
 
+type QueryKey = {
+	sectionId: string;
+	sectionTitle: string;
+};
+
+const MAX_QUESTIONS = 50;
 const tabs = [{ icon: RiBook2Line, label: "Create Questions", name: "create" }];
 
 const Page = () => {
 	const [current, setCurrent] = React.useState(0);
 	const [tab, setTab] = React.useState("create");
+	const [page] = React.useState(1);
 	const router = useRouter();
-	const sectorId = router.query.id as string;
+	const { sectionId, sectionTitle } = router.query as QueryKey;
 
-	const { removeQuestion } = useTestCenterStore();
+	const { addQuestion, questions, setQuestions, updateQuestions } = useTestCenterStore();
 
-	const existingQuestions: TestCenterQuestionProps[] = [];
-
-	const [questions, setQuestions] = React.useState<TestCenterQuestionProps[]>(() => {
-		const initialQuestions = existingQuestions.map((question, index) => ({
-			...question,
-			sequence: index,
-		}));
-
-		return initialQuestions;
+	const { handleClick, handleFileChange, inputRef } = useFileHandler({
+		onValueChange: (files) => {
+			const file = files[0];
+			testQuestionFromXlsxToJSON(file, questions.length).then((questions) => {
+				updateQuestions(questions);
+			});
+		},
+		onError: (error) => {
+			toast.error(error);
+		},
+		fileType: "document",
+		validationRules: {
+			allowedTypes: [
+				"application/vnd.ms-excel",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			],
+			maxFiles: Infinity,
+			maxSize: 5 * 1024 * 1024,
+			minFiles: 1,
+		},
 	});
 
-	const addQuestion = () => {
+	const { data } = useQuery({
+		queryKey: ["get-section-questions", sectionId],
+		queryFn: () => GetTestQuestions(sectionId, { limit: 100, page }),
+		enabled: !!sectionId,
+		select: (data) =>
+			data.data.data.map((question) => {
+				const mutatedQuestion: TestQuestionDto = {
+					content: question.content,
+					images: question.images,
+					instruction: question.instructions,
+					media: question.media,
+					options: question.options.map((option) => {
+						return {
+							content: option.content,
+							is_correct: option.is_correct ? "YES" : "NO",
+							sequence_number: option.sequence_number,
+						};
+					}),
+					question_type: question.question_type,
+					sequence: 0,
+					id: question.id,
+				};
+				return mutatedQuestion;
+			}),
+	});
+
+	React.useEffect(() => {
+		if (data) {
+			setQuestions(data);
+		}
+	}, [data, setQuestions]);
+
+	const {} = useMutation({
+		mutationKey: ["update-question"],
+		mutationFn: (payload: TestQuestionDto[]) => CreateTestQuestion(sectionId, payload),
+		onSuccess: (data) => {
+			console.log(data);
+		},
+		onError: (error) => {
+			console.log(error);
+		},
+	});
+
+	const handleAddQuestion = () => {
+		if (questions.length >= MAX_QUESTIONS) {
+			toast.error("You have reached the maximum number of questions");
+			return;
+		}
 		const question = getEmptyQuestion(questions.length + 1);
-		setQuestions((prev) => [...prev, question]);
+		const option = getEmptyOption(1);
+		question.options.push(option);
+		addQuestion(question);
+		setCurrent(questions.length);
 	};
 
 	const links: BreadcrumbItemProps[] = [
 		{ href: "/dashboard/test-center", label: "Manage Test Center", active: true },
-		{ href: `/dashboard/test-center/${sectorId}`, label: `test exam`, active: true },
-		{ href: `/dashboard/test-center/${sectorId}/questions`, label: `test section`, active: true },
+		{ href: `/dashboard/test-center/${sectionId}`, label: `test exam`, active: true },
+		{ href: `/dashboard/test-center/${sectionId}/questions`, label: `test section`, active: true },
 		{ href: ``, label: "Change Directory", variant: "warning" },
 	];
 
 	return (
 		<>
-			<Seo title={sectorId} />
+			<Seo title={capitalize(sectionTitle)} />
 			<DashboardLayout>
 				<div className="h-full w-full space-y-4">
 					<div className="flex w-full items-center justify-between rounded-lg bg-white p-5">
@@ -62,9 +135,22 @@ const Page = () => {
 								</Button>
 								<p className="text-sm font-medium">Test Title</p>
 							</div>
-							<Breadcrumbs courseId={sectorId} links={links} />
+							<Breadcrumbs courseId={sectionId} links={links} />
 						</div>
 						<div className="flex items-center gap-x-4">
+							<label htmlFor="xlsx-upload">
+								<input
+									type="file"
+									id="xlsx-upload"
+									className="sr-only hidden"
+									onChange={handleFileChange}
+									accept=".xlsx"
+									ref={inputRef}
+								/>
+								<Button onClick={handleClick} className="w-fit" size="sm" variant="outline">
+									<RiImportLine className="size-4" /> Import Questions
+								</Button>
+							</label>
 							<Button className="w-fit" size="sm" variant="destructive-outline">
 								Delete
 							</Button>
@@ -76,7 +162,7 @@ const Page = () => {
 							</Button>
 						</div>
 					</div>
-					<div className="h-[calc(100%-118px)] w-full space-y-6 rounded-2xl bg-white p-5">
+					<div className="w-full space-y-6 rounded-2xl bg-white p-5">
 						<div className="flex h-10 w-full items-center justify-between border-b">
 							<div className="flex items-center gap-x-4">
 								{tabs.map(({ icon: Icon, label, name }) => (
@@ -97,19 +183,19 @@ const Page = () => {
 								<div className="flex w-full items-center justify-between bg-white px-4 py-3">
 									<p className="text-sm text-neutral-400">ALL QUESTIONS</p>
 									<button
-										onClick={addQuestion}
+										onClick={handleAddQuestion}
 										className="flex h-7 items-center gap-x-2 rounded-md border border-neutral-400 bg-neutral-100 px-1 text-xs font-medium text-neutral-400 transition-all duration-300 active:scale-95">
 										<RiAddLine className="size-4" /> Add New Question
 									</button>
 								</div>
-								<QuestionCard
-									sectionId=""
-									sequence={current}
-									question={questions[current]}
-									onDelete={(sequence) => removeQuestion(sectorId, sequence)}
-									onDuplicate={() => {}}
-									onReorder={() => {}}
-								/>
+								{questions.length > 0 && (
+									<QuestionCard
+										sequence={current}
+										sectionId={sectionId}
+										question={questions[current]}
+										setCurrent={setCurrent}
+									/>
+								)}
 							</div>
 							<div className="col-span-5 px-8">
 								<div className="w-[285px] space-y-5 rounded-md border p-3">

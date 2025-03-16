@@ -4,13 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-// import { hasPermission } from "@/lib/permission";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useUserStore } from "@/store/z-store";
 import { Appbar, IconLabel } from "../shared";
 import { dashboard_links } from "@/config";
 import { Button } from "../ui/button";
 import { normalize } from "@/lib";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const [open, setOpen] = React.useState(false);

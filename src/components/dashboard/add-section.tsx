@@ -1,9 +1,17 @@
-import { RiAddLine, RiBracketsLine, RiLoaderLine } from "@remixicon/react";
+import { RiAddLine, RiLoaderLine, RiSpeedUpLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
+import { useFormik } from "formik";
+import { toast } from "sonner";
+import * as Yup from "yup";
 import React from "react";
 
+import { type CreateTestDto, CreateTestSection } from "@/queries/test-center";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageUploader } from "../image-uploader";
 import { Button } from "@/components/ui/button";
-import { IconLabel } from "@/components/shared";
+import { Input } from "@/components/ui/input";
+import { queryClient } from "@/providers";
+import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -16,26 +24,83 @@ interface Props {
 	testId: string;
 }
 
-export const AddSection = ({}: Props) => {
+const initialValues: CreateTestDto = { title: "", description: "", banner: null };
+
+export const AddSection = ({ testId }: Props) => {
 	const [open, setOpen] = React.useState(false);
 
-	const { isPending } = useMutation({});
+	const { isPending, mutateAsync } = useMutation({
+		mutationFn: (payload: CreateTestDto) => CreateTestSection(testId, payload),
+		mutationKey: ["add-test-section"],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-test-sections"] });
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+		onSettled: () => {
+			setOpen(false);
+		},
+	});
+
+	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
+		initialValues,
+		enableReinitialize: true,
+		validationSchema: Yup.object({
+			title: Yup.string().required("Title is required").min(5, "Title is too short"),
+			description: Yup.string().required("Description is required"),
+			banner: Yup.mixed().required("Banner is required"),
+		}),
+		onSubmit: (values) => {
+			mutateAsync(values);
+		},
+	});
+
+	React.useEffect(() => {
+		if (open) {
+			setFieldValue("banner", null);
+			setFieldValue("title", "");
+			setFieldValue("description", "");
+		}
+	}, [open, setFieldValue]);
 
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
 				<Button onClick={() => setOpen(true)} className="w-fit" size="sm">
-					<RiAddLine /> Add Section
+					<RiAddLine /> Add Test
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="w-[400px] p-1">
 				<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
-					<IconLabel icon={RiBracketsLine} />
+					<IconLabel icon={RiSpeedUpLine} />
 					<div className="mb-5 mt-4">
-						<DialogTitle>Add Section</DialogTitle>
-						<DialogDescription hidden>add Section</DialogDescription>
+						<DialogTitle>Add New Section</DialogTitle>
+						<DialogDescription hidden>Add New Section</DialogDescription>
 					</div>
-					<form className="w-full space-y-4">
+					<form onSubmit={handleSubmit} className="w-full space-y-4">
+						<div>
+							<ImageUploader
+								fileType="image"
+								onValueChange={(file) => setFieldValue("banner", file)}
+								value={values.banner}
+							/>
+						</div>
+						{errors.title && <span className="text-xs text-red-500">{errors.banner}</span>}
+						<Input
+							label="Enter Test Title"
+							name="title"
+							onChange={handleChange}
+							error={touched.title && errors.title ? errors.title : ""}
+						/>
+						<Textarea
+							label="Enter Test Description"
+							name="description"
+							onChange={handleChange}
+							className="h-28"
+							error={touched.description && errors.description ? errors.description : ""}
+						/>
 						<hr />
 						<div className="flex w-full items-center justify-end gap-x-4">
 							<Button
@@ -47,7 +112,7 @@ export const AddSection = ({}: Props) => {
 								Cancel
 							</Button>
 							<Button className="w-fit" type="submit" size="sm">
-								{isPending ? <RiLoaderLine className="animate-spin" /> : "Create section"}
+								{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Test"}
 							</Button>
 						</div>
 					</form>
