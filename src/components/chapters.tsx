@@ -1,7 +1,3 @@
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiArrowDownLine,
@@ -13,17 +9,14 @@ import {
 	RiFolderVideoLine,
 	RiLoaderLine,
 } from "@remixicon/react";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { TiptapEditor } from "./ui/tiptap-editor";
-import { ScrollArea } from "./ui/scroll-area";
-import { DeleteModal } from "./delete-modal";
+import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
-import type { HttpError } from "@/types";
-import { Button } from "./ui/button";
-import { Spinner } from "./shared";
-import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	type CreateChapterDto,
@@ -34,6 +27,13 @@ import {
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError } from "@/types";
+import { DeleteModal } from "./delete-modal";
+import { Spinner } from "./shared";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
@@ -278,7 +278,7 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
+			<div className="col-span-3 flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
 					<button
