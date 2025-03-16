@@ -93,7 +93,7 @@ export const Chapters = ({
 		mutationKey: ["create-chapter"],
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 			addChapter();
 		},
 		onError: (error: HttpError) => {
@@ -279,7 +279,12 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
+			<div
+				className={
+					chapters.length > 0
+						? "col-span-3 flex h-[calc(100vh-150px)] flex-col gap-4 rounded-md bg-neutral-100 p-4"
+						: "col-span-3 flex flex-col gap-4 rounded-md bg-neutral-100 p-4"
+				}>
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
 					<button
@@ -306,9 +311,9 @@ export const Chapters = ({
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">
 					<form
-						ref={container}
 						onSubmit={handleSubmit}
-						className="flex flex-1 flex-col gap-4 transition-all duration-500">
+						className={`flex flex-1 flex-col gap-4 transition-all duration-500 ${chapters.length > 0 ? "flex-1 overflow-y-auto" : ""}`}
+						ref={container}>
 						{chapters.map((chapter, index) => (
 							<div
 								key={index}
