@@ -24,8 +24,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-// import { subscriptions } from "@/mock/subscriptions";
-
 const payment_status = ["all", "successful", "pending", "failed", "reversal"] as const;
 type PaymentStatus = (typeof payment_status)[number];
 const sort_options = ["name", "date_created"];
