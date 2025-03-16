@@ -93,7 +93,7 @@ export const Chapters = ({
 		mutationKey: ["create-chapter"],
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 			addChapter();
 		},
 		onError: (error: HttpError) => {
@@ -104,6 +104,7 @@ export const Chapters = ({
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 			addChapter();
+			window.location.reload();
 		},
 	});
 
@@ -164,17 +165,13 @@ export const Chapters = ({
 		},
 	});
 
-	// Initialize current chapter when component mounts or chapterId is updated externally
-	// This effect should NOT run when chapters change due to editing
 	React.useEffect(() => {
-		// Only run this when chapterId changes from external sources
 		if (chapterId) {
 			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
 			if (currentChapterIndex >= 0) {
 				setCurrent(currentChapterIndex);
 			}
 		} else if (chapters.length > 0) {
-			// If no chapterId is provided, select the first chapter with an ID
 			const chapterWithId = chapters.findIndex((chapter) => chapter.id);
 			if (chapterWithId >= 0) {
 				setCurrent(chapterWithId);
@@ -183,10 +180,8 @@ export const Chapters = ({
 				}
 			}
 		}
-		// Only run when chapterId changes, not when chapters content changes
 	}, [chapterId, onChapterIdChange]);
 
-	// Separate effect to handle scrolling to the selected chapter
 	React.useEffect(() => {
 		if (chapterId) {
 			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
@@ -207,8 +202,6 @@ export const Chapters = ({
 				top: container.current.scrollHeight,
 				behavior: "smooth",
 			});
-
-			// Set current to the newly added chapter
 			const newChapterIndex = chapters.length;
 			setCurrent(newChapterIndex);
 		}
@@ -278,7 +271,6 @@ export const Chapters = ({
 		}
 	};
 
-	// Function to select a chapter using only the chapter button
 	const selectChapter = (index: number, id: string | undefined) => {
 		setCurrent(index);
 		onChapterIdChange?.(id);
@@ -286,7 +278,12 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
+			<div
+				className={
+					chapters.length > 0
+						? "col-span-3 flex h-[calc(100vh-150px)] flex-col gap-4 rounded-md bg-neutral-100 p-4"
+						: "col-span-3 flex flex-col gap-4 rounded-md bg-neutral-100 p-4"
+				}>
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
 					<button
@@ -313,9 +310,9 @@ export const Chapters = ({
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">
 					<form
-						ref={container}
 						onSubmit={handleSubmit}
-						className="flex flex-1 flex-col gap-4 transition-all duration-500">
+						className={`flex flex-1 flex-col gap-4 transition-all duration-500 ${chapters.length > 0 ? "flex-1 overflow-y-auto" : ""}`}
+						ref={container}>
 						{chapters.map((chapter, index) => (
 							<div
 								key={index}
