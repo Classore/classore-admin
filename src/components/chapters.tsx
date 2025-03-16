@@ -11,13 +11,11 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiFolderVideoLine,
-	RiListOrdered,
 	RiLoaderLine,
 } from "@remixicon/react";
 
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { TiptapEditor } from "./ui/tiptap-editor";
-import { useGlobalStore } from "@/store/z-store";
 import { ScrollArea } from "./ui/scroll-area";
 import { DeleteModal } from "./delete-modal";
 import { convertNumberToWord } from "@/lib";
@@ -79,15 +77,9 @@ export const Chapters = ({
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
-	const { isChapterListOpen, selectedChapter, setIsChapterListOpen, setSelectedChapter } =
-		useGlobalStore();
 	const currentChapter = React.useMemo(() => chapters[current], [chapters, current]);
-
-	React.useEffect(() => {
-		if (chapters.length) {
-			setSelectedChapter(chapters[0]);
-		}
-	}, [chapters, setSelectedChapter]);
+	const container = React.useRef<HTMLFormElement>(null);
+	const refs = React.useRef<(HTMLDivElement | null)[]>([]);
 
 	// TODO: find a better way to do this
 	const { isPending: isPendingModules } = useQuery({
@@ -172,12 +164,55 @@ export const Chapters = ({
 		},
 	});
 
+	// Initialize current chapter when component mounts or chapterId is updated externally
+	// This effect should NOT run when chapters change due to editing
 	React.useEffect(() => {
-		const chapterWithId = chapters.find((chapter) => chapter.id);
-		if (onChapterIdChange) {
-			onChapterIdChange(chapterWithId?.id);
+		// Only run this when chapterId changes from external sources
+		if (chapterId) {
+			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
+			if (currentChapterIndex >= 0) {
+				setCurrent(currentChapterIndex);
+			}
+		} else if (chapters.length > 0) {
+			// If no chapterId is provided, select the first chapter with an ID
+			const chapterWithId = chapters.findIndex((chapter) => chapter.id);
+			if (chapterWithId >= 0) {
+				setCurrent(chapterWithId);
+				if (onChapterIdChange) {
+					onChapterIdChange(chapters[chapterWithId].id);
+				}
+			}
 		}
-	}, [chapters, onChapterIdChange]);
+		// Only run when chapterId changes, not when chapters content changes
+	}, [chapterId, onChapterIdChange]);
+
+	// Separate effect to handle scrolling to the selected chapter
+	React.useEffect(() => {
+		if (chapterId) {
+			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
+			if (currentChapterIndex >= 0 && refs.current[currentChapterIndex]) {
+				const chapterElement = refs.current[currentChapterIndex];
+				chapterElement.scrollIntoView({
+					behavior: "smooth",
+					block: "start",
+				});
+			}
+		}
+	}, [chapterId, chapters]);
+
+	const handleAddChapter = () => {
+		addChapter();
+		if (container.current) {
+			container.current.scrollTo({
+				top: container.current.scrollHeight,
+				behavior: "smooth",
+			});
+
+			// Set current to the newly added chapter
+			const newChapterIndex = chapters.length;
+			setCurrent(newChapterIndex);
+		}
+	};
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -236,51 +271,68 @@ export const Chapters = ({
 				break;
 			case "delete":
 				setOpenDeleteModal(true);
-				setCurrentSequence(sequence);
+				setCurrentSequence(sequence - 1);
 				break;
 			default:
 				return;
 		}
 	};
 
+	// Function to select a chapter using only the chapter button
+	const selectChapter = (index: number, id: string | undefined) => {
+		setCurrent(index);
+		onChapterIdChange?.(id);
+	};
+
 	return (
 		<>
 			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
-					<div className="flex items-center gap-x-2">
-						<button onClick={() => setIsChapterListOpen(!isChapterListOpen)}>
-							<RiListOrdered className="size-4" />
-						</button>
-						<p className="text-xs uppercase tracking-widest">All chapters</p>
-					</div>
-
+					<p className="text-xs uppercase tracking-widest">All chapters</p>
 					<button
 						type="button"
-						onClick={addChapter}
+						onClick={handleAddChapter}
 						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 						<RiAddLine className="size-4" />
 						<span>Add New Chapter</span>
 					</button>
 				</div>
 
+				{/* Chapter selection buttons - ONLY way to select a chapter */}
+				<div className="flex flex-wrap items-center gap-2">
+					{chapters.map((chapter, index) => (
+						<button
+							key={index}
+							onClick={() => selectChapter(index, chapter.id)}
+							className={`size-5 rounded-md text-sm font-medium ${chapter.id === chapterId ? "bg-primary-100 text-primary-400" : "bg-white text-primary-400 hover:bg-primary-50"}`}>
+							{chapter.sequence}
+						</button>
+					))}
+				</div>
+
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">
 					<form
+						ref={container}
 						onSubmit={handleSubmit}
 						className="flex flex-1 flex-col gap-4 transition-all duration-500">
-						{chapters.map((chapter) => (
+						{chapters.map((chapter, index) => (
 							<div
-								key={chapter.id}
-								onClick={() => onChapterIdChange?.(chapter.id)}
-								className={`rounded-md border bg-white ${selectedChapter === chapter ? "block" : "hidden"}`}>
+								key={index}
+								ref={(div) => {
+									if (div) {
+										refs.current[index] = div;
+									}
+								}}
+								className={`rounded-md border bg-white ${chapterId === chapter.id ? "border-primary-400" : "border-neutral-200"}`}>
 								<div className="flex flex-row items-center justify-between border-b border-b-neutral-200 px-4 py-3">
 									<p className="text-xs uppercase tracking-widest">Chapter {chapter.sequence}</p>
 
 									<div className="flex items-center">
-										{question_actions.map(({ icon: Icon, label }, index) => (
+										{question_actions.map(({ icon: Icon, label }, idx) => (
 											<button
 												type="button"
-												key={index}
+												key={idx}
 												onClick={() => handleActions(label, chapter.sequence)}
 												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
 												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
@@ -295,7 +347,10 @@ export const Chapters = ({
 											<input
 												type="text"
 												value={chapter.name}
-												onChange={(e) => addChapterName(chapter.sequence, e.target.value)}
+												onChange={(e) => {
+													// Just call addChapterName without any side effects
+													addChapterName(chapter.sequence, e.target.value);
+												}}
 												placeholder="Enter chapter title"
 												className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
 											/>
@@ -303,7 +358,10 @@ export const Chapters = ({
 
 										<TiptapEditor
 											value={chapter.content}
-											onChange={(val) => addChapterContent(chapter.sequence, val)}
+											onChange={(val) => {
+												// Just call addChapterContent without any side effects
+												addChapterContent(chapter.sequence, val);
+											}}
 										/>
 									</div>
 
@@ -318,7 +376,7 @@ export const Chapters = ({
 												.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
 												.map((lesson, idx) => (
 													<li
-														key={lesson.sequence}
+														key={idx}
 														onClick={() => setLessonTab(lesson.id)}
 														{...getDragProps(idx)}
 														className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
@@ -414,7 +472,12 @@ export const Chapters = ({
 				isOpen={openDeleteModal}
 				setIsOpen={setOpenDeleteModal}
 				onConfirm={() => {
-					if (!chapterId) return;
+					if (!chapterId) {
+						removeChapter(currentSequence);
+						setCurrent(current - 1);
+						setOpenDeleteModal(false);
+						return;
+					}
 
 					mutateAsync({ ids: [chapterId], model_type: "CHAPTER" }).then(() => {
 						removeChapter(currentSequence);
