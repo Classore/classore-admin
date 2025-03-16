@@ -104,6 +104,7 @@ export const Chapters = ({
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 			addChapter();
+			window.location.reload();
 		},
 	});
 
@@ -164,17 +165,13 @@ export const Chapters = ({
 		},
 	});
 
-	// Initialize current chapter when component mounts or chapterId is updated externally
-	// This effect should NOT run when chapters change due to editing
 	React.useEffect(() => {
-		// Only run this when chapterId changes from external sources
 		if (chapterId) {
 			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
 			if (currentChapterIndex >= 0) {
 				setCurrent(currentChapterIndex);
 			}
 		} else if (chapters.length > 0) {
-			// If no chapterId is provided, select the first chapter with an ID
 			const chapterWithId = chapters.findIndex((chapter) => chapter.id);
 			if (chapterWithId >= 0) {
 				setCurrent(chapterWithId);
@@ -183,10 +180,8 @@ export const Chapters = ({
 				}
 			}
 		}
-		// Only run when chapterId changes, not when chapters content changes
 	}, [chapterId, onChapterIdChange]);
 
-	// Separate effect to handle scrolling to the selected chapter
 	React.useEffect(() => {
 		if (chapterId) {
 			const currentChapterIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
@@ -207,8 +202,6 @@ export const Chapters = ({
 				top: container.current.scrollHeight,
 				behavior: "smooth",
 			});
-
-			// Set current to the newly added chapter
 			const newChapterIndex = chapters.length;
 			setCurrent(newChapterIndex);
 		}
