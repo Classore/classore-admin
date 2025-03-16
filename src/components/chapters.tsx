@@ -15,6 +15,7 @@ import {
 } from "@remixicon/react";
 
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { AddChapter } from "./dashboard/add-chapter";
 import { TiptapEditor } from "./ui/tiptap-editor";
 import { ScrollArea } from "./ui/scroll-area";
 import { DeleteModal } from "./delete-modal";
@@ -43,7 +44,6 @@ const question_actions = [
 ];
 
 const {
-	addChapter,
 	removeChapter,
 	addChapterName,
 	addChapterContent,
@@ -67,6 +67,7 @@ export const Chapters = ({
 	onChapterIdChange,
 }: ChaptersProps) => {
 	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+	const [openAddChapter, setOpenAddChapter] = React.useState(false);
 	const [currentSequence, setCurrentSequence] = React.useState(0);
 	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [isOpen, setIsOpen] = React.useState(false);
@@ -94,7 +95,6 @@ export const Chapters = ({
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			addChapter();
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -103,7 +103,6 @@ export const Chapters = ({
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			addChapter();
 			window.location.reload();
 		},
 	});
@@ -195,18 +194,6 @@ export const Chapters = ({
 		}
 	}, [chapterId, chapters]);
 
-	const handleAddChapter = () => {
-		addChapter();
-		if (container.current) {
-			container.current.scrollTo({
-				top: container.current.scrollHeight,
-				behavior: "smooth",
-			});
-			const newChapterIndex = chapters.length;
-			setCurrent(newChapterIndex);
-		}
-	};
-
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
@@ -276,23 +263,37 @@ export const Chapters = ({
 		onChapterIdChange?.(id);
 	};
 
+	React.useEffect(() => {
+		if (container.current) {
+			container.current.scrollTo({
+				top: container.current.scrollHeight,
+				behavior: "smooth",
+			});
+		}
+	}, []);
+
+	const sequence = React.useMemo(() => {
+		return chapters.length + 1;
+	}, [chapters]);
+
 	return (
 		<>
-			<div
-				className={
-					chapters.length > 0
-						? "col-span-3 flex h-[calc(100vh-150px)] flex-col gap-4 rounded-md bg-neutral-100 p-4"
-						: "col-span-3 flex flex-col gap-4 rounded-md bg-neutral-100 p-4"
-				}>
+			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
-					<button
+					{/* <button
 						type="button"
 						onClick={handleAddChapter}
 						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 						<RiAddLine className="size-4" />
 						<span>Add New Chapter</span>
-					</button>
+					</button> */}
+					<AddChapter
+						courseId={courseId}
+						onOpenChange={setOpenAddChapter}
+						open={openAddChapter}
+						sequence={sequence}
+					/>
 				</div>
 
 				{/* Chapter selection buttons - ONLY way to select a chapter */}
@@ -310,12 +311,13 @@ export const Chapters = ({
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">
 					<form
+						ref={container}
 						onSubmit={handleSubmit}
-						className={`flex flex-1 flex-col gap-4 transition-all duration-500 ${chapters.length > 0 ? "flex-1 overflow-y-auto" : ""}`}
-						ref={container}>
+						className="flex flex-1 flex-col gap-4 transition-all duration-500">
 						{chapters.map((chapter, index) => (
 							<div
 								key={index}
+								onClick={() => selectChapter(index, chapter.id)}
 								ref={(div) => {
 									if (div) {
 										refs.current[index] = div;
