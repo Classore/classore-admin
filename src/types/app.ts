@@ -320,6 +320,7 @@ export type ChapterProps = Node & {
 	timer_hour: number;
 	attempt_limit: number;
 	attempt_reset: number;
+	is_published: "YES" | "NO";
 };
 
 export type ChapterModuleProps = Node & {

@@ -1,27 +1,27 @@
 import { RiAddLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import React from "react";
 import { toast } from "sonner";
 import * as Yup from "yup";
-import React from "react";
 
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { CreateChapter, type CreateChapterDto } from "@/queries";
-import { TiptapEditor } from "../ui/tiptap-editor";
 import { queryClient } from "@/providers";
+import { CreateChapter, type CreateChapterDto } from "@/queries";
 import type { HttpError } from "@/types";
-import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { TiptapEditor } from "../ui/tiptap-editor";
 
 interface Props {
 	courseId: string;
-	onOpenChange: (open: boolean) => void;
-	open: boolean;
 	sequence: number;
 }
 
-export const AddChapter = ({ courseId, onOpenChange, open, sequence }: Props) => {
+export const AddChapter = ({ courseId, sequence }: Props) => {
+	const [open, setOpen] = React.useState(false);
+
 	const { isPending, mutateAsync } = useMutation({
 		mutationFn: (payload: CreateChapterDto) => CreateChapter(payload),
 		mutationKey: ["create-chapter"],
@@ -34,7 +34,7 @@ export const AddChapter = ({ courseId, onOpenChange, open, sequence }: Props) =>
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			onOpenChange(false);
+			setOpen(false);
 			window.location.reload();
 		},
 	});
@@ -60,11 +60,10 @@ export const AddChapter = ({ courseId, onOpenChange, open, sequence }: Props) =>
 	});
 
 	return (
-		<Dialog onOpenChange={onOpenChange} open={open}>
+		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
 				<button
 					type="button"
-					onClick={() => onOpenChange(true)}
 					className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 					<RiAddLine className="size-4" />
 					<span>Add New Chapter</span>
@@ -85,6 +84,7 @@ export const AddChapter = ({ courseId, onOpenChange, open, sequence }: Props) =>
 							onChange={handleChange}
 							error={touched.name && errors.name ? errors.name : ""}
 						/>
+						<Input label="Sequence" type="number" name="sequence" onChange={handleChange} />
 						<div>
 							<TiptapEditor
 								value={values.content}

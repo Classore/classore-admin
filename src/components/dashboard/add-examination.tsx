@@ -1,14 +1,8 @@
 import { RiAddLine, RiBookMarkedLine, RiLoaderLine } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import React from "react";
 
-import type { CreateExaminationDto } from "@/queries";
-import { CreateExamination } from "@/queries";
-import { Button } from "../ui/button";
-import { IconLabel } from "../shared";
-import { Input } from "../ui/input";
 import {
 	Dialog,
 	DialogContent,
@@ -16,6 +10,11 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import type { CreateExaminationDto } from "@/queries";
+import { CreateExamination } from "@/queries";
+import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface Props {
 	onOpenChange: (open: boolean) => void;
@@ -23,10 +22,14 @@ interface Props {
 }
 
 export const AddExamination = ({ onOpenChange, open }: Props) => {
+	const queryClient = useQueryClient();
+
 	const { isPending, mutate } = useMutation({
 		mutationFn: (data: CreateExaminationDto) => CreateExamination(data),
 		onSuccess: () => {
-			console.log("Examination type created successfully");
+			queryClient.invalidateQueries({
+				queryKey: ["get-exams"],
+			});
 			onOpenChange(false);
 		},
 		onError: (error) => {
