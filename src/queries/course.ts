@@ -166,7 +166,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 			endpoints().school.get_chapter_modules,
 			{
 				params: {
-					limit: 15,
+					limit: 20,
 					...params,
 				},
 			}
@@ -287,5 +287,6 @@ export {
 	UpdateChapterModule,
 	UpdateChapterModuleSequence,
 	UpdateQuestion,
-	UpdateQuizSettings,
+	UpdateQuizSettings
 };
+

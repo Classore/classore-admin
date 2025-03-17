@@ -115,6 +115,7 @@ const Page = () => {
 							<div className="flex items-center">
 								{course_status.map((s) => (
 									<button
+										type="button"
 										key={s}
 										onClick={() => setStatus(s)}
 										className={`h-6 min-w-[90px] rounded-md text-xs capitalize ${status === s ? "bg-primary-100 text-primary-400" : "text-neutral-400"}`}>

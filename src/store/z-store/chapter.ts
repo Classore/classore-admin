@@ -7,6 +7,7 @@ export type Chapter = {
 	name: string;
 	content: string;
 	sequence: number;
+	is_published: "NO" | "YES";
 };
 
 export type Lesson = {
@@ -24,6 +25,7 @@ export type Lesson = {
 	video_urls: string[];
 	attachment_urls: string[];
 	tutor: string;
+	is_published: "NO" | "YES";
 };
 
 type ChapterState = {
@@ -68,6 +70,7 @@ const useChapterStore = create<ChapterState>(() => ({
 			name: "",
 			content: "",
 			sequence: 1,
+			is_published: "NO",
 		},
 	],
 	lessons: [],
@@ -84,6 +87,7 @@ const chapterActions: ChapterActions = {
 					name: "",
 					content: "",
 					sequence: state.chapters.length + 1,
+					is_published: "NO",
 				},
 			],
 		}));
@@ -186,6 +190,7 @@ const chapterActions: ChapterActions = {
 						image_urls: [],
 						video_urls: [],
 						attachment_urls: [],
+						is_published: "NO",
 					},
 				],
 			};

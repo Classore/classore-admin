@@ -1,4 +1,4 @@
-import { RiFileTransferLine } from "@remixicon/react";
+import { RiEye2Line } from "@remixicon/react";
 import { IconLabel, Spinner } from "./shared";
 import { Button } from "./ui/button";
 import {
@@ -15,25 +15,36 @@ type PublishModalProps = {
 	published: boolean;
 	isPending: boolean;
 	onConfirm: () => void;
+	trigger?: React.ReactNode;
 	type: string;
 };
 
-export const PublishModal = ({ published, isPending, onConfirm, type }: PublishModalProps) => {
+export const PublishModal = ({
+	published,
+	isPending,
+	onConfirm,
+	trigger,
+	type,
+}: PublishModalProps) => {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<button
-					disabled={published}
-					type="button"
-					className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs capitalize text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
-					<RiFileTransferLine size={18} />
-					<span> Publish {type}</span>
-				</button>
+				{!trigger ? (
+					<button
+						disabled={published}
+						type="button"
+						className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs capitalize text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
+						<RiEye2Line size={18} />
+						<span> Publish {type}</span>
+					</button>
+				) : (
+					trigger
+				)}
 			</DialogTrigger>
 
 			<DialogContent className="w-[400px] p-1">
 				<div className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
-					<IconLabel icon={RiFileTransferLine} />
+					<IconLabel icon={RiEye2Line} />
 					<DialogHeader>
 						<DialogTitle className="my-4 capitalize">Publish {type}</DialogTitle>
 						<DialogDescription className="text-neutral-400">

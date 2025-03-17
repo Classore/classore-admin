@@ -53,6 +53,7 @@ export const endpoints = (id?: string) => {
 			delete_entities: "admin/learning/delete-entities",
 			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
 			update_chapter_module_sequence: "admin/learning/chapter-module/update-sequence",
+			publish_entity: "admin/examination/publish-resource",
 		},
 		test_center: {
 			create: "admin/test-mgt/create-new-test",

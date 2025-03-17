@@ -5,7 +5,6 @@ import {
 	RiH1,
 	RiH2,
 	RiH3,
-	RiH4,
 	RiItalic,
 	RiListOrdered,
 	RiListUnordered,
@@ -13,7 +12,7 @@ import {
 	RiStrikethrough,
 	RiSubscript,
 	RiSuperscript,
-	RiUnderline,
+	RiUnderline
 } from "@remixicon/react";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -92,13 +91,13 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				className={editor.isActive("heading", { level: 3 }) ? "is-active" : ""}>
 				<RiH3 className="size-3" />
 			</button>
-			<button
+			{/* <button
 				type="button"
 				title="Heading 4"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
 				className={editor.isActive("heading", { level: 4 }) ? "is-active" : ""}>
 				<RiH4 className="size-3" />
-			</button>
+			</button> */}
 			{/*
 			<button
 				onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
@@ -191,7 +190,7 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 		},
 		editorProps: {
 			attributes: {
-				class: cn("prose-sm focus:outline-none prose-li:list-item min-h-32 pb-2 px-3", editorClassName),
+				class: cn("prose-sm w-full focus:outline-none prose-li:list-item min-h-32 pb-2 px-3", editorClassName),
 			},
 		},
 	});
@@ -199,7 +198,7 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 	return (
 		<div
 			className={cn(
-				"flex flex-col gap-2 overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-primary-300",
+				"flex flex-col gap-2 w-full overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-primary-300",
 				className
 			)}>
 			<MenuBar editor={editor} />

@@ -1,19 +1,20 @@
 import { RiArrowLeftSLine, RiImportLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import React from "react";
+import { toast } from "sonner";
 
-import { CreateQuestions, GetQuestions } from "@/queries";
-import { QuestionCard } from "./dashboard/question-card";
-import { useQuizStore } from "@/store/z-store/quizz";
-import type { QuestionDto } from "@/store/z-store";
-import { quizQuestionFromXlsxToJSON } from "@/lib";
-import { ScrollArea } from "./ui/scroll-area";
-import { queryClient } from "@/providers";
-import type { HttpError } from "@/types";
 import { useFileHandler } from "@/hooks";
-import { Button } from "./ui/button";
+import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
+import { queryClient } from "@/providers";
+import { CreateQuestions, GetQuestions } from "@/queries";
+import type { QuestionDto } from "@/store/z-store";
+import { useChapterStore } from "@/store/z-store/chapter";
+import { useQuizStore } from "@/store/z-store/quizz";
+import type { HttpError } from "@/types";
+import { QuestionCard } from "./dashboard/question-card";
 import { Spinner } from "./shared";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface Props {
 	chapterId: string | undefined;
@@ -30,6 +31,8 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		reorderQuestion,
 		updateQuestions,
 	} = useQuizStore();
+	const lessons = useChapterStore((state) => state.lessons);
+	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
@@ -166,11 +169,17 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		mutate(moduleQuestions);
 	};
 
+	if (!lesson) return null;
+
 	return (
 		<ScrollArea className="h-full w-full">
 			<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
 				<div className="flex w-full items-center justify-between">
-					<p className="text-xs uppercase tracking-widest">Lesson - chapter</p>
+					<p className="text-xs uppercase tracking-widest">
+						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
+						{convertNumberToWord(lesson.chapter_sequence)}
+					</p>
+
 					<div className="flex items-center gap-x-2">
 						<label htmlFor="xlsx-upload">
 							<input

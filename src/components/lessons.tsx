@@ -1,32 +1,35 @@
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
+	RiEye2Line,
 	RiFile2Line,
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { TiptapEditor } from "./ui/tiptap-editor";
-import { Spinner, VideoPlayer } from "./shared";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "./ui/scroll-area";
 import { endpoints } from "@/config";
+import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
 	GetStaffs,
 	type GetStaffsResponse,
 	GetSubject,
+	PublishResource,
 	UpdateChapterModule,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { PublishModal } from "./publish-modal";
+import { Spinner, VideoPlayer } from "./shared";
+import { ScrollArea } from "./ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -95,6 +98,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				attachment_urls: [],
 				tutor: lesson.chapter_module_tutor,
 				lesson_chapter: lesson.chapter_module_id,
+				is_published: lesson.chapter_module_is_published,
 			}));
 
 			setChapterLessons(chapterLessons);
@@ -222,11 +226,51 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		});
 	};
 
+	// PUBLISH LESSON MUTATION
+	const { mutate: publishMutate, isPending: publishPending } = useMutation({
+		mutationFn: PublishResource,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["get-modules"],
+			});
+			// setOpen(false);
+		},
+	});
+
 	if (!lesson) return null;
 
 	return (
-		<ScrollArea className="col-span-4 h-full w-full overflow-y-auto rounded-md bg-neutral-100 p-4">
-			<div className="flex flex-col gap-4">
+		<ScrollArea className="col-span-4 h-full w-full overflow-y-auto rounded-md bg-neutral-100">
+			<div
+				className={`flex items-center justify-between gap-1 px-4 py-2 ${lesson.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+				<p className="w-fit rounded px-2 py-1 text-[10px] font-semibold uppercase">
+					Status: {lesson.is_published === "YES" ? "Published" : "Unpublished"}
+				</p>
+
+				{lesson.is_published === "NO" ? (
+					<PublishModal
+						published={lesson.is_published !== "NO"}
+						isPending={publishPending}
+						type="lesson"
+						onConfirm={() =>
+							publishMutate({
+								id: lesson.id,
+								model_type: "CHAPTER_MODULE",
+							})
+						}
+						trigger={
+							<button
+								type="button"
+								className="flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed">
+								<RiEye2Line className="size-3.5" />
+								<span>Publish Lesson</span>
+							</button>
+						}
+					/>
+				) : null}
+			</div>
+
+			<div className="flex flex-col gap-4 p-4">
 				<header className="flex items-center justify-between gap-1">
 					<p className="text-xs uppercase tracking-widest">
 						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
@@ -364,7 +408,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 						<Button
 							disabled={updatePending}
 							onClick={onUpdateLesson}
-							className="mt-4 w-40 text-sm font-medium">
+							className="w-40 text-sm font-medium">
 							{updatePending ? <Spinner /> : "Update Lesson"}
 						</Button>
 					) : (
