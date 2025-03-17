@@ -349,3 +349,55 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 		}, delay);
 	};
 }
+
+export const removeQuotes = (str: string) => {
+	return str.replace(/["'`]/g, "");
+};
+
+export const removeHtmlTags = (str: string) => {
+	return str.replace(/<[^>]*>/g, "");
+};
+
+export const removeSpecialCharacters = (str: string) => {
+	return str.replace(/[^a-zA-Z0-9\s]/g, "");
+};
+
+export const removeExtraSpaces = (str: string) => {
+	return str.replace(/\s+/g, " ").trim();
+};
+
+export const removeLineBreaks = (str: string) => {
+	return str.replace(/\n/g, "");
+};
+
+export const removeLeadingAndTrailingSlashes = (str: string) => {
+	return str.replace(/^\/|\/$/g, "");
+};
+
+export const removeLeadingSlash = (str: string) => {
+	return str.replace(/^\//, "");
+};
+
+export const removeTrailingSlash = (str: string) => {
+	return str.replace(/\/$/, "");
+};
+
+export const removeLeadingAndTrailingSpaces = (str: string) => {
+	return str.replace(/^\s+|\s+$/g, "");
+};
+
+export const removeLeadingSpace = (str: string) => {
+	return str.replace(/^\s+/, "");
+};
+
+export const removeTrailingSpace = (str: string) => {
+	return str.replace(/\s+$/, "");
+};
+
+export const removeLeadingAndTrailingQuotes = (str: string) => {
+	return str.replace(/^["'`]|["'`]$/g, "");
+};
+
+export const removeLeadingQuote = (str: string) => {
+	return str.replace(/^["'`]/, "");
+};

@@ -65,6 +65,15 @@ export interface ChangeDirectoryDto {
 	subject: string;
 }
 
+export interface DuplicateResourceDto {
+	subject_id: string;
+	exam_bundle_id: string;
+	is_chapters: "YES" | "NO";
+	is_modules: "YES" | "NO";
+	is_questions: "YES" | "NO";
+	is_options: "YES" | "NO";
+}
+
 export type ExaminationResponse = HttpResponse<PaginatedResponse<CastedExamTypeProps>>;
 export type CourseResponse = HttpResponse<PaginatedResponse<CastedCourseProps>>;
 export type BundlesResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;
@@ -256,11 +265,18 @@ const PublishResource = async (payload: PublishResourcePayload) => {
 		.then((res) => res.data);
 };
 
+const DuplicateResource = async (payload: DuplicateResourceDto) => {
+	return axios
+		.post<HttpResponse<string>>(endpoints().school.duplicate_resource, payload)
+		.then((res) => res.data);
+};
+
 export {
 	CreateBundle,
 	CreateExamination,
 	CreateSubject,
 	DeleteEntity,
+	DuplicateResource,
 	GetBundle,
 	GetBundles,
 	GetExaminations,

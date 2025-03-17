@@ -140,10 +140,10 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		}
 		if (
 			moduleQuestions?.some(
-				(question) => question.question_type === "MULTICHOICE" && question.options.length !== 4
+				(question) => question.question_type === "MULTICHOICE" && question.options.length < 2
 			)
 		) {
-			toast.error("Multiple options questions must have 4 options");
+			toast.error("Multiple options questions must have more than 1 option");
 			return;
 		}
 		if (

@@ -3,17 +3,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { CreateCourseTabPanel } from "@/components/create-course";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
 import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { CreateCourseTabPanel } from "@/components/create-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
-import { DashboardLayout } from "@/components/layout";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import type { BreadcrumbItemProps } from "@/components/shared";
 import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
+import type { BreadcrumbItemProps } from "@/components/shared";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { chapterActions } from "@/store/z-store/chapter";
+import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 
@@ -120,6 +121,7 @@ const Page = () => {
 							{/* <Button className="w-fit" size="sm" variant="outline">
 								Save and Exit
 							</Button> */}
+							<DuplicateCourse courseId={courseId} />
 							<EditCourse course={course.data} courseId={courseId} open={open} setOpen={setOpen} />
 							{/* <Button className="w-fit" size="sm">
 								Next <RiArrowLeftSLine className="rotate-180" />

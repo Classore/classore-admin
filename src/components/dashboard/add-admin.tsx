@@ -1,13 +1,17 @@
 import { RiLoaderLine, RiUserAddLine } from "@remixicon/react";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import React from "react";
 import * as Yup from "yup";
 
+import { type CreateAdminDto, CreateAdminMutation, GetRolesQuery } from "@/queries";
+import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { IconLabel } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import {
 	Select,
 	SelectContent,
@@ -15,8 +19,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { queryClient } from "@/providers";
-import { type CreateAdminDto, CreateAdminMutation, GetRolesQuery } from "@/queries";
 
 interface Props {
 	setOpen: (open: boolean) => void;
@@ -35,10 +37,17 @@ export const AddAdmin = ({ setOpen }: Props) => {
 		mutationFn: (payload: CreateAdminDto) => CreateAdminMutation(payload),
 		mutationKey: ["create-admin"],
 		onSuccess: (data) => {
-			console.log(data);
+			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-staffs"] }).then(() => {
 				setOpen(false);
 			});
+		},
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error.response?.data?.message)
+				? error.response?.data?.message[0]
+				: error.response?.data?.message;
+			const message = errorMessage || "An error occurred. Please try again later.";
+			toast.error(message);
 		},
 	});
 
