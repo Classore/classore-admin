@@ -54,6 +54,7 @@ export const endpoints = (id?: string) => {
 			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,
 			update_chapter_module_sequence: "admin/learning/chapter-module/update-sequence",
 			publish_entity: "admin/examination/publish-resource",
+			duplicate_resource: "/admin/examination/duplicate-a-subject",
 		},
 		test_center: {
 			create: "admin/test-mgt/create-new-test",

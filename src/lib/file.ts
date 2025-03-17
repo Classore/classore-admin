@@ -1,5 +1,6 @@
 import { read, utils, write } from "xlsx";
 
+import { removeLeadingAndTrailingQuotes, removeLeadingAndTrailingSlashes } from "./string";
 import type { TestQuestionDto } from "@/queries/test-center";
 import type { QuestionDto } from "@/store/z-store/quizz";
 
@@ -254,20 +255,19 @@ export const quizQuestionFromXlsxToJSON = (
 
 				const questions: QuestionDto[] = rawJson.map((row, rowIndex) => {
 					const sheetRow = row as SheetRow;
-					return {
+					const question: QuestionDto = {
 						sequence: lastIndex + rowIndex + 1,
-						sequence_number: rowIndex + 1,
+						sequence_number: lastIndex + rowIndex + 1,
 						content: sheetRow.content,
 						images: [],
-						instruction: sheetRow.instruction || null,
 						question_type: sheetRow.question_type,
 						options:
 							sheetRow.options && typeof sheetRow.options === "string"
 								? sheetRow.options.split(",").map((option: string, optionIndex) => {
-										// const	is_correct = (Number(sheetRow.is_correct) === optionIndex + 1)
-										console.log();
+										let content = removeLeadingAndTrailingQuotes(option);
+										content = removeLeadingAndTrailingSlashes(content);
 										return {
-											content: option,
+											content,
 											is_correct: Number(sheetRow.is_correct) === optionIndex + 1 ? "YES" : "NO",
 											sequence_number: optionIndex + 1,
 											images: [],
@@ -275,6 +275,7 @@ export const quizQuestionFromXlsxToJSON = (
 									})
 								: [],
 					};
+					return question;
 				});
 
 				resolve(questions);

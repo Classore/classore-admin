@@ -1,3 +1,7 @@
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 import {
 	RiArrowDownLine,
 	RiArrowUpLine,
@@ -5,19 +9,23 @@ import {
 	RiDeleteBinLine,
 	RiDraggable,
 	RiEye2Line,
-	RiFileCopyLine,
 	RiFolderVideoLine,
 	RiListOrdered,
 	RiLoaderLine,
 } from "@remixicon/react";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 
-import { useDrag } from "@/hooks";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { AddChapter } from "./dashboard/add-chapter";
+import { TiptapEditor } from "./ui/tiptap-editor";
+import { PublishModal } from "./publish-modal";
+import { ScrollArea } from "./ui/scroll-area";
+import { DeleteModal } from "./delete-modal";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
+import { Button } from "./ui/button";
+import { Spinner } from "./shared";
+import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	type CreateChapterDto,
@@ -29,20 +37,11 @@ import {
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { HttpError } from "@/types";
-import { AddChapter } from "./dashboard/add-chapter";
-import { DeleteModal } from "./delete-modal";
-import { PublishModal } from "./publish-modal";
-import { Spinner } from "./shared";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
 	{ label: "down", icon: RiArrowDownLine },
-	{ label: "duplicate", icon: RiFileCopyLine },
+	// { label: "duplicate", icon: RiFileCopyLine },
 	// { label: "publish", icon: RiEye2Line },
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
@@ -264,9 +263,6 @@ export const Chapters = ({
 			case "down":
 				console.log("down");
 				break;
-			case "duplicate":
-				console.log("duplicate");
-				break;
 			case "delete":
 				setOpenDeleteModal(true);
 				setCurrentSequence(sequence - 1);
@@ -355,7 +351,6 @@ export const Chapters = ({
 												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 											</button>
 										))}
-
 										<PublishModal
 											open={open}
 											setOpen={setOpen}

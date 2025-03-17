@@ -1,45 +1,77 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { RiLoaderLine } from "@remixicon/react";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import * as Yup from "yup";
 import React from "react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
+import { type DuplicateResourceDto, DuplicateResource } from "@/queries";
 import { GetExaminations, GetBundles } from "@/queries";
 import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
+import type { HttpError } from "@/types";
 
 interface Props {
-	chapterId: string;
 	courseId: string;
-	onOpenChange: (open: boolean) => void;
-	open: boolean;
 }
 
-export const DuplicateCourse = ({ chapterId, courseId, onOpenChange, open }: Props) => {
-	const { isPending } = useMutation({
-		mutationKey: ["duplicate-course", chapterId, courseId],
-		onSuccess: (data) => {
-			console.log(data);
+export const DuplicateCourse = ({ courseId }: Props) => {
+	const [open, setOpen] = React.useState(false);
+
+	const { isPending, mutateAsync } = useMutation({
+		mutationFn: (payload: DuplicateResourceDto) => DuplicateResource(payload),
+		mutationKey: ["duplicate-course", courseId],
+		onSuccess: () => {
+			toast.success("Course duplicated successfully");
 		},
-		onError: (error) => {
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error.response.data.message)
+				? error.response.data.message[0]
+				: error.response.data.message;
+			const message = errorMessage || "Something went wrong";
+			toast.error(message);
+		},
+		onSettled: () => {
+			setOpen(false);
 		},
 	});
 
 	const { errors, handleSubmit, setFieldValue, touched, values } = useFormik({
 		initialValues: {
-			chapter_id: chapterId,
 			course_id: courseId,
 			examination: "",
 			bundle: "",
+			is_chapters: false,
+			is_modules: false,
+			is_options: false,
+			is_questions: false,
+			subject_id: courseId,
 		},
 		validationSchema: Yup.object({
 			examination: Yup.string().required("Category is required"),
 			bundle: Yup.string().required("Subcategory is required"),
+			is_chapters: Yup.boolean(),
+			is_modules: Yup.boolean(),
+			is_options: Yup.boolean(),
+			is_questions: Yup.boolean(),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
+			if (!values.is_chapters && !values.is_modules && !values.is_options && !values.is_questions) {
+				toast.error("Please select at least one option");
+				return;
+			}
+			const payload: DuplicateResourceDto = {
+				exam_bundle_id: values.bundle,
+				is_chapters: values.is_chapters ? "YES" : "NO",
+				is_modules: values.is_modules ? "YES" : "NO",
+				is_options: values.is_options ? "YES" : "NO",
+				is_questions: values.is_questions ? "YES" : "NO",
+				subject_id: values.subject_id,
+			};
+			console.log({ payload });
+			mutateAsync(payload);
 		},
 	});
 
@@ -55,14 +87,19 @@ export const DuplicateCourse = ({ chapterId, courseId, onOpenChange, open }: Pro
 	});
 
 	return (
-		<Dialog onOpenChange={onOpenChange} open={open}>
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>
+				<Button size="sm" onClick={() => setOpen(true)} className="w-fit">
+					Duplicate Course
+				</Button>
+			</DialogTrigger>
 			<DialogContent className="w-[400px]">
 				<DialogTitle>Duplicate Course</DialogTitle>
 				<DialogDescription>
 					This course will be duplicated and added to the selected course.
 				</DialogDescription>
 				<form onSubmit={handleSubmit} className="w-full space-y-4">
-					<div className="space-y-1.5">
+					<div className="space-y-0.5">
 						<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="role">
 							New Examination
 						</label>
@@ -82,7 +119,7 @@ export const DuplicateCourse = ({ chapterId, courseId, onOpenChange, open }: Pro
 							<p className="text-xs text-red-500">{errors.examination}</p>
 						)}
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-0.5">
 						<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="role">
 							New Bundle
 						</label>
@@ -100,9 +137,56 @@ export const DuplicateCourse = ({ chapterId, courseId, onOpenChange, open }: Pro
 						</Select>
 						{errors.bundle && touched.bundle && <p className="text-xs text-red-500">{errors.bundle}</p>}
 					</div>
-					<Button type="submit">
-						{isPending ? <RiLoaderLine className="animate-spin" /> : "Duplicate"}
-					</Button>
+					<div className="flex w-full items-center justify-between">
+						<label className="text-xs text-neutral-400" htmlFor="is_chapters">
+							Copy Chapters
+						</label>
+						<Switch
+							checked={values.is_chapters}
+							onCheckedChange={(value) => setFieldValue("is_chapters", value)}
+						/>
+					</div>
+					<div className="flex w-full items-center justify-between">
+						<label className="text-xs text-neutral-400" htmlFor="is_modules">
+							Copy Modules
+						</label>
+						<Switch
+							checked={values.is_modules}
+							onCheckedChange={(value) => setFieldValue("is_modules", value)}
+						/>
+					</div>
+					<div className="flex w-full items-center justify-between">
+						<label className="text-xs text-neutral-400" htmlFor="is_questions">
+							Copy Questions
+						</label>
+						<Switch
+							checked={values.is_questions}
+							onCheckedChange={(value) => setFieldValue("is_questions", value)}
+						/>
+					</div>
+					<div className="flex w-full items-center justify-between">
+						<label className="text-xs text-neutral-400" htmlFor="is_options">
+							Copy Options
+						</label>
+						<Switch
+							checked={values.is_options}
+							onCheckedChange={(value) => setFieldValue("is_options", value)}
+						/>
+					</div>
+					<div className="flex w-full items-center justify-end gap-x-4">
+						<Button
+							className="w-fit"
+							size="sm"
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+							disabled={isPending}>
+							Cancel
+						</Button>
+						<Button className="w-fit" size="sm" type="submit" disabled={isPending}>
+							{isPending ? <RiLoaderLine className="animate-spin" /> : "Duplicate"}
+						</Button>
+					</div>
 				</form>
 			</DialogContent>
 		</Dialog>
