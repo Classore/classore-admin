@@ -7,6 +7,7 @@ import {
 	RiEye2Line,
 	RiFileCopyLine,
 	RiFolderVideoLine,
+	RiListOrdered,
 	RiLoaderLine,
 } from "@remixicon/react";
 import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
@@ -49,6 +50,7 @@ const question_actions = [
 const {
 	removeChapter,
 	addChapterName,
+	addChapterSequence,
 	addChapterContent,
 	removeLesson,
 	addLesson,
@@ -242,6 +244,7 @@ export const Chapters = ({
 			subject_id: courseId,
 			videos: [],
 		};
+		console.log(payload);
 		updateChapterMutate({
 			id,
 			payload,
@@ -391,10 +394,21 @@ export const Chapters = ({
 													type="text"
 													value={chapter.name}
 													onChange={(e) => {
-														// Just call addChapterName without any side effects
 														addChapterName(chapter.sequence, e.target.value);
 													}}
 													placeholder="Enter chapter title"
+													className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
+												/>
+											</div>
+											<div className="relative w-full">
+												<RiListOrdered className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+												<input
+													type="number"
+													value={chapter.sequence}
+													onChange={(e) => {
+														addChapterSequence(chapter.id, parseInt(e.target.value));
+													}}
+													placeholder="Enter chapter sequence"
 													className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
 												/>
 											</div>
@@ -402,7 +416,6 @@ export const Chapters = ({
 											<TiptapEditor
 												value={chapter.content}
 												onChange={(val) => {
-													// Just call addChapterContent without any side effects
 													addChapterContent(chapter.sequence, val);
 												}}
 											/>
