@@ -287,6 +287,5 @@ export {
 	UpdateChapterModule,
 	UpdateChapterModuleSequence,
 	UpdateQuestion,
-	UpdateQuizSettings
+	UpdateQuizSettings,
 };
-

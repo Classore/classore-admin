@@ -12,7 +12,7 @@ import {
 	RiStrikethrough,
 	RiSubscript,
 	RiSuperscript,
-	RiUnderline
+	RiUnderline,
 } from "@remixicon/react";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -190,7 +190,10 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 		},
 		editorProps: {
 			attributes: {
-				class: cn("prose-sm w-full focus:outline-none prose-li:list-item min-h-32 pb-2 px-3", editorClassName),
+				class: cn(
+					"prose-sm w-full focus:outline-none prose-li:list-item min-h-32 pb-2 px-3",
+					editorClassName
+				),
 			},
 		},
 	});
@@ -198,7 +201,7 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 	return (
 		<div
 			className={cn(
-				"flex flex-col gap-2 w-full overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-primary-300",
+				"flex w-full flex-col gap-2 overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-primary-300",
 				className
 			)}>
 			<MenuBar editor={editor} />
