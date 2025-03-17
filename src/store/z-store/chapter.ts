@@ -36,6 +36,7 @@ type ChapterActions = {
 	removeChapter: (sequence: number) => void;
 	addChapterName: (sequence: number, name: string) => void;
 	addChapterContent: (sequence: number, content: string) => void;
+	addChapterSequence: (chapierId: string, sequence: number) => void;
 	setChapters: (chapters: Chapter[]) => void;
 	reorderChapter: (chapterId: string, direction: "up" | "down") => void;
 	updateChapters: (chapters: Chapter[]) => void;
@@ -122,6 +123,13 @@ const chapterActions: ChapterActions = {
 		useChapterStore.setState((state) => ({
 			chapters: state.chapters.map((chapter) =>
 				chapter.sequence === sequence ? { ...chapter, name } : chapter
+			),
+		}));
+	},
+	addChapterSequence: (chapierId, sequence) => {
+		useChapterStore.setState((state) => ({
+			chapters: state.chapters.map((chapter) =>
+				chapter.id === chapierId ? { ...chapter, sequence } : chapter
 			),
 		}));
 	},
