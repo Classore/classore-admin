@@ -288,8 +288,12 @@ export const Chapters = ({
 	}, []);
 
 	const sequence = React.useMemo(() => {
-		return chapters.length + 1;
-	}, [chapters]);
+		if (chapters && !!chapters.length) {
+			return chapters.length + 1;
+		} else {
+			return 1;
+		}
+	}, []);
 
 	return (
 		<>

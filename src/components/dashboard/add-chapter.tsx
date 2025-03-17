@@ -84,6 +84,7 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 							onChange={handleChange}
 							error={touched.name && errors.name ? errors.name : ""}
 						/>
+						<Input label="Sequence" type="number" name="sequence" onChange={handleChange} />
 						<div>
 							<TiptapEditor
 								value={values.content}
