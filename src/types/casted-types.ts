@@ -2,14 +2,18 @@ import type { Maybe, OptionsProps, QuestionTypeProps, VideoProps } from ".";
 
 export type CastedExamTypeProps = {
 	examination_id: string;
-	examination_createdOn: Date;
-	examination_updatedOn: Maybe<Date>;
-	examination_updatedBy: Maybe<string>;
-	examination_deletedOn: Maybe<Date>;
-	examination_deletedBy: Maybe<string>;
+	examination_copied_from: string;
+	examination_createdOn: string;
+	examination_updatedOn: string;
+	examination_updatedBy: string;
+	examination_deletedOn: string;
+	examination_deletedBy: string;
 	examination_isDeleted: boolean;
 	examination_isBlocked: boolean;
 	examination_name: string;
+	examination_banner: string;
+	examination_rating: string;
+	examination_is_published: string;
 };
 
 export type CastedExamBundleProps = {
@@ -23,6 +27,7 @@ export type CastedExamBundleProps = {
 	examinationbundle_extra_charge: number;
 	examinationbundle_end_date: Date;
 	examinationbundle_id: string;
+	examinationbundle_is_published: "YES" | "NO";
 	examinationbundle_isblocked: boolean;
 	examinationbundle_isdeleted: boolean;
 	examinationbundle_max_subjects: number;
@@ -49,6 +54,10 @@ export type CastedCourseProps = {
 	subject_name: string;
 	subject_updatedBy: Maybe<string>;
 	subject_updatedOn: Date;
+	subject_is_published: "NO" | "YES";
+	subject_banner: string;
+	subject_rating: number;
+	subject_chapter_dripping: "NO" | "YES";
 };
 
 export type CastedChapterProps = {
@@ -86,6 +95,7 @@ export type CastedChapterModuleProps = {
 	chapter_module_videos: string[];
 	chapter_module_content: string;
 	chapter_module_tutor: string;
+	chapter_module_is_published: "NO" | "YES";
 };
 
 export type CastedQuestionProps = {

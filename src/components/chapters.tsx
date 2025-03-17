@@ -1,45 +1,48 @@
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 import {
-	RiAddLine,
 	RiArrowDownLine,
 	RiArrowUpLine,
 	RiDeleteBin6Line,
 	RiDeleteBinLine,
 	RiDraggable,
+	RiEye2Line,
 	RiFileCopyLine,
 	RiFolderVideoLine,
 	RiLoaderLine,
 } from "@remixicon/react";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { AddChapter } from "./dashboard/add-chapter";
-import { TiptapEditor } from "./ui/tiptap-editor";
-import { ScrollArea } from "./ui/scroll-area";
-import { DeleteModal } from "./delete-modal";
+import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
-import type { HttpError } from "@/types";
-import { Button } from "./ui/button";
-import { Spinner } from "./shared";
-import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	type CreateChapterDto,
 	DeleteEntities,
 	type DeleteEntitiesPayload,
 	GetChapterModules,
+	PublishResource,
 	UpdateChapter,
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError } from "@/types";
+import { AddChapter } from "./dashboard/add-chapter";
+import { DeleteModal } from "./delete-modal";
+import { PublishModal } from "./publish-modal";
+import { Spinner } from "./shared";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
 	{ label: "up", icon: RiArrowUpLine },
 	{ label: "down", icon: RiArrowDownLine },
 	{ label: "duplicate", icon: RiFileCopyLine },
+	// { label: "publish", icon: RiEye2Line },
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
@@ -67,11 +70,11 @@ export const Chapters = ({
 	onChapterIdChange,
 }: ChaptersProps) => {
 	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
-	const [openAddChapter, setOpenAddChapter] = React.useState(false);
 	const [currentSequence, setCurrentSequence] = React.useState(0);
 	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [current, setCurrent] = React.useState(0);
+	const [open, setOpen] = React.useState(false);
 
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
@@ -147,6 +150,18 @@ export const Chapters = ({
 		mutationKey: ["update-chapter-module-sequence"],
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+		},
+	});
+
+	// PUBLISH CHAPTER MUTATION
+	const { mutate: publishMutate, isPending: publishPending } = useMutation({
+		mutationFn: PublishResource,
+		onSuccess: () => {
+			toast.success("Chapter published successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["get-subject"],
+			});
+			setOpen(false);
 		},
 	});
 
@@ -278,7 +293,7 @@ export const Chapters = ({
 
 	return (
 		<>
-			<div className="flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
+			<div className="col-span-3 flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
 					{/* <button
@@ -288,12 +303,7 @@ export const Chapters = ({
 						<RiAddLine className="size-4" />
 						<span>Add New Chapter</span>
 					</button> */}
-					<AddChapter
-						courseId={courseId}
-						onOpenChange={setOpenAddChapter}
-						open={openAddChapter}
-						sequence={sequence}
-					/>
+					<AddChapter courseId={courseId} sequence={sequence} />
 				</div>
 
 				{/* Chapter selection buttons - ONLY way to select a chapter */}
@@ -302,7 +312,7 @@ export const Chapters = ({
 						<button
 							key={index}
 							onClick={() => selectChapter(index, chapter.id)}
-							className={`size-5 rounded-md text-sm font-medium ${chapter.id === chapterId ? "bg-primary-100 text-primary-400" : "bg-white text-primary-400 hover:bg-primary-50"}`}>
+							className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${chapter.id === chapterId ? "bg-primary-100 font-semibold text-primary-400" : "bg-white text-neutral-400 hover:bg-primary-50"}`}>
 							{chapter.sequence}
 						</button>
 					))}
@@ -330,134 +340,174 @@ export const Chapters = ({
 									<div className="flex items-center">
 										{question_actions.map(({ icon: Icon, label }, idx) => (
 											<button
+												title={label}
 												type="button"
 												key={idx}
 												onClick={() => handleActions(label, chapter.sequence)}
-												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
+												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md hover:bg-primary-100">
 												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 											</button>
 										))}
+
+										<PublishModal
+											open={open}
+											setOpen={setOpen}
+											published={chapter.is_published !== "NO"}
+											isPending={publishPending}
+											type="chapter"
+											onConfirm={() => {
+												publishMutate({
+													id: chapter.id,
+													model_type: "CHAPTER",
+												});
+											}}
+											trigger={
+												<button
+													title="publish"
+													disabled={chapter.is_published === "YES"}
+													type="button"
+													className="group grid size-7 place-items-center rounded-r-md border transition-all duration-500 hover:bg-primary-100 disabled:cursor-not-allowed">
+													<RiEye2Line className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
+												</button>
+											}
+										/>
 									</div>
 								</div>
-								<div className="flex flex-col gap-4 p-5">
-									<div className="flex flex-col items-center gap-2 border-b border-b-neutral-200 pb-2">
-										<div className="relative w-full">
-											<RiFolderVideoLine className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-											<input
-												type="text"
-												value={chapter.name}
-												onChange={(e) => {
-													// Just call addChapterName without any side effects
-													addChapterName(chapter.sequence, e.target.value);
+								<div>
+									<p
+										className={`p-1 text-center text-[10px] font-bold uppercase ${chapter.is_published === "YES" ? "bg-green-50 text-green-400" : "bg-red-50 text-red-400"}`}>
+										Chapter Status: {chapter.is_published === "YES" ? "Published" : "Unpublished"}
+									</p>
+
+									<div className="flex flex-col gap-4 p-5">
+										<div className="flex flex-col items-center gap-2 border-b border-b-neutral-200">
+											<div className="relative w-full">
+												<RiFolderVideoLine className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+												<input
+													type="text"
+													value={chapter.name}
+													onChange={(e) => {
+														// Just call addChapterName without any side effects
+														addChapterName(chapter.sequence, e.target.value);
+													}}
+													placeholder="Enter chapter title"
+													className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
+												/>
+											</div>
+
+											<TiptapEditor
+												value={chapter.content}
+												onChange={(val) => {
+													// Just call addChapterContent without any side effects
+													addChapterContent(chapter.sequence, val);
 												}}
-												placeholder="Enter chapter title"
-												className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
 											/>
 										</div>
 
-										<TiptapEditor
-											value={chapter.content}
-											onChange={(val) => {
-												// Just call addChapterContent without any side effects
-												addChapterContent(chapter.sequence, val);
-											}}
-										/>
-									</div>
+										<ul className="flex flex-col gap-2">
+											{isPendingModules && chapter.id === chapterId ? (
+												<li className="flex w-full items-center justify-center p-2">
+													<Spinner variant="primary" />
+													<p className="pl-2 text-xs">Getting chapter lessons...</p>
+												</li>
+											) : (
+												lessons
+													.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
+													.map((lesson, idx) => (
+														<li
+															key={idx}
+															onClick={() => setLessonTab(lesson.id)}
+															{...getDragProps(idx)}
+															className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+															<RiDraggable className="size-4" />
+															<p className="flex-1 truncate text-left capitalize">
+																{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
+															</p>
 
-									<ul className="flex flex-col gap-2">
-										{isPendingModules && chapter.id === chapterId ? (
-											<li className="flex w-full items-center justify-center p-2">
-												<Spinner variant="primary" />
-												<p className="pl-2 text-xs">Getting chapter lessons...</p>
-											</li>
-										) : (
-											lessons
-												.filter((lesson) => lesson.chapter_sequence === chapter.sequence)
-												.map((lesson, idx) => (
-													<li
-														key={idx}
-														onClick={() => setLessonTab(lesson.id)}
-														{...getDragProps(idx)}
-														className={`flex cursor-pointer items-center gap-x-3 rounded-md border p-2 text-sm text-neutral-500 ${lesson.id === lessonTab ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
-														<RiDraggable className="size-4" />
-														<p className="flex-1 truncate text-left capitalize">
-															{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
-														</p>
-
-														{isOpen && currentLesson === lesson.id ? (
-															<div className="flex items-center gap-1 text-xs">
+															{isOpen && currentLesson === lesson.id ? (
+																<div className="flex items-center gap-1 text-xs">
+																	<button
+																		type="button"
+																		className="rounded bg-neutral-100 px-2 py-1"
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			setIsOpen(false);
+																		}}>
+																		Cancel
+																	</button>
+																	<button
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			setLessonTab("");
+																			if (lesson?.lesson_chapter) {
+																				// delete the data immediately and send the request in the background
+																				mutateAsync({
+																					ids: [lesson.id],
+																					model_type: "CHAPTER_MODULE",
+																				});
+																			}
+																			removeLesson(chapter.sequence, lesson.sequence);
+																			setIsOpen(false);
+																		}}
+																		type="button"
+																		className="rounded bg-red-600 px-2 py-1 font-medium text-white">
+																		{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																	</button>
+																</div>
+															) : (
 																<button
-																	type="button"
-																	className="rounded bg-neutral-100 px-2 py-1"
 																	onClick={(e) => {
 																		e.stopPropagation();
-																		setIsOpen(false);
-																	}}>
-																	Cancel
-																</button>
-																<button
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		setLessonTab("");
-																		if (lesson?.lesson_chapter) {
-																			// delete the data immediately and send the request in the background
-																			mutateAsync({
-																				ids: [lesson.id],
-																				model_type: "CHAPTER_MODULE",
-																			});
-																		}
-																		removeLesson(chapter.sequence, lesson.sequence);
-																		setIsOpen(false);
+																		setCurrentLesson(lesson.id);
+																		setIsOpen(true);
 																	}}
 																	type="button"
-																	className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-																	{isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"}
+																	className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+																	<RiDeleteBinLine className="size-4" />
 																</button>
-															</div>
-														) : (
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setCurrentLesson(lesson.id);
-																	setIsOpen(true);
-																}}
-																type="button"
-																className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-																<RiDeleteBinLine className="size-4" />
-															</button>
-														)}
-													</li>
-												))
-										)}
-									</ul>
+															)}
+														</li>
+													))
+											)}
+										</ul>
 
-									{chapter.id ? (
-										<div className="flex items-center gap-4 pt-4">
-											<button
-												disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
-												onClick={() => handleUpdate(chapter.id)}
-												type="button"
-												className="flex items-center justify-center gap-1 rounded-md bg-primary-100 px-4 py-1.5 text-sm text-primary-300 transition-colors hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50">
-												{updateChapterIsPending ? (
-													<RiLoaderLine className="size-4 animate-spin" />
-												) : (
-													"Update Chapter"
-												)}
-											</button>
-											<button
-												disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
-												onClick={() => addLesson(chapter.sequence)}
-												type="button"
-												className="flex items-center justify-center gap-1 rounded-md bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">
-												<RiAddLine className="size-4" />
-												<span>Add new Lesson</span>
-											</button>
-										</div>
-									) : (
-										<Button type="submit" className="w-40 text-sm font-medium">
-											{isPending ? <RiLoaderLine className="size-6 animate-spin" /> : "Save Chapter"}
-										</Button>
-									)}
+										{chapter.id ? (
+											<div className="flex items-center justify-between gap-2">
+												<div className="flex items-center gap-4 pt-4">
+													<button
+														disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
+														onClick={() => handleUpdate(chapter.id)}
+														type="button"
+														className="flex items-center justify-center gap-1 rounded-md bg-primary-100 px-4 py-1.5 text-sm text-primary-300 transition-colors hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50">
+														{updateChapterIsPending ? (
+															<RiLoaderLine className="size-4 animate-spin" />
+														) : (
+															"Update Chapter"
+														)}
+													</button>
+
+													<button
+														disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
+														onClick={() => addLesson(chapter.sequence)}
+														type="button"
+														className="flex items-center justify-center gap-1 rounded-md bg-neutral-100 px-4 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">
+														<span>Add new Lesson</span>
+													</button>
+												</div>
+												{/* <button
+										disabled={isPending || chapterId !== chapter.id || updateChapterIsPending}
+										onClick={() => handleUpdate(chapter.id)}
+										type="button"
+										className="flex items-center justify-center gap-1 rounded-md bg-primary-100 px-4 py-1.5 text-sm text-primary-300 transition-colors hover:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50">
+										Publish
+									</button> */}
+											</div>
+										) : (
+											<Button type="submit" className="w-40 text-sm font-medium">
+												{isPending ? <RiLoaderLine className="size-6 animate-spin" /> : "Save Chapter"}
+											</Button>
+										)}
+									</div>
 								</div>
 							</div>
 						))}

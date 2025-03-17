@@ -5,13 +5,7 @@ import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { CastedExamBundleProps } from "@/types/casted-types";
 import { Pagination } from "@/components/shared";
-import { hasPermission } from "@/lib/permission";
-import { useUserStore } from "@/store/z-store";
-import { GetExaminations } from "@/queries";
-import { ExamActions } from "../actions";
-import { formatCurrency } from "@/lib";
 import {
 	Table,
 	TableBody,
@@ -20,6 +14,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { formatCurrency } from "@/lib";
+import { hasPermission } from "@/lib/permission";
+import { GetExaminations } from "@/queries";
+import { useUserStore } from "@/store/z-store";
+import type { CastedExamBundleProps } from "@/types/casted-types";
+import { ExamActions } from "../actions";
 
 interface Props {
 	bundles: CastedExamBundleProps[];
@@ -42,6 +42,7 @@ export const ExamTable = ({ bundles, onPageChange, page, total, isLoading }: Pro
 						<TableHead className="w-[110px] text-center text-neutral-400">Amount/Bundle</TableHead>
 						<TableHead className="w-[120px] text-center text-neutral-400">Ratings</TableHead>
 						<TableHead className="w-[157px] text-center text-neutral-400">Enrolled</TableHead>
+						<TableHead className="w-[157px] text-center text-neutral-400">Status</TableHead>
 						<TableHead className="w-[61px] text-center text-neutral-400"></TableHead>
 					</TableRow>
 				</TableHeader>
@@ -112,10 +113,16 @@ const LineItem = ({ bundle }: { bundle: CastedExamBundleProps }) => {
 					<RiUser3Line size={16} />
 				</div>
 			</TableCell>
+			<TableCell className="text-center text-xs text-neutral-400">
+				<div
+					className={`mx-auto flex w-fit items-center justify-center rounded px-3 py-1 text-[10px] font-bold capitalize ${bundle.examinationbundle_is_published === "NO" ? "bg-red-100 text-red-500" : "bg-green-100 text-green-500"}`}>
+					{bundle.examinationbundle_is_published === "NO" ? "UNPUBLISHED" : "PUBLISHED"}
+				</div>
+			</TableCell>
 			<TableCell>
 				<Popover>
 					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
-						<button className="grid h-8 w-9 place-items-center rounded-md border">
+						<button type="button" className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>
 					</PopoverTrigger>

@@ -1,15 +1,12 @@
+import { RiBook2Line, RiBookMarkedLine, RiBookOpenLine, RiBookReadLine } from "@remixicon/react";
 import { useQueries } from "@tanstack/react-query";
 import React from "react";
-import { RiBook2Line, RiBookMarkedLine, RiBookOpenLine, RiBookReadLine } from "@remixicon/react";
 
-import { AddBundle, AddExamination, UserCard } from "@/components/dashboard";
+import { AddBundle, UserCard } from "@/components/dashboard";
 import { DashboardLayout, Unauthorized } from "@/components/layout";
 import { SearchInput, Seo } from "@/components/shared";
-import { hasPermission } from "@/lib/permission";
 import { ExamTable } from "@/components/tables";
-import { useUserStore } from "@/store/z-store";
-import { GetBundles } from "@/queries";
-import { useDebounce } from "@/hooks";
+import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -17,6 +14,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useDebounce } from "@/hooks";
+import { hasPermission } from "@/lib/permission";
+import { GetBundles } from "@/queries";
+import { useUserStore } from "@/store/z-store";
+import Link from "next/link";
 
 const exams = ["all", "national", "international"] as const;
 const sort_options = ["NAME", "DATE_CREATED"] as const;
@@ -64,7 +66,10 @@ const Page = () => {
 						<div className="flex w-full items-center justify-between">
 							<p className="">Courses</p>
 							<div className="flex items-center gap-x-4">
-								<AddExamination open={open.exam} onOpenChange={(exam) => setOpen({ ...open, exam })} />
+								<Button size="sm">
+									<Link href="/dashboard/courses/categories">View Categories</Link>
+								</Button>
+
 								<AddBundle open={open.bundle} onOpenChange={(bundle) => setOpen({ ...open, bundle })} />
 							</div>
 						</div>
@@ -84,6 +89,7 @@ const Page = () => {
 							<div className="flex items-center">
 								{exams.map((type) => (
 									<button
+										type="button"
 										key={type}
 										onClick={() => setExam(type)}
 										className={`h-6 min-w-[90px] rounded-md text-xs capitalize ${type === exam ? "bg-primary-100 text-primary-400" : "text-neutral-400"}`}>

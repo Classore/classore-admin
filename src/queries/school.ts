@@ -56,6 +56,7 @@ export interface SubjectResponse {
 	description: string;
 	chapter_dripping: "YES" | "NO";
 	banner: string;
+	is_published: "YES" | "NO";
 }
 
 export interface ChangeDirectoryDto {
@@ -244,6 +245,17 @@ const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
 		.then((res) => res.data);
 };
 
+type PublishResourcePayload = {
+	id: string;
+	model_type: "EXAMINATION" | "EXAM_BUNDLE" | "SUBJECT" | "CHAPTER" | "CHAPTER_MODULE";
+};
+
+const PublishResource = async (payload: PublishResourcePayload) => {
+	return axios
+		.put<HttpResponse<string>>(endpoints().school.publish_entity, payload)
+		.then((res) => res.data);
+};
+
 export {
 	CreateBundle,
 	CreateExamination,
@@ -254,6 +266,8 @@ export {
 	GetExaminations,
 	GetSubject,
 	GetSubjects,
+	PublishResource,
 	UpdateBundle,
 	UpdateSubject,
 };
+
