@@ -54,6 +54,7 @@ interface UseMutationProps {
 // this is the tutor role id. It should come from the api but
 const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
 export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) => {
+	const [open, setOpen] = React.useState(false);
 	const abortController = React.useRef<AbortController | null>(null);
 	const queryClient = useQueryClient();
 
@@ -233,7 +234,8 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			queryClient.invalidateQueries({
 				queryKey: ["get-modules"],
 			});
-			// setOpen(false);
+			setOpen(false);
+			toast.success("Lesson published successfully!");
 		},
 	});
 
@@ -242,9 +244,9 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 	return (
 		<ScrollArea className="col-span-4 h-full w-full overflow-y-auto rounded-md bg-neutral-100">
 			<div
-				className={`flex items-center justify-between gap-1 px-4 py-2 ${lesson.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+				className={`flex items-center justify-between gap-1 px-4 py-2 ${lesson.is_published === "YES" ? "bg-green-100 text-green-500" : "bg-red-100 text-red-500"}`}>
 				<p className="w-fit rounded px-2 py-1 text-[10px] font-semibold uppercase">
-					Status: {lesson.is_published === "YES" ? "Published" : "Unpublished"}
+					Lesson Status: {lesson.is_published === "YES" ? "Published" : "Unpublished"}
 				</p>
 
 				{lesson.is_published === "NO" ? (
@@ -252,6 +254,8 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 						published={lesson.is_published !== "NO"}
 						isPending={publishPending}
 						type="lesson"
+						open={open}
+						setOpen={setOpen}
 						onConfirm={() =>
 							publishMutate({
 								id: lesson.id,

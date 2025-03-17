@@ -40,6 +40,7 @@ type ChapterActions = {
 	addChapterContent: (sequence: number, content: string) => void;
 	setChapters: (chapters: Chapter[]) => void;
 	reorderChapter: (chapterId: string, direction: "up" | "down") => void;
+	updateChapters: (chapters: Chapter[]) => void;
 
 	// chapter lessons
 	setChapterLessons: (lessons: Lesson[]) => void;
@@ -164,6 +165,12 @@ const chapterActions: ChapterActions = {
 
 			return { chapters };
 		});
+	},
+	updateChapters: (chapters) => {
+		useChapterStore.setState((state) => ({
+			chapters: [...state.chapters, ...chapters],
+			lessons: state.lessons,
+		}));
 	},
 
 	// LESSONS ACTIONS

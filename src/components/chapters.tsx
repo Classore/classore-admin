@@ -1,5 +1,4 @@
 import {
-	RiAddLine,
 	RiArrowDownLine,
 	RiArrowUpLine,
 	RiDeleteBin6Line,
@@ -31,6 +30,7 @@ import {
 } from "@/queries";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { HttpError } from "@/types";
+import { AddChapter } from "./dashboard/add-chapter";
 import { DeleteModal } from "./delete-modal";
 import { PublishModal } from "./publish-modal";
 import { Spinner } from "./shared";
@@ -47,7 +47,6 @@ const question_actions = [
 ];
 
 const {
-	addChapter,
 	removeChapter,
 	addChapterName,
 	addChapterContent,
@@ -75,6 +74,7 @@ export const Chapters = ({
 	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [current, setCurrent] = React.useState(0);
+	const [open, setOpen] = React.useState(false);
 
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
@@ -98,7 +98,6 @@ export const Chapters = ({
 		onSuccess: (data) => {
 			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			addChapter();
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -107,7 +106,6 @@ export const Chapters = ({
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
-			addChapter();
 			window.location.reload();
 		},
 	});
@@ -159,10 +157,11 @@ export const Chapters = ({
 	const { mutate: publishMutate, isPending: publishPending } = useMutation({
 		mutationFn: PublishResource,
 		onSuccess: () => {
+			toast.success("Chapter published successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["get-subject"],
 			});
-			// setOpen(false);
+			setOpen(false);
 		},
 	});
 
@@ -209,18 +208,6 @@ export const Chapters = ({
 			}
 		}
 	}, [chapterId, chapters]);
-
-	const handleAddChapter = () => {
-		addChapter();
-		if (container.current) {
-			container.current.scrollTo({
-				top: container.current.scrollHeight,
-				behavior: "smooth",
-			});
-			const newChapterIndex = chapters.length;
-			setCurrent(newChapterIndex);
-		}
-	};
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -291,18 +278,32 @@ export const Chapters = ({
 		onChapterIdChange?.(id);
 	};
 
+	React.useEffect(() => {
+		if (container.current) {
+			container.current.scrollTo({
+				top: container.current.scrollHeight,
+				behavior: "smooth",
+			});
+		}
+	}, []);
+
+	const sequence = React.useMemo(() => {
+		return chapters.length + 1;
+	}, [chapters]);
+
 	return (
 		<>
 			<div className="col-span-3 flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
-					<button
+					{/* <button
 						type="button"
 						onClick={handleAddChapter}
 						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 						<RiAddLine className="size-4" />
 						<span>Add New Chapter</span>
-					</button>
+					</button> */}
+					<AddChapter courseId={courseId} sequence={sequence} />
 				</div>
 
 				{/* Chapter selection buttons - ONLY way to select a chapter */}
@@ -326,6 +327,7 @@ export const Chapters = ({
 						{chapters.map((chapter, index) => (
 							<div
 								key={index}
+								onClick={() => selectChapter(index, chapter.id)}
 								ref={(div) => {
 									if (div) {
 										refs.current[index] = div;
@@ -348,6 +350,8 @@ export const Chapters = ({
 										))}
 
 										<PublishModal
+											open={open}
+											setOpen={setOpen}
 											published={chapter.is_published !== "NO"}
 											isPending={publishPending}
 											type="chapter"

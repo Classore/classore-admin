@@ -17,6 +17,8 @@ type PublishModalProps = {
 	onConfirm: () => void;
 	trigger?: React.ReactNode;
 	type: string;
+	open: boolean;
+	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const PublishModal = ({
@@ -25,9 +27,11 @@ export const PublishModal = ({
 	onConfirm,
 	trigger,
 	type,
+	open,
+	setOpen,
 }: PublishModalProps) => {
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				{!trigger ? (
 					<button

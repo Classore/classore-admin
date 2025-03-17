@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { PublishResource } from "@/queries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+import { toast } from "sonner";
 import { PublishModal } from "../publish-modal";
 import { IconLabel } from "../shared";
 import { Button } from "../ui/button";
@@ -21,15 +23,17 @@ interface Props {
 }
 
 export const CourseActions = ({ id, published }: Props) => {
+	const [open, setOpen] = React.useState(false);
 	const queryClient = useQueryClient();
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: PublishResource,
 		onSuccess: () => {
+			toast.success("Course published successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["get-subjects"],
 			});
-			// setOpen(false);
+			setOpen(false);
 		},
 	});
 
@@ -42,6 +46,8 @@ export const CourseActions = ({ id, published }: Props) => {
 			</Link>
 
 			<PublishModal
+				open={open}
+				setOpen={setOpen}
 				type="course"
 				published={published}
 				isPending={isPending}

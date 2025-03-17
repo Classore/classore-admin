@@ -30,6 +30,7 @@ import { DeleteEntities, GetExaminations, PublishResource } from "@/queries";
 import { useUserStore } from "@/store/z-store";
 import { format } from "date-fns";
 import Image from "next/image";
+import { toast } from "sonner";
 
 const breadcrumbs = [
 	{ label: "Manage Courses", href: "/dashboard/courses" },
@@ -43,8 +44,11 @@ const breadcrumbs = [
 const Page = () => {
 	const admin = useUserStore().user;
 	const queryClient = useQueryClient();
+
 	const [open, setOpen] = React.useState(false);
 	const [page, setPage] = React.useState(1);
+	const [openPublishModal, setOpenPublishModal] = React.useState(false);
+
 	const router = useRouter();
 	const id = router.query.id as string;
 
@@ -59,15 +63,18 @@ const Page = () => {
 	const { mutate: publishMutate, isPending: publishPending } = useMutation({
 		mutationFn: PublishResource,
 		onSuccess: () => {
+			toast.success("Exam published successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["get-exams"],
 			});
+			setOpenPublishModal(false);
 		},
 	});
 
 	const { mutate: deleteMutate, isPending: deletePending } = useMutation({
 		mutationFn: DeleteEntities,
 		onSuccess: () => {
+			toast.success("Exam deleted successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["get-exams"],
 			});
@@ -85,7 +92,7 @@ const Page = () => {
 								<Button onClick={() => router.back()} className="w-fit" size="sm" variant="outline">
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
-								<h3 className="text-lg font-medium uppercase">Categories</h3>
+								<h3 className="text-lg font-medium">Exams</h3>
 							</div>
 							<Breadcrumbs courseId={id} links={breadcrumbs} />
 						</div>
@@ -159,6 +166,8 @@ const Page = () => {
 												</PopoverTrigger>
 												<PopoverContent className="w-40">
 													<PublishModal
+														open={openPublishModal}
+														setOpen={setOpenPublishModal}
 														type="exam"
 														published={exam.examination_is_published === "YES"}
 														isPending={publishPending}

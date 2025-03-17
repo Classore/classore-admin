@@ -12,6 +12,7 @@ import {
 import { PublishResource } from "@/queries";
 import type { CastedExamBundleProps } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { EditSubcategory } from "../dashboard";
 import { PublishModal } from "../publish-modal";
 import { IconLabel } from "../shared";
@@ -25,14 +26,16 @@ interface Props {
 export const ExamActions = ({ id, subcategory }: Props) => {
 	const queryClient = useQueryClient();
 	const [open, setOpen] = React.useState({ edit: false, remove: false });
+	const [openPublishModal, setOpenPublishModal] = React.useState(false);
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: PublishResource,
 		onSuccess: () => {
+			toast.success("Exam bundle published successfully!");
 			queryClient.invalidateQueries({
 				queryKey: ["bundles"],
 			});
-			// setOpen(false);
+			setOpenPublishModal(false);
 		},
 	});
 
@@ -45,6 +48,8 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 			</Link>
 
 			<PublishModal
+				open={openPublishModal}
+				setOpen={setOpenPublishModal}
 				type="bundle"
 				published={subcategory.examinationbundle_is_published === "YES"}
 				isPending={isPending}
