@@ -1,15 +1,9 @@
 import { RiFileTextLine, RiMore2Line, RiPlayCircleLine } from "@remixicon/react";
 import { format } from "date-fns";
-import React from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { CastedCourseProps } from "@/types/casted-types";
-import { hasPermission } from "@/lib/permission";
 import { Pagination } from "@/components/shared";
-import { useUserStore } from "@/store/z-store";
-import { CourseActions } from "../actions";
-import { formatCurrency } from "@/lib";
 import {
 	Table,
 	TableBody,
@@ -18,6 +12,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { formatCurrency } from "@/lib";
+import { hasPermission } from "@/lib/permission";
+import { useUserStore } from "@/store/z-store";
+import type { CastedCourseProps } from "@/types/casted-types";
+import { CourseActions } from "../actions";
 
 interface Props {
 	courses: CastedCourseProps[];
@@ -92,19 +91,19 @@ const LineItem = ({ course }: { course: CastedCourseProps }) => {
 			</TableCell>
 			<TableCell className="text-center text-xs">
 				<div
-					className={`flex items-center justify-center rounded px-3 py-0.5 text-[10px] font-medium capitalize ${course.subject_isBlocked ? "bg-red-100 text-red-500" : "bg-green-100 text-green-500"}`}>
-					{course.subject_isBlocked ? "UNPUBLISHED" : "PUBLISHED"}
+					className={`mx-auto flex w-fit items-center justify-center rounded px-3 py-1 text-[10px] font-bold capitalize ${course.subject_is_published === "NO" ? "bg-red-100 text-red-500" : "bg-green-100 text-green-500"}`}>
+					{course.subject_is_published === "NO" ? "UNPUBLISHED" : "PUBLISHED"}
 				</div>
 			</TableCell>
 			<TableCell>
 				<Popover>
 					<PopoverTrigger asChild disabled={!hasPermission(admin, ["videos_write"])}>
-						<button className="grid h-8 w-9 place-items-center rounded-md border">
+						<button type="button" className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<CourseActions id={course.subject_id} />
+						<CourseActions id={course.subject_id} published={course.subject_is_published === "YES"} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>

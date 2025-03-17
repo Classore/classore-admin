@@ -59,6 +59,7 @@ const Page = () => {
 				content: chapter.content,
 				sequence: chapter.sequence,
 				id: chapter.id,
+				is_published: chapter.is_published,
 			}));
 
 			setChapters(chapters);

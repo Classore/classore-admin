@@ -2,10 +2,6 @@ import { RiDeleteBin6Line, RiEdit2Line, RiInformationLine } from "@remixicon/rea
 import Link from "next/link";
 import React from "react";
 
-import type { CastedExamBundleProps } from "@/types";
-import { EditSubcategory } from "../dashboard";
-import { Button } from "../ui/button";
-import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -13,6 +9,14 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { PublishResource } from "@/queries";
+import type { CastedExamBundleProps } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { EditSubcategory } from "../dashboard";
+import { PublishModal } from "../publish-modal";
+import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
 
 interface Props {
 	id: string;
@@ -20,7 +24,20 @@ interface Props {
 }
 
 export const ExamActions = ({ id, subcategory }: Props) => {
+	const queryClient = useQueryClient();
 	const [open, setOpen] = React.useState({ edit: false, remove: false });
+	const [openPublishModal, setOpenPublishModal] = React.useState(false);
+
+	const { mutate, isPending } = useMutation({
+		mutationFn: PublishResource,
+		onSuccess: () => {
+			toast.success("Exam bundle published successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
+			setOpenPublishModal(false);
+		},
+	});
 
 	return (
 		<div className="flex w-full flex-col gap-y-1">
@@ -29,9 +46,25 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 				className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 				<RiInformationLine size={18} /> View Details
 			</Link>
+
+			<PublishModal
+				open={openPublishModal}
+				setOpen={setOpenPublishModal}
+				type="bundle"
+				published={subcategory.examinationbundle_is_published === "YES"}
+				isPending={isPending}
+				onConfirm={() =>
+					mutate({
+						id,
+						model_type: "EXAM_BUNDLE",
+					})
+				}
+			/>
+
 			<Dialog open={open.edit} onOpenChange={(edit) => setOpen({ ...open, edit })}>
 				<DialogTrigger asChild>
 					<button
+						type="button"
 						onClick={() => {}}
 						className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 						<RiEdit2Line size={18} /> Edit Details
@@ -45,9 +78,11 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 					/>
 				</DialogContent>
 			</Dialog>
+
 			<Dialog open={open.remove} onOpenChange={(remove) => setOpen({ ...open, remove })}>
 				<DialogTrigger asChild>
 					<button
+						type="button"
 						onClick={() => {}}
 						className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-red-500 hover:bg-red-100">
 						<RiDeleteBin6Line size={18} /> Delete
