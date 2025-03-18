@@ -17,6 +17,7 @@ export type QuestionDto = {
 	question_type: QuestionTypeProps;
 	sequence: number;
 	sequence_number: number;
+	id?: string;
 };
 
 type InitialState = {

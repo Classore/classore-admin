@@ -12,11 +12,12 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiImageAddLine,
-	RiQuestionLine,
+	// RiQuestionLine,
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
+import { useQuestionContext } from "@/providers";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
 import { Switch } from "../ui/switch";
@@ -54,6 +55,8 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		removeImageFromQuestion,
 	} = useQuizStore();
 
+	const { isSelected, onSelect } = useQuestionContext();
+
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
 			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
@@ -74,7 +77,13 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		<div className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
 			<div className="flex h-7 w-full items-center justify-between">
 				<div className="flex items-center gap-x-1.5">
-					<RiQuestionLine className="size-5 text-neutral-400" />
+					<input
+						type="checkbox"
+						className="border-neutral- size-4 cursor-pointer rounded-sm border ring-0 focus:ring-0 active:ring-0"
+						checked={isSelected(question)}
+						onChange={() => onSelect(question)}
+					/>
+					{/* <RiQuestionLine className="size-5 text-neutral-400" /> */}
 					<p className="text-xs text-neutral-400">QUESTION {question.sequence_number}</p>
 				</div>
 				<div className="flex items-center gap-x-2">
