@@ -4,14 +4,15 @@ import { format } from "date-fns";
 import React from "react";
 
 import { TabPanel } from "@/components/shared";
-import { useUserStore } from "@/store/z-store";
+import type { CastedUserProps } from "@/types";
 
 interface Props {
 	tab: string;
+	user: CastedUserProps;
 }
 
-export const Profile = ({ tab }: Props) => {
-	const { user } = useUserStore();
+export const Profile = ({ tab, user }: Props) => {
+	// const { user } = useUserStore();
 
 	return (
 		<TabPanel selected={tab} value="user profile">
@@ -20,17 +21,17 @@ export const Profile = ({ tab }: Props) => {
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Full Name</p>
 						<p className="text-xs font-medium capitalize">
-							{user?.first_name} {user?.last_name}
+							{user?.user_first_name} {user?.user_last_name}
 						</p>
 					</div>
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Email Address</p>
-						<p className="text-xs font-medium lowercase">{user?.email}</p>
+						<p className="text-xs font-medium lowercase">{user?.user_email}</p>
 					</div>
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Date and Time Joined</p>
 						<p className="text-xs font-medium">
-							{user?.createdOn && format(user.createdOn, "MMM dd, yyyy HH:mm a")}
+							{user?.user_createdOn && format(user.user_createdOn, "MMM dd, yyyy HH:mm a")}
 						</p>
 					</div>
 				</div>
