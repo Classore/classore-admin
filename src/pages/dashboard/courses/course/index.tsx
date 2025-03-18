@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
+import { DeleteQuestions } from "@/components/dashboard/delete-questions";
 import { DeleteSubject } from "@/components/dashboard/delete-subject";
 import { CreateCourseTabPanel } from "@/components/create-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
@@ -12,6 +13,7 @@ import type { BreadcrumbItemProps } from "@/components/shared";
 import { QuizSettingsTab } from "@/components/quiz-settings";
 import { chapterActions } from "@/store/z-store/chapter";
 import { DashboardLayout } from "@/components/layout";
+import { useQuestionContext } from "@/providers";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
@@ -24,6 +26,8 @@ const Page = () => {
 	const [open, setOpen] = React.useState(false);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
+
+	const { selected } = useQuestionContext();
 
 	const {
 		data: course,
@@ -140,9 +144,12 @@ const Page = () => {
 									</button>
 								))}
 							</div>
-							<button className="flex items-center gap-x-1 text-sm text-neutral-400">
-								<RiEyeLine size={16} /> Preview
-							</button>
+							<div className="flex items-center gap-x-4">
+								{selected.length > 0 && <DeleteQuestions />}
+								<button className="flex items-center gap-x-1 text-sm text-neutral-400">
+									<RiEyeLine size={16} /> Preview
+								</button>
+							</div>
 						</div>
 						<div className="h-[calc(100%-40px)] w-full">
 							<CreateCourseTabPanel tab={tab} courseName={course.data.name} />

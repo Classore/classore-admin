@@ -1,20 +1,20 @@
 import { RiArrowLeftSLine, RiImportLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "sonner";
+import React from "react";
 
-import { useFileHandler } from "@/hooks";
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
-import { queryClient } from "@/providers";
 import { CreateQuestions, GetQuestions } from "@/queries";
-import type { QuestionDto } from "@/store/z-store";
 import { useChapterStore } from "@/store/z-store/chapter";
-import { useQuizStore } from "@/store/z-store/quizz";
-import type { HttpError } from "@/types";
 import { QuestionCard } from "./dashboard/question-card";
-import { Spinner } from "./shared";
-import { Button } from "./ui/button";
+import { useQuizStore } from "@/store/z-store/quizz";
+import type { QuestionDto } from "@/store/z-store";
 import { ScrollArea } from "./ui/scroll-area";
+import { queryClient } from "@/providers";
+import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
+import { Button } from "./ui/button";
+import { Spinner } from "./shared";
 
 interface Props {
 	chapterId: string | undefined;
@@ -75,6 +75,7 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 					question_type: question.question_question_type,
 					sequence: question.question_sequence,
 					sequence_number: question.question_sequence,
+					id: question.question_id,
 				};
 				return q;
 			}),
