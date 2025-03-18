@@ -43,7 +43,7 @@ const Page = () => {
 						limit: 10,
 						page,
 						sort_by,
-						user_type: user_type === "all" ? "" : user_type,
+						user_type: user_type === "all" ? "" : user_type.toUpperCase(),
 					}),
 			},
 			{
