@@ -33,7 +33,8 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 			toast.error(message);
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 			setOpen(false);
 			window.location.reload();
 		},
@@ -44,7 +45,6 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 			content: "",
 			images: [],
 			name: "",
-			sequence,
 			subject_id: courseId,
 			videos: [],
 		},
@@ -54,8 +54,10 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 			sequence: Yup.number().required("Sequence is required"),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
-			mutateAsync(values);
+			mutateAsync({
+				...values,
+				sequence,
+			});
 		},
 	});
 
@@ -84,7 +86,7 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 							onChange={handleChange}
 							error={touched.name && errors.name ? errors.name : ""}
 						/>
-						<Input label="Sequence" type="number" name="sequence" onChange={handleChange} />
+						{/* <Input label="Sequence" type="number" name="sequence" onChange={handleChange} /> */}
 						<div>
 							<TiptapEditor
 								value={values.content}

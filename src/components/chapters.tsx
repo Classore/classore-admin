@@ -1,55 +1,53 @@
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 import {
-	RiArrowDownLine,
-	RiArrowUpLine,
 	RiDeleteBin6Line,
 	RiDeleteBinLine,
 	RiDraggable,
 	RiEye2Line,
 	RiFolderVideoLine,
-	RiListOrdered,
 	RiLoaderLine,
 } from "@remixicon/react";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import { AddChapter } from "./dashboard/add-chapter";
-import { TiptapEditor } from "./ui/tiptap-editor";
-import { PublishModal } from "./publish-modal";
-import { ScrollArea } from "./ui/scroll-area";
-import { DeleteModal } from "./delete-modal";
+import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import { queryClient } from "@/providers";
-import type { HttpError } from "@/types";
-import { Button } from "./ui/button";
-import { Spinner } from "./shared";
-import { useDrag } from "@/hooks";
 import {
 	CreateChapter,
 	type CreateChapterDto,
 	DeleteEntities,
 	type DeleteEntitiesPayload,
 	GetChapterModules,
+	GetSubject,
 	PublishResource,
 	UpdateChapter,
 	UpdateChapterModuleSequence,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError } from "@/types";
+import { AddChapter } from "./dashboard/add-chapter";
+import { ChapterList } from "./dashboard/chapter-list";
+import { DeleteModal } from "./delete-modal";
+import { PublishModal } from "./publish-modal";
+import { Spinner } from "./shared";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { TiptapEditor } from "./ui/tiptap-editor";
 
 const question_actions = [
-	{ label: "up", icon: RiArrowUpLine },
-	{ label: "down", icon: RiArrowDownLine },
+	// { label: "up", icon: RiArrowUpLine },
+	// { label: "down", icon: RiArrowDownLine },
 	// { label: "duplicate", icon: RiFileCopyLine },
-	// { label: "publish", icon: RiEye2Line },
+	{ label: "publish", icon: RiEye2Line },
 	{ label: "delete", icon: RiDeleteBin6Line },
 ];
 
 const {
 	removeChapter,
 	addChapterName,
-	addChapterSequence,
 	addChapterContent,
 	removeLesson,
 	addLesson,
@@ -75,7 +73,7 @@ export const Chapters = ({
 	const [currentLesson, setCurrentLesson] = React.useState("");
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [current, setCurrent] = React.useState(0);
-	const [open, setOpen] = React.useState(false);
+	const [openPublishModal, setOpenPublishModal] = React.useState(false);
 
 	const chapters = useChapterStore((state) => state.chapters);
 	const lessons = useChapterStore((state) => state.lessons);
@@ -91,6 +89,11 @@ export const Chapters = ({
 		queryKey: ["get-modules", { chapterId }],
 		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
 		enabled: !!chapterId,
+	});
+	const { data: course } = useQuery({
+		queryKey: ["get-subject", courseId],
+		queryFn: () => GetSubject(courseId),
+		enabled: !!courseId,
 	});
 
 	const { isPending, mutate } = useMutation({
@@ -112,20 +115,18 @@ export const Chapters = ({
 	});
 
 	const { isPending: updateChapterIsPending, mutate: updateChapterMutate } = useMutation({
-		mutationFn: ({ id, payload }: { id: string; payload: CreateChapterDto }) =>
+		mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateChapterDto> }) =>
 			UpdateChapter(id, payload),
 		mutationKey: ["update-chapter"],
 		onSuccess: (data) => {
 			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
 			const err = Array.isArray(message) ? message[0] : message;
 			toast.error(err);
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
 		},
 	});
 
@@ -162,7 +163,7 @@ export const Chapters = ({
 			queryClient.invalidateQueries({
 				queryKey: ["get-subject"],
 			});
-			setOpen(false);
+			setOpenPublishModal(false);
 		},
 	});
 
@@ -235,37 +236,46 @@ export const Chapters = ({
 			return;
 		}
 
-		const payload: CreateChapterDto = {
-			name: currentChapter.name,
+		const chapter = course?.data.chapters.find((chapter) => chapter.id === id);
+		if (!chapter) {
+			toast.error("Chapter not found");
+			return;
+		}
+
+		const payload: Partial<CreateChapterDto> = {
+			...(currentChapter.name !== chapter.name && { name: currentChapter.name }),
+			...(currentChapter.content !== chapter.content && { content: currentChapter.content }),
 			sequence: currentChapter.sequence,
-			content: currentChapter.content,
 			images: [],
 			subject_id: courseId,
 			videos: [],
 		};
-		console.log(payload);
-		updateChapterMutate({
-			id,
-			payload,
-		});
+
+		console.log("payload", payload);
+
+		if(currentChapter.name !== chapter.name || currentChapter.content !== chapter.content) {
+			updateChapterMutate({
+				id,
+				payload,
+			});
+		}
+
+		toast.info("Chapter updated successfully")
 	};
 
-	const handleActions = (action: string, sequence: number) => {
+	const handleActions = (action: string) => {
 		if (!chapterId) {
 			toast.error("Please select a chapter");
 			return;
 		}
 
 		switch (action) {
-			case "up":
-				console.log("up");
-				break;
-			case "down":
-				console.log("down");
-				break;
 			case "delete":
 				setOpenDeleteModal(true);
 				setCurrentSequence(sequence - 1);
+				break;
+			case "publish":
+				setOpenPublishModal(true);
 				break;
 			default:
 				return;
@@ -288,38 +298,23 @@ export const Chapters = ({
 
 	const sequence = React.useMemo(() => {
 		if (chapters && !!chapters.length) {
-			return chapters.length + 1;
+			return chapters[chapters.length - 1].sequence + 1;
 		} else {
 			return 1;
 		}
-	}, []);
+	}, [chapters]);
 
 	return (
 		<>
 			<div className="col-span-3 flex h-full flex-col gap-y-4 overflow-y-auto rounded-md bg-neutral-100 p-4">
 				<div className="flex flex-1 items-center justify-between gap-2">
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
-					{/* <button
-						type="button"
-						onClick={handleAddChapter}
-						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
-						<RiAddLine className="size-4" />
-						<span>Add New Chapter</span>
-					</button> */}
+
 					<AddChapter courseId={courseId} sequence={sequence} />
 				</div>
 
 				{/* Chapter selection buttons - ONLY way to select a chapter */}
-				<div className="flex flex-wrap items-center gap-2">
-					{chapters.map((chapter, index) => (
-						<button
-							key={index}
-							onClick={() => selectChapter(index, chapter.id)}
-							className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${chapter.id === chapterId ? "bg-primary-100 font-semibold text-primary-400" : "bg-white text-neutral-400 hover:bg-primary-50"}`}>
-							{chapter.sequence}
-						</button>
-					))}
-				</div>
+				<ChapterList chapters={chapters} selectChapter={selectChapter} chapterId={chapterId} />
 
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">
@@ -346,33 +341,12 @@ export const Chapters = ({
 												title={label}
 												type="button"
 												key={idx}
-												onClick={() => handleActions(label, chapter.sequence)}
-												className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md hover:bg-primary-100">
+												{...(label === "publish" ? { disabled: chapter.is_published === "YES" } : {})}
+												onClick={() => handleActions(label)}
+												className="group grid size-7 cursor-pointer place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100 disabled:cursor-not-allowed">
 												<Icon className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
 											</button>
 										))}
-										<PublishModal
-											open={open}
-											setOpen={setOpen}
-											published={chapter.is_published !== "NO"}
-											isPending={publishPending}
-											type="chapter"
-											onConfirm={() => {
-												publishMutate({
-													id: chapter.id,
-													model_type: "CHAPTER",
-												});
-											}}
-											trigger={
-												<button
-													title="publish"
-													disabled={chapter.is_published === "YES"}
-													type="button"
-													className="group grid size-7 place-items-center rounded-r-md border transition-all duration-500 hover:bg-primary-100 disabled:cursor-not-allowed">
-													<RiEye2Line className="size-3.5 text-neutral-400 group-hover:size-4 group-hover:text-primary-400" />
-												</button>
-											}
-										/>
 									</div>
 								</div>
 								<div>
@@ -395,7 +369,7 @@ export const Chapters = ({
 													className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
 												/>
 											</div>
-											<div className="relative w-full">
+											{/* <div className="relative w-full">
 												<RiListOrdered className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
 												<input
 													type="number"
@@ -406,7 +380,7 @@ export const Chapters = ({
 													placeholder="Enter chapter sequence"
 													className="w-full rounded-md border border-neutral-200 bg-transparent p-2 pl-8 text-sm outline-0 ring-0 first-letter:uppercase placeholder:text-neutral-300 focus:border-0 focus:ring-1 focus:ring-primary-300"
 												/>
-											</div>
+											</div> */}
 
 											<TiptapEditor
 												value={chapter.content}
@@ -545,6 +519,19 @@ export const Chapters = ({
 						setCurrent(current - 1);
 					});
 				}}
+			/>
+			<PublishModal
+				open={openPublishModal}
+				setOpen={setOpenPublishModal}
+				isPending={publishPending}
+				type="chapter"
+				onConfirm={() => {
+					publishMutate({
+						id: String(chapterId),
+						model_type: "CHAPTER",
+					});
+				}}
+				hasTrigger={false}
 			/>
 		</>
 	);

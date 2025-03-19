@@ -12,10 +12,11 @@ import {
 } from "./ui/dialog";
 
 type PublishModalProps = {
-	published: boolean;
+	published?: boolean;
 	isPending: boolean;
 	onConfirm: () => void;
 	trigger?: React.ReactNode;
+	hasTrigger?: boolean;
 	type: string;
 	open: boolean;
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -26,25 +27,28 @@ export const PublishModal = ({
 	isPending,
 	onConfirm,
 	trigger,
+	hasTrigger = true,
 	type,
 	open,
 	setOpen,
 }: PublishModalProps) => {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{!trigger ? (
-					<button
-						disabled={published}
-						type="button"
-						className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs capitalize text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
-						<RiEye2Line size={18} />
-						<span> Publish {type}</span>
-					</button>
-				) : (
-					trigger
-				)}
-			</DialogTrigger>
+			{hasTrigger ? (
+				<DialogTrigger asChild>
+					{!trigger ? (
+						<button
+							disabled={published}
+							type="button"
+							className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs capitalize text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
+							<RiEye2Line size={18} />
+							<span> Publish {type}</span>
+						</button>
+					) : (
+						trigger
+					)}
+				</DialogTrigger>
+			) : null}
 
 			<DialogContent className="w-[400px] p-1">
 				<div className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
