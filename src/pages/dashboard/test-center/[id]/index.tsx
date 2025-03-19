@@ -75,7 +75,7 @@ const Page = () => {
 							<AddSection testId={id} />
 						</div>
 					</div>
-					<div className="w-full rounded-2xl bg-white p-5">
+					<div className="w-full space-y-4 rounded-2xl bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<div className="flex items-center">
 								{statuses.map((status, index) => (
