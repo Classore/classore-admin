@@ -74,7 +74,7 @@ export const UserActions = ({ user }: Props) => {
 										))}
 									</div>
 								</div>
-								<Profile tab={tab} />
+								<Profile tab={tab} user={user} />
 								<Referrals tab={tab} />
 								<Courses tab={tab} />
 							</div>

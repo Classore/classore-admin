@@ -39,7 +39,7 @@ export const ChapterList = ({ chapters, selectChapter, chapterId }: ChapterList)
 
 	return (
 		<div className="flex flex-col gap-2">
-			<p className="text-[10px] text-neutral-400">Drag each chapter to reorder them</p>
+			<p className="text-[10px] text-neutral-400">Drag to reorder each chapter</p>
 			<div className="flex flex-wrap items-center gap-2">
 				{chapters.map((chapter, index) => (
 					<button
