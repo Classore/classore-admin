@@ -14,6 +14,7 @@ import {
 	RiSuperscript,
 	RiUnderline,
 } from "@remixicon/react";
+import Placeholder from "@tiptap/extension-placeholder";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import Underline from "@tiptap/extension-underline";
@@ -169,6 +170,9 @@ const extensions = [
 			keepMarks: true,
 			keepAttributes: false,
 		},
+	}),
+	Placeholder.configure({
+		placeholder: "Start typing here...",
 	}),
 	Subscript,
 	Superscript,
