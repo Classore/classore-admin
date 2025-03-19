@@ -16,6 +16,7 @@ export type QuestionDto = {
 	question_type: QuestionTypeProps;
 	sequence: number;
 	sequence_number: number;
+	id?: string;
 };
 
 interface QuizStore {
@@ -58,6 +59,8 @@ interface QuizStore {
 	setQuestions: (chapterId: string, moduleId: string, questions: QuestionDto[]) => void;
 	submitQuestions: (chapterId: string, moduleId: string) => Promise<boolean>;
 	updateQuestions: (chapterId: string, moduleId: string, questions: QuestionDto[]) => void;
+	selected: QuestionDto[];
+	toggleSelected: (question: QuestionDto) => void;
 }
 
 const MAX_IMAGES_PER_QUESTION = 5;
@@ -105,6 +108,7 @@ const resequenceOptions = (options: Option[]): Option[] => {
 
 const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get) => ({
 	questions: {},
+	selected: [],
 
 	getQuestionErrors: (question: QuestionDto): string[] => {
 		const errors: string[] = [];
@@ -490,6 +494,19 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 				},
 			},
 		}));
+	},
+	toggleSelected: (question) => {
+		set((state) => {
+			if (state.selected.includes(question)) {
+				return {
+					selected: state.selected.filter((q) => q !== question),
+				};
+			} else {
+				return {
+					selected: [...state.selected, question],
+				};
+			}
+		});
 	},
 }));
 
