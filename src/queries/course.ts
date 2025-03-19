@@ -272,6 +272,17 @@ const UpdateChapterModuleSequence = async (payload: UpdateChapterModuleSequenceP
 		.then((res) => res.data);
 };
 
+export type UpdateChapterSequencePayload = {
+	subject_id: string;
+	updates: Array<{
+		chapter_id: string;
+		sequence: number;
+	}>;
+};
+const UpdateChapterSequence = async (payload: UpdateChapterSequencePayload) => {
+	return axios.put(endpoints().school.update_chapter_sequence, payload).then((res) => res.data);
+};
+
 export {
 	CreateChapter,
 	CreateChapterModule,
@@ -286,6 +297,8 @@ export {
 	UpdateChapter,
 	UpdateChapterModule,
 	UpdateChapterModuleSequence,
+	UpdateChapterSequence,
 	UpdateQuestion,
 	UpdateQuizSettings,
 };
+

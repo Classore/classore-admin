@@ -3,20 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
+import { CreateCourseTabPanel } from "@/components/create-course";
 import { DeleteQuestions } from "@/components/dashboard/delete-questions";
 import { DeleteSubject } from "@/components/dashboard/delete-subject";
-import { CreateCourseTabPanel } from "@/components/create-course";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
-import { Breadcrumbs, Seo, Spinner } from "@/components/shared";
-import type { BreadcrumbItemProps } from "@/components/shared";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import { chapterActions } from "@/store/z-store/chapter";
 import { DashboardLayout } from "@/components/layout";
-import { useQuestionContext } from "@/providers";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { Breadcrumbs, Seo, Spinner, type BreadcrumbItemProps } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
+import { useQuestionContext } from "@/providers";
 import { GetSubject } from "@/queries";
+import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 
