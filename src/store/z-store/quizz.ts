@@ -77,6 +77,7 @@ const getEmptyQuestion = (sequence: number): QuestionDto => ({
 	question_type: "SINGLE_CHOICE",
 	sequence,
 	sequence_number: sequence,
+	id: "",
 });
 
 const getEmptyOption = (sequence: number): Option => ({

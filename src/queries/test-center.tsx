@@ -126,7 +126,7 @@ const CreateTestSection = async (testId: string, payload: CreateTestDto) => {
 		.then((res) => res.data);
 };
 
-const UpdateTestSection = async (sectionId: string, payload: UpdateTestDto) => {
+const UpdateTestSection = async (sectionId: string, payload: Partial<UpdateTestDto>) => {
 	const formData = createFormDataFromObject(payload);
 	return axios
 		.put<HttpResponse<TestCenterProps>>(endpoints(sectionId).test_center.update_section, formData)

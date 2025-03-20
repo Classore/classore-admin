@@ -86,8 +86,8 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],
 		mutationFn: (payload: QuestionDto[]) => CreateQuestions(lessonTab, payload),
-		onSuccess: (data) => {
-			console.log(data);
+		onSuccess: () => {
+			toast.success("Questions added successfully");
 			queryClient.invalidateQueries({ queryKey: ["get-questions", lessonTab] });
 		},
 		onError: (error: HttpError) => {
