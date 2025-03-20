@@ -18,8 +18,9 @@ import type { HttpError } from "@/types";
 
 export const DeleteQuestions = () => {
 	const [open, setOpen] = React.useState(false);
-	const { selected } = useQuestionContext();
+	const { selected, onDelete } = useQuestionContext();
 
+	// TODO: @williamssam - These ids are not being passed to the mutation function
 	const ids = selected.map((item) => item.id as string);
 
 	const { isPending } = useMutation({
@@ -40,6 +41,7 @@ export const DeleteQuestions = () => {
 	});
 
 	const handleDelete = () => {
+		onDelete(selected);
 		console.log(ids);
 	};
 

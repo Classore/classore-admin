@@ -253,14 +253,14 @@ export const Chapters = ({
 
 		console.log("payload", payload);
 
-		if(currentChapter.name !== chapter.name || currentChapter.content !== chapter.content) {
+		if (currentChapter.name !== chapter.name || currentChapter.content !== chapter.content) {
 			updateChapterMutate({
 				id,
 				payload,
 			});
 		}
 
-		toast.info("Chapter updated successfully")
+		toast.info("Chapter updated successfully");
 	};
 
 	const handleActions = (action: string) => {

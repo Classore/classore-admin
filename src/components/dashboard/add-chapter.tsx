@@ -22,7 +22,7 @@ interface Props {
 export const AddChapter = ({ courseId, sequence }: Props) => {
 	const [open, setOpen] = React.useState(false);
 
-	const { isPending, mutateAsync } = useMutation({
+	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: CreateChapterDto) => CreateChapter(payload),
 		mutationKey: ["create-chapter"],
 		onSuccess: (data) => {
@@ -51,10 +51,9 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 		validationSchema: Yup.object({
 			name: Yup.string().required("Name is required"),
 			content: Yup.string().required("Content is required"),
-			sequence: Yup.number().required("Sequence is required"),
 		}),
 		onSubmit: (values) => {
-			mutateAsync({
+			mutate({
 				...values,
 				sequence,
 			});
