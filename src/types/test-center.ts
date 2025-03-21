@@ -25,10 +25,12 @@ export type TestCenterSectionProps = Node & {
 };
 
 export type TestCenterQuestionTypeProps =
+	| "FILL_IN_THE_GAP"
+	| "LISTENING"
 	| "MULTIPLE_CHOICE"
-	| "YES_OR_NO"
+	| "SHORT_ANSWER"
 	| "SPEAKING"
-	| "LISTENING";
+	| "YES_OR_NO";
 
 export type TestCenterQuestionProps = Node & {
 	__typename?: "Question";
@@ -44,7 +46,7 @@ export type TestCenterQuestionProps = Node & {
 	media: Maybe<string>;
 	module: Maybe<string>;
 	options: TestCenterOptionProps[];
-	question_type: "MULTIPLE_CHOICE" | "YES_OR_NO" | "SPEAKING" | "LISTENING";
+	question_type: TestCenterQuestionTypeProps;
 	score: 0;
 	section: string;
 	sequence: number;
