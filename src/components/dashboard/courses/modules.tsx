@@ -1,5 +1,4 @@
 import { Spinner } from "@/components/shared";
-import { course_sections } from "@/config";
 import { useDrag } from "@/hooks";
 import { convertNumberToWord } from "@/lib";
 import {
@@ -97,7 +96,7 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 
 	return (
 		<article
-			className={`${course_sections[section as keyof typeof course_sections].lesson} rounded-md bg-neutral-100 p-3 transition-all`}>
+			className={`${section === "lessons" ? "col-[span_15_/_span_15]" : "col-span-1"} rounded-md bg-neutral-100 p-3 transition-all`}>
 			<header
 				className={`flex items-center justify-between transition-all ${section !== "lessons" ? "writing-vertical-lr gap-3" : "writing-horizontal-tb"}`}>
 				<p className="text-xs uppercase tracking-widest">

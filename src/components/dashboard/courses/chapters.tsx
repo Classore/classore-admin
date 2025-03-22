@@ -1,7 +1,6 @@
 import { DeleteModal } from "@/components/delete-modal";
 import { PublishModal } from "@/components/publish-modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { course_sections } from "@/config";
 import { useDrag } from "@/hooks";
 import { sanitize } from "@/lib";
 import {
@@ -123,7 +122,7 @@ export const Chapters = ({
 	return (
 		<>
 			<article
-				className={`${course_sections[section as keyof typeof course_sections].chapter} w-full overflow-y-auto rounded-md bg-neutral-100 p-4 transition-all`}>
+				className={`${section === "chapters" ? "col-[span_15_/_span_15]" : "col-span-1"} w-full overflow-y-auto rounded-md bg-neutral-100 p-4 transition-all`}>
 				<header
 					className={`flex items-center justify-between transition-all ${section !== "chapters" ? "writing-vertical-lr gap-3" : "writing-horizontal-tb"}`}>
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
