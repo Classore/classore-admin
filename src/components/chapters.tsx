@@ -29,7 +29,6 @@ import {
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { HttpError } from "@/types";
 import { AddChapter } from "./dashboard/add-chapter";
-import { ChapterList } from "./dashboard/chapter-list";
 import { DeleteModal } from "./delete-modal";
 import { PublishModal } from "./publish-modal";
 import { Spinner } from "./shared";
@@ -243,24 +242,20 @@ export const Chapters = ({
 		}
 
 		const payload: Partial<CreateChapterDto> = {
-			...(currentChapter.name !== chapter.name && { name: currentChapter.name }),
-			...(currentChapter.content !== chapter.content && { content: currentChapter.content }),
+			name: currentChapter.name,
+			content: currentChapter.content,
 			sequence: currentChapter.sequence,
-			images: [],
-			subject_id: courseId,
-			videos: [],
 		};
 
-		console.log("payload", payload);
+		updateChapterMutate({
+			id,
+			payload,
+		});
+		// if (currentChapter.name !== chapter.name || currentChapter.content !== chapter.content) {
+		// 	console.log("payload", payload);
+		// }
 
-		if(currentChapter.name !== chapter.name || currentChapter.content !== chapter.content) {
-			updateChapterMutate({
-				id,
-				payload,
-			});
-		}
-
-		toast.info("Chapter updated successfully")
+		// toast.info("Chapter updated successfully")
 	};
 
 	const handleActions = (action: string) => {
@@ -314,7 +309,7 @@ export const Chapters = ({
 				</div>
 
 				{/* Chapter selection buttons - ONLY way to select a chapter */}
-				<ChapterList chapters={chapters} selectChapter={selectChapter} chapterId={chapterId} />
+				{/* <ChapterList chapters={chapters} selectChapter={selectChapter} chapterId={chapterId} /> */}
 
 				{/* chapters */}
 				<ScrollArea className="flex h-full w-full items-start gap-x-4">

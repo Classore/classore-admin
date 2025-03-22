@@ -21,6 +21,7 @@ import Underline from "@tiptap/extension-underline";
 import { Editor, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Redo2, Undo2 } from "lucide-react";
+import React from "react";
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
 	if (!editor) {
@@ -183,12 +184,19 @@ type TiptapProps = {
 	className?: string;
 	editorClassName?: string;
 	value: string;
+	initialValue?: string;
 	onChange: (value: string) => void;
 };
-export const TiptapEditor = ({ className, editorClassName, onChange, value }: TiptapProps) => {
+export const TiptapEditor = ({
+	className,
+	editorClassName,
+	onChange,
+	value,
+	initialValue,
+}: TiptapProps) => {
 	const editor = useEditor({
 		extensions,
-		content: value,
+		content: initialValue || value,
 		onUpdate: ({ editor }) => {
 			onChange(editor.getHTML());
 		},
@@ -202,10 +210,20 @@ export const TiptapEditor = ({ className, editorClassName, onChange, value }: Ti
 		},
 	});
 
+	React.useEffect(() => {
+		if (editor && initialValue) {
+			editor.commands.setContent(initialValue);
+		}
+
+		if (!initialValue) {
+			editor?.commands.setContent("")
+		}
+	}, [initialValue, editor]);
+
 	return (
 		<div
 			className={cn(
-				"flex w-full flex-col gap-2 overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-primary-300",
+				"flex w-full flex-col gap-2 overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:ring-2 focus-within:ring-primary-300",
 				className
 			)}>
 			<MenuBar editor={editor} />
