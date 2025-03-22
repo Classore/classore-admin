@@ -30,7 +30,7 @@ import { AddChapter } from "../add-chapter";
 import { EditChapter } from "../edit-chapter";
 
 type ChaptersProps = {
-	setSection: React.Dispatch<React.SetStateAction<"chapters" | "lessons">>;
+	setSection: React.Dispatch<React.SetStateAction<string>>;
 	section: string;
 	setActiveChapterId: React.Dispatch<React.SetStateAction<string>>;
 	activeChapterId: string;
@@ -151,7 +151,6 @@ export const Chapters = ({
 								onClick={() => {
 									setActiveChapterId(chapter.id);
 									setSection("lessons");
-									// setTimeout(() => , 300);
 								}}
 								key={chapter.id}
 								{...getDragProps(index)}
@@ -191,7 +190,7 @@ export const Chapters = ({
 														setOpenEditModal(true);
 													}}
 													type="button"
-													className="flex items-center gap-1.5 rounded bg-blue-100 px-2 py-1 text-xs text-blue-600 transition-colors hover:bg-blue-200">
+													className="flex items-center gap-1.5 rounded bg-blue-50 px-2 py-1 text-xs text-blue-600 transition-colors hover:bg-blue-200">
 													<RiEdit2Line className="size-3" />
 													<span>Edit</span>
 												</button>
@@ -203,7 +202,7 @@ export const Chapters = ({
 														setOpenPublishModal(true);
 													}}
 													type="button"
-													className="flex items-center gap-1.5 rounded bg-purple-100 px-2 py-1 text-xs text-purple-600 transition-colors hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50">
+													className="flex items-center gap-1.5 rounded bg-purple-50 px-2 py-1 text-xs text-purple-600 transition-colors hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50">
 													<RiEye2Line className="size-3" />
 													<span>Publish</span>
 												</button>
@@ -215,7 +214,7 @@ export const Chapters = ({
 														setCurrentSequence(chapter.sequence);
 													}}
 													type="button"
-													className="flex items-center gap-1.5 rounded bg-red-100 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-200">
+													className="flex items-center gap-1.5 rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-200">
 													<RiDeleteBin6Line className="size-3" />
 													<span>Delete</span>
 												</button>

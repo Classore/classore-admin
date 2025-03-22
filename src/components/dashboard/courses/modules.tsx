@@ -16,7 +16,7 @@ import * as React from "react";
 import { Lesson } from "./lesson";
 
 type ModulesProps = {
-	setSection: React.Dispatch<React.SetStateAction<"chapters" | "lessons">>;
+	setSection: React.Dispatch<React.SetStateAction<string>>;
 	section: string;
 	activeChapterId: string;
 };
@@ -93,22 +93,22 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 		}
 	}, [chapter?.sequence, modules]);
 
-	if (!chapter) return;
+	// if (!chapter) return;
 
 	return (
 		<article
-			className={`${course_sections[section as keyof typeof course_sections].lesson} h-dvh w-full overflow-y-auto rounded-md bg-neutral-100 p-3 transition-all`}>
+			className={`${course_sections[section as keyof typeof course_sections].lesson} rounded-md bg-neutral-100 p-3 transition-all`}>
 			<header
 				className={`flex items-center justify-between transition-all ${section !== "lessons" ? "writing-vertical-lr gap-3" : "writing-horizontal-tb"}`}>
 				<p className="text-xs uppercase tracking-widest">
-					Chapter {convertNumberToWord(chapter.sequence)} - Lessons
+					Chapter {chapter?.sequence && convertNumberToWord(chapter?.sequence)} - Lessons
 				</p>
 
 				<div className="ml-auto flex items-center gap-3">
 					{section === "lessons" ? (
 						<button
 							type="button"
-							onClick={() => addLesson(chapter.sequence)}
+							onClick={() => addLesson(chapter?.sequence || 0)}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-200">
 							<RiAddLine className="size-4" />
 							<span>Add New Lesson</span>
@@ -164,7 +164,7 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 															model_type: "CHAPTER_MODULE",
 														});
 													}
-													removeLesson(chapter.sequence, lesson.sequence);
+													removeLesson(chapter?.sequence || 0, lesson.sequence);
 													setIsOpen(false);
 												}}
 												type="button"
@@ -189,13 +189,15 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 							))}
 						</div>
 
-
 						<Lesson activeLessonId={activeLessonId} chapterId={activeChapterId} />
 					</div>
 				</>
 			) : (
-				<p className={`${section !== "lessons" ? "hidden" : "block pt-4 text-neutral-500 text-center text-xs"}`}>
-					This chapter currently has no lesson(s). Click &quot;Add new lesson&ldquo; to add lesson
+				<p
+					className={`${section !== "lessons" ? "hidden" : "block pt-4 text-center text-xs text-neutral-500"}`}>
+					{activeChapterId
+						? "This chapter currently has no lesson(s). Click &quot;Add new lesson&ldquo; to add lesson"
+						: "Please select a chapter to explore its lessons"}
 				</p>
 			)}
 		</article>

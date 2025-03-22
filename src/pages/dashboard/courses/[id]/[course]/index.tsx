@@ -8,6 +8,7 @@ import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
+import { capitalize } from "@/lib";
 import { GetSubject } from "@/queries";
 import { chapterActions } from "@/store/z-store/chapter";
 import { RiArrowLeftSLine } from "@remixicon/react";
@@ -15,14 +16,14 @@ import { skipToken, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-const { setChapters } = chapterActions;
+const { setChapters, setChapterLessons } = chapterActions;
 
 const Page = () => {
 	const router = useRouter();
 	const courseId = router.query.course as string;
 
 	const [tab, setTab] = React.useState("course");
-	const [section, setSection] = React.useState<"chapters" | "lessons">("chapters");
+	const [section, setSection] = React.useState("chapters");
 	const [activeChapterId, setActiveChapterId] = React.useState<string>("");
 	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
 	const [openEditModal, setOpenEditModal] = React.useState(false);
@@ -70,6 +71,10 @@ const Page = () => {
 		}
 	}, [course]);
 
+	React.useEffect(() => {
+		setChapterLessons([]);
+	}, []);
+
 	if (isPending) {
 		return (
 			<DashboardLayout>
@@ -94,7 +99,7 @@ const Page = () => {
 
 	return (
 		<>
-			<Seo title="Manage Courses" />
+			<Seo title={capitalize(course?.data.name) || "Course"} />
 
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-4">
@@ -105,7 +110,7 @@ const Page = () => {
 									<RiArrowLeftSLine className="text-neutral-400" /> Back
 								</Button>
 								<div className="flex items-center gap-x-2">
-									<h3 className="text-lg font-medium capitalize">Mathematics</h3>
+									<h3 className="text-lg font-medium capitalize">{capitalize(course?.data.name)}</h3>
 								</div>
 							</div>
 
@@ -158,7 +163,7 @@ const Page = () => {
 					</section>
 
 					<TabPanel selected={tab} value="course">
-						<section className="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-2 rounded-lg bg-white p-2.5">
+						<section className="grid h-dvh grid-cols-[repeat(16,minmax(0,1fr))] gap-2 rounded-lg bg-white p-2.5">
 							{/* CHAPTERS */}
 							<Chapters
 								setSection={setSection}
