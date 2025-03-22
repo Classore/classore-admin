@@ -1,5 +1,5 @@
-import type { QuestionDto } from "@/store/z-store/quiz";
 import React from "react";
+import type { QuestionDto } from "@/store/z-store/quizz";
 
 interface QuestionContextProps {
 	selected: QuestionDto[];
