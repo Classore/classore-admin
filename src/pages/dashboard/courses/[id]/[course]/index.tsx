@@ -1,5 +1,8 @@
 import { Chapters } from "@/components/dashboard/courses/chapters";
 import { Modules } from "@/components/dashboard/courses/modules";
+import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
+import { EditCourse } from "@/components/dashboard/edit-course";
 import { DashboardLayout } from "@/components/layout";
 import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
@@ -7,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
 import { GetSubject } from "@/queries";
 import { chapterActions } from "@/store/z-store/chapter";
-import { RiArrowLeftSLine, RiEyeLine } from "@remixicon/react";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
@@ -21,6 +24,8 @@ const Page = () => {
 	const [tab, setTab] = React.useState("course");
 	const [section, setSection] = React.useState<"chapters" | "lessons">("chapters");
 	const [activeChapterId, setActiveChapterId] = React.useState<string>("");
+	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+	const [openEditModal, setOpenEditModal] = React.useState(false);
 
 	const {
 		data: course,
@@ -111,6 +116,28 @@ const Page = () => {
 								links={breadcrumbs}
 							/>
 						</div>
+
+						<div className="flex items-center gap-x-2">
+							<DeleteSubject
+								open={openDeleteModal}
+								setOpen={setOpenDeleteModal}
+								subjectId={courseId}
+								subjectName={course?.data.name}
+							/>
+							{/* <Button className="w-fit" size="sm" variant="outline">
+								Save and Exit
+							</Button> */}
+							<DuplicateCourse courseId={courseId} />
+							<EditCourse
+								course={course.data}
+								courseId={courseId}
+								open={openEditModal}
+								setOpen={setOpenEditModal}
+							/>
+							{/* <Button className="w-fit" size="sm">
+								Next <RiArrowLeftSLine className="rotate-180" />
+							</Button> */}
+						</div>
 					</section>
 
 					<section className="flex items-center justify-between rounded-lg bg-white px-4">
@@ -125,9 +152,9 @@ const Page = () => {
 							))}
 						</div>
 
-						<button className="flex items-center gap-x-1 text-sm text-neutral-400">
+						{/* <button className="flex items-center gap-x-1 text-sm text-neutral-400">
 							<RiEyeLine size={16} /> Preview
-						</button>
+						</button> */}
 					</section>
 
 					<TabPanel selected={tab} value="course">

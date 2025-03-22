@@ -189,7 +189,6 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 							))}
 						</div>
 
-						{/* <p className="h-full w-[1px] bg-red-600" /> */}
 
 						<Lesson activeLessonId={activeLessonId} chapterId={activeChapterId} />
 					</div>

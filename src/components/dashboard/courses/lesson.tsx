@@ -14,7 +14,7 @@ export const Lesson = ({ activeLessonId, chapterId }: LessonProps) => {
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 
 	return (
-		<div className="col-span-5 gap-2 overflow-y-auto bg-white p-3">
+		<div className="col-span-5 gap-2 overflow-y-auto bg-white">
 			<TabPanel selected={currentTab} value="lesson">
 				<LessonDetails
 					chapterId={chapterId}

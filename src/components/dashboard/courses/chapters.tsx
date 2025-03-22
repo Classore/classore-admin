@@ -176,6 +176,7 @@ export const Chapters = ({
 										<Popover>
 											<PopoverTrigger asChild>
 												<button
+													onClick={(e) => e.stopPropagation()}
 													type="button"
 													className="rounded bg-neutral-100 px-1.5 py-0.5 transition-colors hover:bg-neutral-200">
 													<RiMoreLine className="size-4" />
@@ -184,7 +185,8 @@ export const Chapters = ({
 
 											<PopoverContent className="flex flex-col gap-1">
 												<button
-													onClick={() => {
+													onClick={(e) => {
+														e.stopPropagation();
 														setChapterId(chapter.id);
 														setOpenEditModal(true);
 													}}
@@ -195,7 +197,8 @@ export const Chapters = ({
 												</button>
 												<button
 													disabled={chapter.is_published === "YES"}
-													onClick={() => {
+													onClick={(e) => {
+														e.stopPropagation();
 														setChapterId(chapter.id);
 														setOpenPublishModal(true);
 													}}
@@ -205,7 +208,8 @@ export const Chapters = ({
 													<span>Publish</span>
 												</button>
 												<button
-													onClick={() => {
+													onClick={(e) => {
+														e.stopPropagation();
 														setChapterId(chapter.id);
 														setOpenDeleteModal(true);
 														setCurrentSequence(chapter.sequence);
