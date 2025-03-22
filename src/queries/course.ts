@@ -248,7 +248,10 @@ export type DeleteEntitiesPayload = {
 		| "EXAM_BUNDLE"
 		| "EXAMINATION"
 		| "SUBJECT"
-		| "USER";
+		| "USER"
+		| "TEST"
+		| "TEST_SECTION"
+		| "TEST_QUESTION";
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
@@ -301,4 +304,3 @@ export {
 	UpdateQuestion,
 	UpdateQuizSettings,
 };
-

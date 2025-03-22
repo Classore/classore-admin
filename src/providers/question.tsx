@@ -4,12 +4,14 @@ import React from "react";
 interface QuestionContextProps {
 	selected: QuestionDto[];
 	onSelect: (question: QuestionDto) => void;
+	onDelete: (questions: QuestionDto[]) => void;
 	isSelected: (question: QuestionDto) => boolean;
 }
 
 const defaultContextProps: QuestionContextProps = {
 	selected: [],
 	onSelect: () => {},
+	onDelete: () => {},
 	isSelected: () => false,
 };
 
@@ -21,11 +23,12 @@ export const QuestionProvider: React.FC<React.PropsWithChildren & {}> = (props) 
 
 	const onSelect = React.useCallback(
 		(question: QuestionDto) => {
-			console.log(question);
-			const existingQuestion = selected.find((q) => q.sequence === question.sequence);
+			const existingQuestion = selected.find(
+				(q) => q.sequence === question.sequence || question.id === q.id
+			);
 
 			if (existingQuestion) {
-				setSelected(selected.filter((q) => q.id !== question.id));
+				setSelected(selected.filter((q) => q.id !== question.id && q.sequence !== question.sequence));
 			} else {
 				setSelected((prev) => [...prev, question]);
 			}
@@ -33,8 +36,13 @@ export const QuestionProvider: React.FC<React.PropsWithChildren & {}> = (props) 
 		[selected]
 	);
 
+	const onDelete = React.useCallback((questions: QuestionDto[]) => {
+		setSelected((prev) => prev.filter((q) => !questions.includes(q)));
+	}, []);
+
 	const isSelected = React.useCallback(
-		(question: QuestionDto) => selected.some((q) => q.sequence === question.sequence),
+		(question: QuestionDto) =>
+			selected.some((q) => q.sequence === question.sequence || question.id === q.id),
 		[selected]
 	);
 
@@ -42,9 +50,10 @@ export const QuestionProvider: React.FC<React.PropsWithChildren & {}> = (props) 
 		() => ({
 			selected,
 			onSelect,
+			onDelete,
 			isSelected,
 		}),
-		[selected, isSelected, onSelect]
+		[selected, onSelect, onDelete, isSelected]
 	);
 
 	return <QuestionContext.Provider value={contextValue}>{children}</QuestionContext.Provider>;
