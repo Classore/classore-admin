@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiAlignLeft,
@@ -12,16 +11,16 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiImageAddLine,
-	// RiQuestionLine,
 } from "@remixicon/react";
+import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
-import { useQuestionContext } from "@/providers";
-import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
-import { Switch } from "../ui/switch";
+import { useQuestionContext } from "@/providers";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	chapterId: string;

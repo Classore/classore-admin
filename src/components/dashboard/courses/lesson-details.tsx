@@ -1,3 +1,25 @@
+import { PublishModal } from "@/components/publish-modal";
+import { Spinner, VideoPlayer } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { endpoints } from "@/config";
+import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import {
+	GetStaffs,
+	PublishResource,
+	UpdateChapterModule,
+	type CreateChapterModuleDto,
+	type GetStaffsResponse,
+} from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
@@ -6,74 +28,38 @@ import {
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { endpoints } from "@/config";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
-import {
-	type CreateChapterModuleDto,
-	GetChapterModules,
-	GetStaffs,
-	type GetStaffsResponse,
-	GetSubject,
-	PublishResource,
-	UpdateChapterModule,
-} from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { PublishModal } from "./publish-modal";
-import { Spinner, VideoPlayer } from "./shared";
-import { ScrollArea } from "./ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { TiptapEditor } from "./ui/tiptap-editor";
-
-type LessonsProps = {
-	lessonTab: string;
-	chapterId: string | undefined;
-	setCurrentTab: (tab: string) => void;
+type LessonProps = {
+	activeLessonId: string;
+	chapterId: string;
+	setCurrentTab: React.Dispatch<React.SetStateAction<string>>;
 };
-
-const {
-	addLessonTitle,
-	addLessonContent,
-	addLessonAttachments,
-	removeLessonAttachment,
-	setChapterLessons,
-	addLessonTutor,
-} = chapterActions;
 
 interface UseMutationProps {
 	chapter_id: string;
 	module: CreateChapterModuleDto;
 }
 
-// this is the tutor role id. It should come from the api but
+const {
+	addLessonTitle,
+	addLessonContent,
+	addLessonTutor,
+	addLessonAttachments,
+	removeLessonAttachment,
+} = chapterActions;
+
 const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
-export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) => {
-	const [open, setOpen] = React.useState(false);
-	const abortController = React.useRef<AbortController | null>(null);
-	const queryClient = useQueryClient();
-
-	const router = useRouter();
-	const courseId = router.query.courseId as string;
-
+export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: LessonProps) => {
 	const lessons = useChapterStore((state) => state.lessons);
-	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
+	const lesson = lessons.find((lesson) => lesson.id === activeLessonId);
 
-	const { data: course } = useQuery({
-		queryKey: ["get-subject", courseId],
-		queryFn: courseId ? () => GetSubject(courseId) : skipToken,
-	});
+	const queryClient = useQueryClient();
+	const abortController = React.useRef<AbortController | null>(null);
 
-	const { data: modules } = useQuery({
-		queryKey: ["get-modules", { chapterId }],
-		queryFn: chapterId ? () => GetChapterModules({ chapter_id: chapterId }) : skipToken,
-		enabled: !!chapterId,
-	});
+	const [open, setOpen] = React.useState(false);
 
 	const { data: tutors } = useQuery({
 		queryKey: ["get-staffs", admin_role],
@@ -82,30 +68,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		select: (data) => (data as GetStaffsResponse).data.admins,
 	});
 
-	const chapter = course?.data.chapters.find((chapter) => chapter.id === chapterId);
-	React.useEffect(() => {
-		if (modules) {
-			const chapterLessons = modules.data.data.map((lesson) => ({
-				id: lesson.chapter_module_id,
-				chapter_sequence: Number(chapter?.sequence),
-				sequence: lesson.chapter_module_sequence,
-				title: lesson.chapter_module_title,
-				content: lesson.chapter_module_content,
-				videos: lesson.chapter_module_video_array.map((video) => video.secure_url),
-				images: lesson.chapter_module_images,
-				attachments: lesson.chapter_module_attachments,
-				image_urls: [],
-				video_urls: [],
-				attachment_urls: [],
-				tutor: lesson.chapter_module_tutor,
-				lesson_chapter: lesson.chapter_module_id,
-				is_published: lesson.chapter_module_is_published,
-			}));
-
-			setChapterLessons(chapterLessons);
-		}
-	}, [chapter?.sequence, modules]);
-
+	// SAVE LESSON
 	const { isPending, mutate } = useMutation({
 		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
 			const formData = new FormData();
@@ -147,7 +110,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			toast.error("Failed to create module");
 		},
 	});
-
 	const onSaveLesson = () => {
 		if (!lesson?.title) {
 			toast.error("Lesson title is required");
@@ -181,6 +143,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		});
 	};
 
+	// UPDATE LESSON
 	const { isPending: updatePending, mutate: updateMutate } = useMutation({
 		mutationFn: ({ chapter_id, module }: UseMutationProps) => UpdateChapterModule(chapter_id, module),
 		mutationKey: ["update-chapter-module"],
@@ -193,7 +156,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			toast.error("Failed to update module");
 		},
 	});
-
 	const onUpdateLesson = () => {
 		if (!lesson?.title) {
 			toast.error("Lesson title is required");
@@ -211,7 +173,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 		// }
 
 		updateMutate({
-			chapter_id: lessonTab ?? "",
+			chapter_id: chapterId ?? "",
 			module: {
 				attachment_urls: [],
 				image_urls: [],
@@ -242,11 +204,11 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 	if (!lesson) return null;
 
 	return (
-		<ScrollArea className="col-span-4 h-full w-full overflow-y-auto rounded-md bg-neutral-100">
+		<>
 			<div
-				className={`flex items-center justify-between gap-1 px-4 py-2 ${lesson.is_published === "YES" ? "bg-green-100 text-green-500" : "bg-red-100 text-red-500"}`}>
-				<p className="w-fit rounded px-2 py-1 text-[10px] font-semibold uppercase">
-					Lesson Status: {lesson.is_published === "YES" ? "Published" : "Unpublished"}
+				className={`flex items-center justify-between gap-1 border-t p-1.5 ${lesson.is_published === "YES" ? "border-t-green-600 bg-green-100 text-green-600" : "border-t-red-600 bg-red-100 text-red-600"}`}>
+				<p className="w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
+					Lesson status: {lesson.is_published === "YES" ? "Published" : "Unpublished"}
 				</p>
 
 				{lesson.is_published === "NO" ? (
@@ -285,7 +247,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 						<button
 							type="button"
 							disabled={!lesson.lesson_chapter}
-							onClick={() => setCurrentTab("video")}
+							onClick={() => setCurrentTab("video-upload")}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed">
 							<RiUploadCloud2Line className="size-4" />
 							<span>Upload Video</span>
@@ -302,6 +264,11 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					</div>
 				</header>
 
+				<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
+					<strong>Note:</strong> You can only upload video or add quiz for this lesson after saving. To
+					save, click the <strong>Save</strong> button at the bottom.
+				</p>
+
 				<input
 					value={lesson.title}
 					onChange={(e) => addLessonTitle(lesson.sequence, e.target.value, lesson.chapter_sequence)}
@@ -310,20 +277,16 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					className="w-full rounded-md border border-neutral-200 bg-transparent bg-white text-base font-semibold text-neutral-600 outline-0 ring-0 placeholder:text-base placeholder:font-normal placeholder:text-neutral-300 focus:border-2 focus:border-b-primary-300 focus:ring-0"
 				/>
 
-				<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
-					<strong>Note:</strong> You can only upload video or add quiz for this lesson after saving. To
-					save, click the <strong>Save</strong> button at the bottom.
-				</p>
-
 				{/* UPLOAD VIDEO */}
 				{lesson.videos.length > 0 ? (
-					<VideoPlayer src={embedUrl(lesson.videos[0])} className="h-full w-full rounded-lg" />
+					<VideoPlayer src={embedUrl(lesson.videos[0])} className="h-80 w-full rounded-lg" />
 				) : null}
 
 				<TiptapEditor
 					value={lesson.content}
+					initialValue={lesson.content ?? ""}
 					onChange={(value) => addLessonContent(lesson.sequence, value, lesson.chapter_sequence)}
-					editorClassName="min-h-64"
+					editorClassName="min-h-60"
 				/>
 
 				<div className="flex flex-col gap-4">
@@ -349,7 +312,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					</label>
 
 					{/* ADD FILE ATTACHMENTS */}
-					<div className="flex flex-col gap-4 rounded-md bg-white px-4 py-3 text-sm">
+					<div className="flex flex-col gap-4 rounded-md bg-neutral-100 px-4 py-3 text-sm">
 						<div className="flex items-center justify-between gap-2">
 							<p className="font-semibold text-neutral-500">File Attachments</p>
 
@@ -422,6 +385,6 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 					)}
 				</div>
 			</div>
-		</ScrollArea>
+		</>
 	);
 };
