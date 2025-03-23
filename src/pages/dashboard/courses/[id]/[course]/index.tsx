@@ -1,5 +1,5 @@
-import { Chapters } from "@/components/dashboard/courses/chapters";
-import { Modules } from "@/components/dashboard/courses/modules";
+import { Chapters } from "@/components/dashboard/new/chapters";
+import { Modules } from "@/components/dashboard/new/modules";
 import { DeleteSubject } from "@/components/dashboard/delete-subject";
 import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
