@@ -10,7 +10,6 @@ type LessonProps = {
 };
 
 export const Lesson = ({ activeLessonId, chapterId }: LessonProps) => {
-	console.log("lesson ative id", activeLessonId);
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 
 	return (

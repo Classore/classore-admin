@@ -236,7 +236,7 @@ export const Chapters = ({
 
 			<DeleteModal
 				title="Delete Chapter"
-				description="Are you sure you want to delete this chapter from this course?"
+				description="Are you sure you want to delete this chapter from this course? This action cannot be undone."
 				isOpen={openDeleteModal}
 				setIsOpen={setOpenDeleteModal}
 				isDeleting={isDeleting}
