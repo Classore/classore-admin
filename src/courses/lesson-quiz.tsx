@@ -13,7 +13,7 @@ import type { QuestionDto } from "@/store/z-store";
 import { useChapterStore } from "@/store/z-store/chapter";
 import { useQuizStore } from "@/store/z-store/quiz";
 import type { HttpError } from "@/types";
-import { QuestionCard } from "../question-card";
+import { QuestionCard } from "../components/dashboard/question-card";
 
 interface Props {
 	chapterId: string | undefined;
@@ -55,32 +55,32 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		},
 	});
 
-useQuery({
-	queryKey: ["get-questions", activeLessonId],
-	queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
-	enabled: !!chapterId,
-	select: (data) => ({
-		questions: data.data.data.map((question) => {
-			const q: QuestionDto = {
-				content: question.question_content,
-				images: question.question_images,
-				options: question.options.map((option) => ({
-					content: option.content,
-					is_correct: option.is_correct,
-					sequence: option.sequence_number,
-					sequence_number: option.sequence_number,
-					images: option.images,
-				})),
-				question_type: question.question_question_type,
-				sequence: question.question_sequence,
-				sequence_number: question.question_sequence,
-				id: question.question_id,
-			};
-			return q;
+	useQuery({
+		queryKey: ["get-questions", activeLessonId],
+		queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
+		enabled: !!chapterId,
+		select: (data) => ({
+			questions: data.data.data.map((question) => {
+				const q: QuestionDto = {
+					content: question.question_content,
+					images: question.question_images,
+					options: question.options.map((option) => ({
+						content: option.content,
+						is_correct: option.is_correct,
+						sequence: option.sequence_number,
+						sequence_number: option.sequence_number,
+						images: option.images,
+					})),
+					question_type: question.question_question_type,
+					sequence: question.question_sequence,
+					sequence_number: question.question_sequence,
+					id: question.question_id,
+				};
+				return q;
+			}),
+			meta: data.data.meta,
 		}),
-		meta: data.data.meta,
-	}),
-});
+	});
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],

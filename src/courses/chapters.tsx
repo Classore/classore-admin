@@ -25,8 +25,8 @@ import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanst
 import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
-import { AddChapter } from "../add-chapter";
-import { EditChapter } from "../edit-chapter";
+import { AddChapter } from "../components/dashboard/add-chapter";
+import { EditChapter } from "../components/dashboard/edit-chapter";
 
 type ChaptersProps = {
 	setSection: React.Dispatch<React.SetStateAction<string>>;
