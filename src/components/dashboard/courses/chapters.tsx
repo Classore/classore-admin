@@ -1,6 +1,23 @@
+import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
+import {
+	RiArrowLeftDoubleLine,
+	RiDeleteBin6Line,
+	RiDraggable,
+	RiEdit2Line,
+	RiEye2Line,
+	RiMoreLine,
+} from "@remixicon/react";
+
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { DeleteModal } from "@/components/delete-modal";
 import { PublishModal } from "@/components/publish-modal";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { EditChapter } from "../edit-chapter";
+import { AddChapter } from "../add-chapter";
+import type { HttpError } from "@/types";
 import { useDrag } from "@/hooks";
 import { sanitize } from "@/lib";
 import {
@@ -11,22 +28,6 @@ import {
 	type DeleteEntitiesPayload,
 	type UpdateChapterSequencePayload,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { HttpError } from "@/types";
-import {
-	RiArrowLeftDoubleLine,
-	RiDeleteBin6Line,
-	RiDraggable,
-	RiEdit2Line,
-	RiEye2Line,
-	RiMoreLine,
-} from "@remixicon/react";
-import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
-import { AddChapter } from "../add-chapter";
-import { EditChapter } from "../edit-chapter";
 
 type ChaptersProps = {
 	setSection: React.Dispatch<React.SetStateAction<string>>;
@@ -269,9 +270,9 @@ export const Chapters = ({
 			/>
 			<EditChapter
 				chapterId={chapterId}
-				sequence={sequence}
+				onOpenChange={setOpenEditModal}
 				open={openEditModal}
-				setOpen={setOpenEditModal}
+				sequence={sequence}
 			/>
 		</>
 	);
