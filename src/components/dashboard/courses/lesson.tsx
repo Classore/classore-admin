@@ -1,6 +1,11 @@
 import React from "react";
 
-interface Props {
+import { LessonVideoUpload } from "@/courses/lesson-video-upload";
+import { LessonDetails } from "@/courses/lesson-details";
+import { LessonQuiz } from "@/courses/lesson-quiz";
+import { TabPanel } from "@/components/shared";
+
+interface LessonProps {
 	activeLessonId: string;
 	chapterId: string;
 }
