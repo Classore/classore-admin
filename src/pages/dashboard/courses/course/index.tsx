@@ -3,30 +3,32 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { CreateCourseTabPanel } from "@/components/create-course";
-import { DeleteQuestions } from "@/components/dashboard/delete-questions";
-import { DeleteSubject } from "@/components/dashboard/delete-subject";
-import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
-import { EditCourse } from "@/components/dashboard/edit-course";
-import { DashboardLayout } from "@/components/layout";
-import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Breadcrumbs, Seo, Spinner, type BreadcrumbItemProps } from "@/components/shared";
+import { DeleteQuestions } from "@/components/dashboard/delete-questions";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
+import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { CreateCourseTabPanel } from "@/components/create-course";
+import { EditCourse } from "@/components/dashboard/edit-course";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { chapterActions } from "@/store/z-store/chapter";
+import { DashboardLayout } from "@/components/layout";
+import { useQuizStore } from "@/store/z-store/quizz";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
-import { useQuestionContext } from "@/providers";
 import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters } = chapterActions;
 
 const Page = () => {
 	const [openModal, setOpenModal] = React.useState(false);
+	const [chapterId, setChapterId] = React.useState("");
+	const [moduleId, setModuleId] = React.useState("");
 	const [tab, setTab] = React.useState("course");
 	const [open, setOpen] = React.useState(false);
 	const router = useRouter();
 	const courseId = router.query.courseId as string;
 
-	const { selected } = useQuestionContext();
+	const { getSelectedCount } = useQuizStore();
 
 	const {
 		data: course,
@@ -121,14 +123,8 @@ const Page = () => {
 								subjectId={courseId}
 								subjectName={course?.data.name}
 							/>
-							{/* <Button className="w-fit" size="sm" variant="outline">
-								Save and Exit
-							</Button> */}
 							<DuplicateCourse courseId={courseId} />
 							<EditCourse course={course.data} courseId={courseId} open={open} setOpen={setOpen} />
-							{/* <Button className="w-fit" size="sm">
-								Next <RiArrowLeftSLine className="rotate-180" />
-							</Button> */}
 						</div>
 					</div>
 					<section className="mt-2 h-[calc(100%-84px)] w-full overflow-hidden rounded-md bg-white">
@@ -144,14 +140,21 @@ const Page = () => {
 								))}
 							</div>
 							<div className="flex items-center gap-x-4">
-								{selected.length > 0 && <DeleteQuestions />}
+								{getSelectedCount(chapterId, moduleId) > 0 && (
+									<DeleteQuestions chapterId={chapterId} moduleId={moduleId} />
+								)}
 								<button className="flex items-center gap-x-1 text-sm text-neutral-400">
 									<RiEyeLine size={16} /> Preview
 								</button>
 							</div>
 						</div>
 						<div className="h-[calc(100%-40px)] w-full">
-							<CreateCourseTabPanel tab={tab} courseName={course.data.name} />
+							<CreateCourseTabPanel
+								tab={tab}
+								courseName={course.data.name}
+								setChapterID={setChapterId}
+								setModuleId={setModuleId}
+							/>
 							<QuizSettingsTab tab={tab} />
 							{/* <AssignTeachers tab={tab} /> */}
 						</div>

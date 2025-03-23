@@ -2,11 +2,18 @@ import { skipToken, usePrefetchQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { GetChapterModules } from "@/queries";
+import { VideoTab } from "./video-tab";
 import { Chapters } from "./chapters";
 import { Lessons } from "./lessons";
-import { Quiz } from "./quiz";
 import { TabPanel } from "./shared";
-import { VideoTab } from "./video-tab";
+import { Quiz } from "./quiz";
+
+interface Props {
+	courseName: string;
+	setChapterID: (id: string) => void;
+	setModuleId: (id: string) => void;
+	tab: string;
+}
 
 const requestNotificationPermission = () => {
 	if ("Notification" in window) {
@@ -18,10 +25,20 @@ const requestNotificationPermission = () => {
 	}
 };
 
-export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseName: string }) => {
+export const CreateCourseTabPanel = ({ courseName, setChapterID, setModuleId, tab }: Props) => {
 	const [chapterId, setChapterId] = React.useState<string | undefined>(undefined);
 	const [currentTab, setCurrentTab] = React.useState("lesson");
 	const [lessonTab, setLessonTab] = React.useState("");
+
+	const handleChapterChange = (chapterId?: string) => {
+		setChapterId(chapterId);
+		setChapterID(chapterId || "");
+	};
+
+	const handleModuleChange = (moduleId: string) => {
+		setModuleId(moduleId);
+		setLessonTab(moduleId);
+	};
 
 	React.useEffect(() => {
 		window.scrollTo({ behavior: "smooth", top: 0 });
@@ -39,9 +56,9 @@ export const CreateCourseTabPanel = ({ tab, courseName }: { tab: string; courseN
 	return (
 		<TabPanel innerClassName="grid grid-cols-7 gap-2 p-3 bg-white" selected={tab} value="course">
 			<Chapters
-				setLessonTab={setLessonTab}
+				setLessonTab={(moduleId) => handleModuleChange(moduleId)}
 				lessonTab={lessonTab}
-				onChapterIdChange={setChapterId}
+				onChapterIdChange={(chapterId) => handleChapterChange(chapterId)}
 				chapterId={chapterId}
 				courseName={courseName}
 			/>
