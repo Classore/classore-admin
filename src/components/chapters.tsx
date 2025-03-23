@@ -59,7 +59,7 @@ type ChaptersProps = {
 	chapterId?: string;
 	courseName?: string;
 	onChapterIdChange?: (chapterId: string | undefined) => void;
-	setLessonTab: React.Dispatch<React.SetStateAction<string>>;
+	setLessonTab: (lessonTab: string) => void;
 };
 
 export const Chapters = ({
@@ -196,7 +196,7 @@ export const Chapters = ({
 				}
 			}
 		}
-	}, [chapterId, onChapterIdChange]);
+	}, [chapterId, chapters, onChapterIdChange]);
 
 	React.useEffect(() => {
 		if (chapterId) {

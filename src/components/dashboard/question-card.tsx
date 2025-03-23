@@ -17,7 +17,6 @@ import {
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
-import { useQuestionContext } from "@/providers";
 import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
 import { Switch } from "../ui/switch";
@@ -30,7 +29,7 @@ interface Props {
 	onDuplicate: (sequence: number) => void;
 	onReorder: (sequence: number, direction: "up" | "down") => void;
 	question: QuestionDto;
-	// onUpdateQuestions: (question: QuestionDto) => void;
+	// onUpdateQuestions: (question: QuestionDto) => void
 }
 
 const question_types = [
@@ -48,14 +47,14 @@ const question_actions = [
 
 export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 	const {
-		handleTypeChange,
 		addQuestionContent,
+		handleTypeChange,
+		isQuestionSelected,
 		removeQuestion,
 		addImagesToQuestion,
 		removeImageFromQuestion,
+		toggleQuestionSelection,
 	} = useQuizStore();
-
-	const { isSelected, onSelect } = useQuestionContext();
 
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
@@ -80,8 +79,8 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 					<input
 						type="checkbox"
 						className="border-neutral- size-4 cursor-pointer rounded-sm border ring-0 focus:ring-0 active:ring-0"
-						checked={isSelected(question)}
-						onChange={() => onSelect(question)}
+						checked={isQuestionSelected(chapterId, moduleId, question.sequence_number)}
+						onChange={() => toggleQuestionSelection(chapterId, moduleId, question.sequence_number)}
 					/>
 					{/* <RiQuestionLine className="size-5 text-neutral-400" /> */}
 					<p className="text-xs text-neutral-400">QUESTION {question.sequence_number}</p>
