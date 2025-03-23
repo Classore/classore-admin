@@ -3,9 +3,10 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import React from "react";
 
-import { useQuestionContext } from "@/providers";
+import { useQuizStore } from "@/store/z-store/quizz";
 import { Button } from "@/components/ui/button";
 import { DeleteEntities } from "@/queries";
+import type { HttpError } from "@/types";
 import { IconLabel } from "../shared";
 import {
 	Dialog,
@@ -14,14 +15,20 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import type { HttpError } from "@/types";
 
-export const DeleteQuestions = () => {
+interface Props {
+	chapterId: string;
+	moduleId: string;
+}
+
+export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
 	const [open, setOpen] = React.useState(false);
-	const { selected, onDelete } = useQuestionContext();
 
-	// TODO: @williamssam - These ids are not being passed to the mutation function
-	const ids = selected.map((item) => item.id as string);
+	const { deleteSelectedQuestions } = useQuizStore();
+
+	const ids = React.useMemo(() => {
+		return [];
+	}, []);
 
 	const { isPending } = useMutation({
 		mutationFn: () => DeleteEntities({ ids, model_type: "QUESTION" }),
@@ -41,8 +48,8 @@ export const DeleteQuestions = () => {
 	});
 
 	const handleDelete = () => {
-		onDelete(selected);
-		console.log(ids);
+		deleteSelectedQuestions(chapterId, moduleId);
+		setOpen(false);
 	};
 
 	return (
@@ -69,12 +76,8 @@ export const DeleteQuestions = () => {
 							disabled={isPending}>
 							Cancel
 						</Button>
-						<Button
-							onClick={() => handleDelete()}
-							className="w-fit"
-							variant="destructive"
-							disabled={isPending}>
-							{isPending ? <RiLoaderLine className="animate-spin" /> : "Delete Lesson"}
+						<Button onClick={handleDelete} className="w-fit" variant="destructive" disabled={isPending}>
+							{isPending ? <RiLoaderLine className="animate-spin" /> : "Delete Questions"}
 						</Button>
 					</div>
 				</div>
