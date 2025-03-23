@@ -1,15 +1,15 @@
-import { RiArrowLeftSLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { toast } from "sonner";
 
-import { capitalize } from "@/lib";
-import { CreateQuestions, GetQuestions } from "@/queries";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import type { ChapterModuleProps, ChapterProps, MakeOptional } from "@/types";
-import React from "react";
-import { Spinner } from "../shared";
-import { Button } from "../ui/button";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
+import { CreateQuestions, GetQuestions } from "@/queries";
 import { QuestionCard } from "./question-card";
+import { Button } from "../ui/button";
+import { Spinner } from "../shared";
+import { capitalize } from "@/lib";
+import React from "react";
 
 type ChapterModule = MakeOptional<ChapterModuleProps, "createdOn">;
 type Chapter = MakeOptional<ChapterProps, "createdOn">;

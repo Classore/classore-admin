@@ -4,9 +4,9 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChangePassword, Profile } from "@/components/user";
 import { ADMIN_TABS } from "@/constants/admin";
-import { useDebounce } from "@/hooks";
 import { useUserStore } from "@/store/z-store";
 import { SearchInput } from "./search-input";
+import { useDebounce } from "@/hooks";
 
 export const Appbar = () => {
 	const [tab, setTab] = React.useState("profile");
@@ -23,7 +23,7 @@ export const Appbar = () => {
 
 	return (
 		<>
-			<nav className="flex w-full items-center justify-between bg-white px-8 py-4">
+			<nav className="flex h-24 w-full items-center justify-between bg-white px-8">
 				<SearchInput value={query} onChange={(e) => setQuery(e.target.value)} />
 				<div className="flex items-center gap-x-3">
 					<button className="relative grid size-9 place-items-center rounded-full border">

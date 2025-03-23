@@ -33,6 +33,28 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	} = useQuizStore();
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
+	const ref = React.useRef<HTMLDivElement>(null);
+	const scrollPosition = React.useRef<number>(0);
+
+	const handleScroll = () => {
+		if (ref.current) {
+			scrollPosition.current = ref.current.scrollTop;
+		}
+	};
+
+	React.useEffect(() => {
+		if (ref.current && scrollPosition.current) {
+			ref.current.scrollTop = scrollPosition.current;
+		}
+	});
+
+	React.useEffect(() => {
+		const element = ref.current;
+		if (element) {
+			element.addEventListener("scroll", handleScroll);
+			return () => element.removeEventListener("scroll", handleScroll);
+		}
+	}, []);
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
@@ -173,7 +195,7 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	if (!lesson) return null;
 
 	return (
-		<ScrollArea className="h-full w-full">
+		<ScrollArea ref={ref} onScroll={handleScroll} className="h-full w-full">
 			<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
 				<div className="flex w-full items-center justify-between">
 					<p className="text-xs uppercase tracking-widest">
