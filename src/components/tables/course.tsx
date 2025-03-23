@@ -103,10 +103,7 @@ const LineItem = ({ course }: { course: CastedCourseProps }) => {
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<CourseActions
-							subject_id={course.subject_id}
-							published={course.subject_is_published === "YES"}
-						/>
+						<CourseActions id={course.subject_id} published={course.subject_is_published === "YES"} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>

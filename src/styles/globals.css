@@ -161,17 +161,3 @@ input[type="search"]::-webkit-search-results-decoration {
 .tiptap-btn-container .is-active {
 	@apply bg-primary-300 text-white;
 }
-
-
-/* grid alignment */
-.writing-vertical-lr {
-	writing-mode: vertical-lr;
-}
-
-.writing-vertical-rl {
-	writing-mode: vertical-rl;
-}
-
-.writing-horizontal-tb {
-	writing-mode: horizontal-tb;
-}
