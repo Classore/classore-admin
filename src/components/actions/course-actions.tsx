@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { PublishResource } from "@/queries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 import { PublishModal } from "../publish-modal";
@@ -18,13 +19,16 @@ import { IconLabel } from "../shared";
 import { Button } from "../ui/button";
 
 interface Props {
-	id: string;
+	subject_id: string;
 	published: boolean;
 }
 
-export const CourseActions = ({ id, published }: Props) => {
+export const CourseActions = ({ subject_id, published }: Props) => {
 	const [open, setOpen] = React.useState(false);
 	const queryClient = useQueryClient();
+
+	const router = useRouter();
+	const id = router.query.id as string;
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: PublishResource,
@@ -40,7 +44,7 @@ export const CourseActions = ({ id, published }: Props) => {
 	return (
 		<div className="flex w-full flex-col gap-y-1">
 			<Link
-				href={`/dashboard/courses/course?courseId=${id}`}
+				href={`/dashboard/courses/${id}/${subject_id}`}
 				className="flex h-7 w-full items-center gap-x-2 rounded-md px-2 text-xs text-neutral-500 hover:bg-neutral-100">
 				<RiInformationLine size={18} /> View Details
 			</Link>

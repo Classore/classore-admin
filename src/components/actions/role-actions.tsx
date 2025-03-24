@@ -27,7 +27,7 @@ export const RoleActions = ({ role, id }: Props) => {
 	const [permissions, setPermissions] = useState<PermissionItem[]>([]);
 	const [loading, setLoading] = useState(false);
 
-	const extractPermissions = () => {
+	const extractPermissions = React.useCallback(() => {
 		if (!role) return;
 
 		const pattern = /^role_(admin|marketer|student|transactions|utor|videos|waitlist)_(read|write)$/;
@@ -39,7 +39,7 @@ export const RoleActions = ({ role, id }: Props) => {
 			}));
 
 		setPermissions(extractedPermissions);
-	};
+	}, [role]);
 
 	useEffect(() => {
 		extractPermissions();

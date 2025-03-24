@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiAlignLeft,
@@ -12,15 +11,15 @@ import {
 	RiDraggable,
 	RiFileCopyLine,
 	RiImageAddLine,
-	// RiQuestionLine,
 } from "@remixicon/react";
+import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quizz";
-import { Textarea } from "../ui/textarea";
 import { useFileHandler } from "@/hooks";
-import { Switch } from "../ui/switch";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	chapterId: string;
@@ -153,7 +152,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 			{question.images.length ? (
 				<ul className="grid grid-cols-4 gap-x-2">
 					{question.images.map((image, index) => {
-						const source = URL.createObjectURL(image);
+						const source = typeof image === "string" ? image : URL.createObjectURL(image);
 						return (
 							<li key={index} className="relative">
 								{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,7 +161,9 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 									type="button"
 									onClick={() => {
 										removeImageFromQuestion(chapterId, moduleId, question.sequence_number, index);
-										handleRemoveFile(image);
+										if (image instanceof File) {
+											handleRemoveFile(image);
+										}
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
 									<RiDeleteBinLine className="size-4" />

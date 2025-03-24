@@ -3,26 +3,25 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
-import { useFileHandler } from "@/hooks";
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
-import { queryClient } from "@/providers";
 import { CreateQuestions, GetQuestions } from "@/queries";
-import type { QuestionDto } from "@/store/z-store";
 import { useChapterStore } from "@/store/z-store/chapter";
 import { useQuizStore } from "@/store/z-store/quiz";
+import type { QuestionDto } from "@/store/z-store";
+import { Button } from "@/components/ui/button";
+import { QuestionCard } from "../question-card";
+import { Spinner } from "@/components/shared";
+import { queryClient } from "@/providers";
+import { useFileHandler } from "@/hooks";
 import type { HttpError } from "@/types";
-import { QuestionCard } from "./dashboard/question-card";
-import { Spinner } from "./shared";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
 
 interface Props {
 	chapterId: string | undefined;
-	lessonTab: string;
+	activeLessonId: string;
 	setCurrentTab: (tab: string) => void;
 }
 
-export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
+export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) => {
 	const {
 		addQuestion,
 		duplicateQuestion,
@@ -32,35 +31,13 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		updateQuestions,
 	} = useQuizStore();
 	const lessons = useChapterStore((state) => state.lessons);
-	const lesson = lessons.find((lesson) => lesson.id === lessonTab);
-	const ref = React.useRef<HTMLDivElement>(null);
-	const scrollPosition = React.useRef<number>(0);
-
-	const handleScroll = () => {
-		if (ref.current) {
-			scrollPosition.current = ref.current.scrollTop;
-		}
-	};
-
-	React.useEffect(() => {
-		if (ref.current && scrollPosition.current) {
-			ref.current.scrollTop = scrollPosition.current;
-		}
-	});
-
-	React.useEffect(() => {
-		const element = ref.current;
-		if (element) {
-			element.addEventListener("scroll", handleScroll);
-			return () => element.removeEventListener("scroll", handleScroll);
-		}
-	}, []);
+	const lesson = lessons.find((lesson) => lesson.id === activeLessonId);
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
 			const file = files[0];
 			quizQuestionFromXlsxToJSON(file, 0).then((questions) => {
-				updateQuestions(String(chapterId), lessonTab, questions);
+				updateQuestions(String(chapterId), activeLessonId, questions);
 			});
 		},
 		fileType: "document",
@@ -78,9 +55,9 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 		},
 	});
 
-	const {} = useQuery({
-		queryKey: ["get-questions", lessonTab],
-		queryFn: () => GetQuestions({ module_id: lessonTab, limit: 100, page: 1 }),
+	useQuery({
+		queryKey: ["get-questions", activeLessonId],
+		queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
 		enabled: !!chapterId,
 		select: (data) => ({
 			questions: data.data.data.map((question) => {
@@ -90,7 +67,6 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 					options: question.options.map((option) => ({
 						content: option.content,
 						is_correct: option.is_correct,
-						sequence: option.sequence_number,
 						sequence_number: option.sequence_number,
 						images: option.images,
 					})),
@@ -107,10 +83,10 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],
-		mutationFn: (payload: QuestionDto[]) => CreateQuestions(lessonTab, payload),
-		onSuccess: () => {
-			toast.success("Questions added successfully");
-			queryClient.invalidateQueries({ queryKey: ["get-questions", lessonTab] });
+		mutationFn: (payload: QuestionDto[]) => CreateQuestions(activeLessonId, payload),
+		onSuccess: (data) => {
+			console.log(data);
+			queryClient.invalidateQueries({ queryKey: ["get-questions", activeLessonId] });
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -120,28 +96,28 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	});
 
 	const moduleQuestions = React.useMemo(() => {
-		if (chapterId && lessonTab) {
-			const existingQuestions = questions[chapterId]?.[lessonTab];
+		if (chapterId && activeLessonId) {
+			const existingQuestions = questions[chapterId]?.[activeLessonId];
 			if (!existingQuestions || existingQuestions.length === 0) {
-				addQuestion(chapterId, lessonTab);
-				return questions[chapterId]?.[lessonTab];
+				addQuestion(chapterId, activeLessonId);
+				return questions[chapterId]?.[activeLessonId];
 			}
 			return existingQuestions;
 		}
 		return [];
-	}, [chapterId, lessonTab, questions, addQuestion]);
+	}, [chapterId, activeLessonId, questions, addQuestion]);
 
 	const handleAddQuestion = () => {
-		if (!chapterId || !lessonTab) {
+		if (!chapterId || !activeLessonId) {
 			toast.error("Please select a chapter and module");
 			return;
 		}
-		addQuestion(chapterId, lessonTab);
+		addQuestion(chapterId, activeLessonId);
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!lessonTab) {
+		if (!activeLessonId) {
 			toast.error("Please select a valid module");
 			return;
 		}
@@ -195,73 +171,72 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 	if (!lesson) return null;
 
 	return (
-		<ScrollArea ref={ref} onScroll={handleScroll} className="h-full w-full">
-			<form onSubmit={handleSubmit} className="col-span-4 space-y-2 rounded-md bg-neutral-100 p-4">
-				<div className="flex w-full items-center justify-between">
-					<p className="text-xs uppercase tracking-widest">
-						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
-						{convertNumberToWord(lesson.chapter_sequence)}
-					</p>
+		<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
+			<div className="flex w-full items-center justify-between">
+				<p className="text-xs uppercase tracking-widest">
+					Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
+					{convertNumberToWord(lesson.chapter_sequence)}
+				</p>
 
-					<div className="flex items-center gap-x-2">
-						<label htmlFor="xlsx-upload">
-							<input
-								type="file"
-								id="xlsx-upload"
-								className="sr-only hidden"
-								ref={inputRef}
-								onChange={handleFileChange}
-								accept=".xlsx"
-							/>
-							<button
-								type="button"
-								onClick={handleClick}
-								className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-								<RiImportLine className="size-4" />
-								<span>Import Questions</span>
-							</button>
-						</label>
+				<div className="flex items-center gap-x-2">
+					<label htmlFor="xlsx-upload">
+						<input
+							type="file"
+							id="xlsx-upload"
+							className="sr-only hidden"
+							ref={inputRef}
+							onChange={handleFileChange}
+							accept=".xlsx"
+						/>
 						<button
 							type="button"
-							onClick={() => setCurrentTab("lesson")}
+							onClick={handleClick}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-							<RiArrowLeftSLine className="size-4" />
-							<span>Back to Lesson</span>
+							<RiImportLine className="size-4" />
+							<span>Import Questions</span>
 						</button>
-					</div>
+					</label>
+					<button
+						type="button"
+						onClick={() => setCurrentTab("lesson")}
+						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+						<RiArrowLeftSLine className="size-4" />
+						<span>Back to Lesson</span>
+					</button>
 				</div>
+			</div>
+
+			<div className="w-full space-y-2">
 				<div className="w-full space-y-2">
-					<div className="w-full space-y-2">
-						{moduleQuestions?.map((question, index) => (
-							<QuestionCard
-								key={index}
-								chapterId={String(chapterId)}
-								moduleId={lessonTab}
-								onDelete={(sequence) => removeQuestion(String(chapterId), lessonTab, sequence)}
-								onDuplicate={(sequence) => duplicateQuestion(String(chapterId), lessonTab, sequence)}
-								onReorder={(sequence, direction) =>
-									reorderQuestion(String(chapterId), lessonTab, sequence, direction)
-								}
-								question={question}
-							/>
-						))}
-					</div>
-					<div className="flex items-center gap-2">
-						<Button disabled={isPending} className="w-32" size="sm" type="submit">
-							{isPending ? <Spinner /> : "Save Quiz"}
-						</Button>
-						<Button
-							disabled={isPending}
-							className="w-32"
-							variant="outline"
-							size="sm"
-							type="button"
-							onClick={handleAddQuestion}>
-							Add Question
-						</Button>
-					</div>
+					{moduleQuestions?.map((question, index) => (
+						<QuestionCard
+							key={index}
+							chapterId={String(chapterId)}
+							moduleId={activeLessonId}
+							onDelete={(sequence) => removeQuestion(String(chapterId), activeLessonId, sequence)}
+							onDuplicate={(sequence) => duplicateQuestion(String(chapterId), activeLessonId, sequence)}
+							onReorder={(sequence, direction) =>
+								reorderQuestion(String(chapterId), activeLessonId, sequence, direction)
+							}
+							question={question}
+						/>
+					))}
 				</div>
-			</form>
-		</ScrollArea>
+				<div className="flex items-center gap-2">
+					<Button disabled={isPending} className="w-32" size="sm" type="submit">
+						{isPending ? <Spinner /> : "Save Quiz"}
+					</Button>
+					<Button
+						disabled={isPending}
+						className="w-32"
+						variant="outline"
+						size="sm"
+						type="button"
+						onClick={handleAddQuestion}>
+						Add Question
+					</Button>
+				</div>
+			</div>
+		</form>
 	);
 };
