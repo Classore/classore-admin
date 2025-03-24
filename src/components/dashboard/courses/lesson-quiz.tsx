@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
 import { CreateQuestions, GetQuestions } from "@/queries";
 import { useChapterStore } from "@/store/z-store/chapter";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DeleteQuestions } from "../delete-questions";
 import { useQuizStore } from "@/store/z-store/quiz";
 import type { QuestionDto } from "@/store/z-store";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,33 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 	} = useQuizStore();
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === activeLessonId);
+	const [scrollPosition, setScrollPosition] = React.useState(0);
+	const ref = React.useRef<HTMLInputElement>(null);
+
+	const handleScroll = () => {
+		if (ref.current) {
+			setScrollPosition(ref.current.scrollTop);
+		}
+	};
+
+	React.useEffect(() => {
+		if (ref.current) {
+			ref.current.scrollTop = 0;
+		}
+	}, [activeLessonId]);
+
+	React.useLayoutEffect(() => {
+		if (ref.current && scrollPosition > 0) {
+			ref.current.scrollTop = scrollPosition;
+		}
+	}, [scrollPosition, questions]);
+
+	const { getSelectedCount } = useQuizStore();
+
+	const selectCount = React.useMemo(() => {
+		if (!chapterId || !activeLessonId) return 0;
+		return getSelectedCount(chapterId, activeLessonId);
+	}, [chapterId, activeLessonId, getSelectedCount]);
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
 		onValueChange: (files) => {
@@ -171,72 +200,77 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 	if (!lesson) return null;
 
 	return (
-		<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
-			<div className="flex w-full items-center justify-between">
-				<p className="text-xs uppercase tracking-widest">
-					Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
-					{convertNumberToWord(lesson.chapter_sequence)}
-				</p>
+		<ScrollArea className="h-full w-full" onScroll={handleScroll} ref={ref}>
+			<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
+				<div className="flex w-full items-center justify-between">
+					<p className="text-xs uppercase tracking-widest">
+						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
+						{convertNumberToWord(lesson.chapter_sequence)}
+					</p>
 
-				<div className="flex items-center gap-x-2">
-					<label htmlFor="xlsx-upload">
-						<input
-							type="file"
-							id="xlsx-upload"
-							className="sr-only hidden"
-							ref={inputRef}
-							onChange={handleFileChange}
-							accept=".xlsx"
-						/>
+					<div className="flex items-center gap-x-2">
+						{selectCount > 0 && (
+							<DeleteQuestions chapterId={String(chapterId)} moduleId={activeLessonId} />
+						)}
+						<label htmlFor="xlsx-upload">
+							<input
+								type="file"
+								id="xlsx-upload"
+								className="sr-only hidden"
+								ref={inputRef}
+								onChange={handleFileChange}
+								accept=".xlsx"
+							/>
+							<button
+								type="button"
+								onClick={handleClick}
+								className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+								<RiImportLine className="size-4" />
+								<span>Import Questions</span>
+							</button>
+						</label>
 						<button
 							type="button"
-							onClick={handleClick}
+							onClick={() => setCurrentTab("lesson")}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-							<RiImportLine className="size-4" />
-							<span>Import Questions</span>
+							<RiArrowLeftSLine className="size-4" />
+							<span>Back to Lesson</span>
 						</button>
-					</label>
-					<button
-						type="button"
-						onClick={() => setCurrentTab("lesson")}
-						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-						<RiArrowLeftSLine className="size-4" />
-						<span>Back to Lesson</span>
-					</button>
+					</div>
 				</div>
-			</div>
 
-			<div className="w-full space-y-2">
 				<div className="w-full space-y-2">
-					{moduleQuestions?.map((question, index) => (
-						<QuestionCard
-							key={index}
-							chapterId={String(chapterId)}
-							moduleId={activeLessonId}
-							onDelete={(sequence) => removeQuestion(String(chapterId), activeLessonId, sequence)}
-							onDuplicate={(sequence) => duplicateQuestion(String(chapterId), activeLessonId, sequence)}
-							onReorder={(sequence, direction) =>
-								reorderQuestion(String(chapterId), activeLessonId, sequence, direction)
-							}
-							question={question}
-						/>
-					))}
+					<div className="w-full space-y-2">
+						{moduleQuestions?.map((question, index) => (
+							<QuestionCard
+								key={index}
+								chapterId={String(chapterId)}
+								moduleId={activeLessonId}
+								onDelete={(sequence) => removeQuestion(String(chapterId), activeLessonId, sequence)}
+								onDuplicate={(sequence) => duplicateQuestion(String(chapterId), activeLessonId, sequence)}
+								onReorder={(sequence, direction) =>
+									reorderQuestion(String(chapterId), activeLessonId, sequence, direction)
+								}
+								question={question}
+							/>
+						))}
+					</div>
+					<div className="flex items-center gap-2">
+						<Button disabled={isPending} className="w-32" size="sm" type="submit">
+							{isPending ? <Spinner /> : "Save Quiz"}
+						</Button>
+						<Button
+							disabled={isPending}
+							className="w-32"
+							variant="outline"
+							size="sm"
+							type="button"
+							onClick={handleAddQuestion}>
+							Add Question
+						</Button>
+					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					<Button disabled={isPending} className="w-32" size="sm" type="submit">
-						{isPending ? <Spinner /> : "Save Quiz"}
-					</Button>
-					<Button
-						disabled={isPending}
-						className="w-32"
-						variant="outline"
-						size="sm"
-						type="button"
-						onClick={handleAddQuestion}>
-						Add Question
-					</Button>
-				</div>
-			</div>
-		</form>
+			</form>
+		</ScrollArea>
 	);
 };
