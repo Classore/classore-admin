@@ -19,7 +19,7 @@ import {
 	RiDraggable,
 	RiEdit2Line,
 	RiEye2Line,
-	RiMoreLine
+	RiMoreLine,
 } from "@remixicon/react";
 import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
@@ -162,12 +162,12 @@ export const Chapters = ({
 								<RiDraggable className="size-4 self-center" />
 
 								<div className="flex flex-1 flex-col items-start justify-between gap-2">
-									<div className="flex border-b pb-2 border-b-neutral-100 w-full items-center justify-between gap-2 text-left">
+									<div className="flex w-full items-center justify-between gap-2 border-b border-b-neutral-100 pb-2 text-left">
 										<div>
 											<p className="gap-3 text-left uppercase tracking-widest">
 												<span className="truncate text-[10px]">Chapter {chapter.sequence}</span>{" "}
 												<span
-													className={`ml-1 flex-shrink rounded font-bold px-2 py-0.5 text-[8px] ${chapter.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+													className={`ml-1 flex-shrink rounded px-2 py-0.5 text-[8px] font-bold ${chapter.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
 													{chapter.is_published === "YES" ? "Published" : "Unpublished"}
 												</span>
 											</p>

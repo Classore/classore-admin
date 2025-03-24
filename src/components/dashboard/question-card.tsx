@@ -152,7 +152,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 			{question.images.length ? (
 				<ul className="grid grid-cols-4 gap-x-2">
 					{question.images.map((image, index) => {
-						const source = URL.createObjectURL(image);
+						const source = typeof image === "string" ? image : URL.createObjectURL(image);
 						return (
 							<li key={index} className="relative">
 								{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -161,7 +161,9 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 									type="button"
 									onClick={() => {
 										removeImageFromQuestion(chapterId, moduleId, question.sequence_number, index);
-										handleRemoveFile(image);
+										if (image instanceof File) {
+											handleRemoveFile(image);
+										}
 									}}
 									className="absolute right-2 top-2 rounded bg-red-50 p-1 text-red-400 transition-colors hover:text-red-500">
 									<RiDeleteBinLine className="size-4" />

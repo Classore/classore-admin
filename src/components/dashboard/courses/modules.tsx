@@ -195,7 +195,7 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 				<p
 					className={`${section !== "lessons" ? "hidden" : "block pt-4 text-center text-xs text-neutral-500"}`}>
 					{activeChapterId
-						? "This chapter currently has no lesson(s). Click \"Add new lesson\" to add lesson"
+						? 'This chapter currently has no lesson(s). Click "Add new lesson" to add lesson'
 						: "Please select a chapter to explore its lessons"}
 				</p>
 			)}

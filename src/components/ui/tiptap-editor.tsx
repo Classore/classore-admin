@@ -216,7 +216,7 @@ export const TiptapEditor = ({
 		}
 
 		if (!initialValue) {
-			editor?.commands.setContent("")
+			editor?.commands.setContent("");
 		}
 	}, [initialValue, editor]);
 
