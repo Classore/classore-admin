@@ -55,7 +55,7 @@ export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
-				<Button className="h-6 text-xs" size="sm" variant="destructive">
+				<Button className="h-6 w-fit rounded-md text-xs" size="sm" variant="destructive">
 					Delete Questions
 				</Button>
 			</DialogTrigger>
