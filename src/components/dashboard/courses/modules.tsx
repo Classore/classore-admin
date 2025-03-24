@@ -1,12 +1,6 @@
-import { RiAddLine, RiArrowLeftDoubleLine, RiDeleteBinLine, RiDraggable } from "@remixicon/react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as React from "react";
-
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { Spinner } from "@/components/shared";
-import { convertNumberToWord } from "@/lib";
-import { Lesson } from "./lesson";
 import { useDrag } from "@/hooks";
+import { convertNumberToWord } from "@/lib";
 import {
 	DeleteEntities,
 	GetChapterModules,
@@ -14,6 +8,11 @@ import {
 	type DeleteEntitiesPayload,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { RiAddLine, RiArrowLeftDoubleLine, RiDeleteBinLine, RiDraggable } from "@remixicon/react";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+import { Lesson } from "./lesson";
 
 type ModulesProps = {
 	setSection: React.Dispatch<React.SetStateAction<string>>;
@@ -196,7 +195,7 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 				<p
 					className={`${section !== "lessons" ? "hidden" : "block pt-4 text-center text-xs text-neutral-500"}`}>
 					{activeChapterId
-						? "This chapter currently has no lesson(s). Click &quot;Add new lesson&ldquo; to add lesson"
+						? "This chapter currently has no lesson(s). Click \"Add new lesson\" to add lesson"
 						: "Please select a chapter to explore its lessons"}
 				</p>
 			)}

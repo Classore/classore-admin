@@ -1,9 +1,13 @@
-import React from "react";
+import { TabPanel } from "@/components/shared";
+import * as React from "react";
+import { LessonDetails } from "./lesson-details";
+import { LessonQuiz } from "./lesson-quiz";
+import { LessonVideoUpload } from "./lesson-video-upload";
 
-interface Props {
+type LessonProps = {
 	activeLessonId: string;
 	chapterId: string;
-}
+};
 
 export const Lesson = ({ activeLessonId, chapterId }: LessonProps) => {
 	const [currentTab, setCurrentTab] = React.useState("lesson");
