@@ -410,67 +410,67 @@ export const removeLeadingQuote = (str: string) => {
  * @param {string} [ellipsis='...'] - Ellipsis character(s) to append
  * @returns {string} Truncated HTML string
  */
-export function truncateHTML(html: string, maxLength: number, ellipsis: string = '...'): string {
-  // Create a temporary DOM element
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
+export function truncateHTML(html: string, maxLength: number, ellipsis: string = "..."): string {
+	// Create a temporary DOM element
+	const tempDiv = document.createElement("div");
+	tempDiv.innerHTML = html;
 
-  let textLength = 0;
-  let truncated = false;
+	let textLength = 0;
+	let truncated = false;
 
-  // Recursive function to traverse and truncate nodes
-  function processNode(node: Node): void {
-    if (truncated) return;
+	// Recursive function to traverse and truncate nodes
+	function processNode(node: Node): void {
+		if (truncated) return;
 
-    if (node.nodeType === Node.TEXT_NODE) {
-      const textNode = node as Text;
-      const remainingLength = maxLength - textLength;
+		if (node.nodeType === Node.TEXT_NODE) {
+			const textNode = node as Text;
+			const remainingLength = maxLength - textLength;
 
-      if (remainingLength <= 0) {
-        textNode.nodeValue = '';
-        return;
-      }
+			if (remainingLength <= 0) {
+				textNode.nodeValue = "";
+				return;
+			}
 
-      if (textNode.nodeValue && textNode.nodeValue.length > remainingLength) {
-        textNode.nodeValue = textNode.nodeValue.substring(0, remainingLength) + ellipsis;
-        textLength = maxLength;
-        truncated = true;
-        return;
-      }
+			if (textNode.nodeValue && textNode.nodeValue.length > remainingLength) {
+				textNode.nodeValue = textNode.nodeValue.substring(0, remainingLength) + ellipsis;
+				textLength = maxLength;
+				truncated = true;
+				return;
+			}
 
-      if (textNode.nodeValue) {
-        textLength += textNode.nodeValue.length;
-      }
-      return;
-    }
+			if (textNode.nodeValue) {
+				textLength += textNode.nodeValue.length;
+			}
+			return;
+		}
 
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const elementNode = node as Element;
-      // Process child nodes in order
-      for (let i = 0; i < elementNode.childNodes.length; i++) {
-        processNode(elementNode.childNodes[i]);
-        if (truncated) {
-          // Remove remaining nodes after truncation point
-          while (elementNode.childNodes.length > i + 1) {
-            elementNode.removeChild(elementNode.childNodes[i + 1]);
-          }
-          break;
-        }
-      }
-    }
-  }
+		if (node.nodeType === Node.ELEMENT_NODE) {
+			const elementNode = node as Element;
+			// Process child nodes in order
+			for (let i = 0; i < elementNode.childNodes.length; i++) {
+				processNode(elementNode.childNodes[i]);
+				if (truncated) {
+					// Remove remaining nodes after truncation point
+					while (elementNode.childNodes.length > i + 1) {
+						elementNode.removeChild(elementNode.childNodes[i + 1]);
+					}
+					break;
+				}
+			}
+		}
+	}
 
-  // Process all nodes in the temporary div
-  for (let i = 0; i < tempDiv.childNodes.length; i++) {
-    processNode(tempDiv.childNodes[i]);
-    if (truncated) {
-      // Remove remaining nodes after truncation point
-      while (tempDiv.childNodes.length > i + 1) {
-        tempDiv.removeChild(tempDiv.childNodes[i + 1]);
-      }
-      break;
-    }
-  }
+	// Process all nodes in the temporary div
+	for (let i = 0; i < tempDiv.childNodes.length; i++) {
+		processNode(tempDiv.childNodes[i]);
+		if (truncated) {
+			// Remove remaining nodes after truncation point
+			while (tempDiv.childNodes.length > i + 1) {
+				tempDiv.removeChild(tempDiv.childNodes[i + 1]);
+			}
+			break;
+		}
+	}
 
-  return tempDiv.innerHTML;
+	return tempDiv.innerHTML;
 }

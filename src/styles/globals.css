@@ -162,7 +162,6 @@ input[type="search"]::-webkit-search-results-decoration {
 	@apply bg-primary-300 text-white;
 }
 
-
 /* grid alignment */
 .writing-vertical-lr {
 	writing-mode: vertical-lr;

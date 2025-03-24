@@ -3,17 +3,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
-import { Spinner } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { useFileHandler } from "@/hooks";
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
-import { queryClient } from "@/providers";
 import { CreateQuestions, GetQuestions } from "@/queries";
-import type { QuestionDto } from "@/store/z-store";
 import { useChapterStore } from "@/store/z-store/chapter";
 import { useQuizStore } from "@/store/z-store/quiz";
-import type { HttpError } from "@/types";
+import type { QuestionDto } from "@/store/z-store";
+import { Button } from "@/components/ui/button";
 import { QuestionCard } from "../question-card";
+import { Spinner } from "@/components/shared";
+import { queryClient } from "@/providers";
+import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
 
 interface Props {
 	chapterId: string | undefined;
@@ -55,32 +55,31 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		},
 	});
 
-useQuery({
-	queryKey: ["get-questions", activeLessonId],
-	queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
-	enabled: !!chapterId,
-	select: (data) => ({
-		questions: data.data.data.map((question) => {
-			const q: QuestionDto = {
-				content: question.question_content,
-				images: question.question_images,
-				options: question.options.map((option) => ({
-					content: option.content,
-					is_correct: option.is_correct,
-					sequence: option.sequence_number,
-					sequence_number: option.sequence_number,
-					images: option.images,
-				})),
-				question_type: question.question_question_type,
-				sequence: question.question_sequence,
-				sequence_number: question.question_sequence,
-				id: question.question_id,
-			};
-			return q;
+	useQuery({
+		queryKey: ["get-questions", activeLessonId],
+		queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
+		enabled: !!chapterId,
+		select: (data) => ({
+			questions: data.data.data.map((question) => {
+				const q: QuestionDto = {
+					content: question.question_content,
+					images: question.question_images,
+					options: question.options.map((option) => ({
+						content: option.content,
+						is_correct: option.is_correct,
+						sequence_number: option.sequence_number,
+						images: option.images,
+					})),
+					question_type: question.question_question_type,
+					sequence: question.question_sequence,
+					sequence_number: question.question_sequence,
+					id: question.question_id,
+				};
+				return q;
+			}),
+			meta: data.data.meta,
 		}),
-		meta: data.data.meta,
-	}),
-});
+	});
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],
