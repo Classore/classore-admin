@@ -10,14 +10,7 @@ import { CreateChapter, type CreateChapterDto } from "@/queries";
 import type { HttpError } from "@/types";
 import { IconLabel } from "../shared";
 import { Button } from "../ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-	DialogTrigger,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { TiptapEditor } from "../ui/tiptap-editor";
 
@@ -104,13 +97,7 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 							)}
 						</div>
 						<div className="flex w-full items-center justify-end">
-							<DialogClose asChild>
-								<Button className="w-fit" variant="outline">
-									Cancel
-								</Button>
-							</DialogClose>
-
-							<Button className="w-fit" type="submit" disabled={isPending}>
+							<Button className="w-fit" size="sm" type="submit" disabled={isPending}>
 								{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Chapter"}
 							</Button>
 						</div>
