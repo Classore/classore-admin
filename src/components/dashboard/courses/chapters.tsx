@@ -1,23 +1,6 @@
-import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
-import {
-	RiArrowLeftDoubleLine,
-	RiDeleteBin6Line,
-	RiDraggable,
-	RiEdit2Line,
-	RiEye2Line,
-	RiMoreLine,
-} from "@remixicon/react";
-
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { DeleteModal } from "@/components/delete-modal";
 import { PublishModal } from "@/components/publish-modal";
-import { EditChapter } from "../edit-chapter";
-import { AddChapter } from "../add-chapter";
-import type { HttpError } from "@/types";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useDrag } from "@/hooks";
 import { sanitize } from "@/lib";
 import {
@@ -28,6 +11,22 @@ import {
 	type DeleteEntitiesPayload,
 	type UpdateChapterSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { HttpError } from "@/types";
+import {
+	RiArrowLeftDoubleLine,
+	RiDeleteBin6Line,
+	RiDraggable,
+	RiEdit2Line,
+	RiEye2Line,
+	RiMoreLine
+} from "@remixicon/react";
+import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
+import { AddChapter } from "../add-chapter";
+import { EditChapter } from "../edit-chapter";
 
 type ChaptersProps = {
 	setSection: React.Dispatch<React.SetStateAction<string>>;
@@ -57,12 +56,15 @@ export const Chapters = ({
 
 	const chapters = useChapterStore((state) => state.chapters);
 
-	const { isPending: isDeleting, mutateAsync: deleteMutateAsync } = useMutation({
+	const { isPending: isDeleting, mutate: deleteMutate } = useMutation({
 		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
 		mutationKey: ["delete-entities"],
 		onSuccess: (data) => {
+			removeChapter(currentSequence);
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+			setOpenDeleteModal(false);
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -142,7 +144,7 @@ export const Chapters = ({
 
 				<div className={`mt-4 ${section !== "chapters" ? "hidden" : "flex flex-col gap-2"}`}>
 					<p className="text-[10px] text-neutral-400">
-						<strong>NB:</strong> Drag to reorder each chapter
+						<strong>NB:</strong> Drag to reorder
 					</p>
 
 					<div className="grid grid-cols-2 gap-3">
@@ -160,12 +162,12 @@ export const Chapters = ({
 								<RiDraggable className="size-4 self-center" />
 
 								<div className="flex flex-1 flex-col items-start justify-between gap-2">
-									<div className="flex w-full items-center justify-between gap-2 text-left">
+									<div className="flex border-b pb-2 border-b-neutral-100 w-full items-center justify-between gap-2 text-left">
 										<div>
 											<p className="gap-3 text-left uppercase tracking-widest">
 												<span className="truncate text-[10px]">Chapter {chapter.sequence}</span>{" "}
 												<span
-													className={`ml-1 flex-shrink rounded px-2 py-0.5 text-[8px] ${chapter.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+													className={`ml-1 flex-shrink rounded font-bold px-2 py-0.5 text-[8px] ${chapter.is_published === "YES" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
 													{chapter.is_published === "YES" ? "Published" : "Unpublished"}
 												</span>
 											</p>
@@ -218,6 +220,15 @@ export const Chapters = ({
 													<RiDeleteBin6Line className="size-3" />
 													<span>Delete</span>
 												</button>
+												{/* <button
+													onClick={(e) => {
+														e.stopPropagation();
+													}}
+													type="button"
+													className="flex items-center gap-1.5 rounded bg-neutral-50 px-2 py-1 text-xs text-neutral-600 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">
+													<RiEyeLine className="size-3" />
+													<span>View details</span>
+												</button> */}
 											</PopoverContent>
 										</Popover>
 									</div>
@@ -226,7 +237,7 @@ export const Chapters = ({
 										dangerouslySetInnerHTML={{
 											__html: sanitize(chapter?.content).replace(/\n/g, "<br />"),
 										}}
-										className="text-pretty text-left text-xs text-neutral-400"
+										className="prose-xs max-h-28 overflow-auto prose-p:text-left prose-p:text-xs prose-p:text-neutral-400"
 									/>
 								</div>
 							</button>
@@ -237,7 +248,7 @@ export const Chapters = ({
 
 			<DeleteModal
 				title="Delete Chapter"
-				description="Are you sure you want to delete this chapter from this course?"
+				description="Are you sure you want to delete this chapter from this course? This action cannot be undone."
 				isOpen={openDeleteModal}
 				setIsOpen={setOpenDeleteModal}
 				isDeleting={isDeleting}
@@ -249,10 +260,7 @@ export const Chapters = ({
 						return;
 					}
 
-					deleteMutateAsync({ ids: [chapterId], model_type: "CHAPTER" }).then(() => {
-						removeChapter(currentSequence);
-						// setCurrent(current - 1);
-					});
+					deleteMutate({ ids: [chapterId], model_type: "CHAPTER" });
 				}}
 			/>
 			<PublishModal
@@ -270,9 +278,9 @@ export const Chapters = ({
 			/>
 			<EditChapter
 				chapterId={chapterId}
-				onOpenChange={setOpenEditModal}
-				open={openEditModal}
 				sequence={sequence}
+				open={openEditModal}
+				setOpen={setOpenEditModal}
 			/>
 		</>
 	);

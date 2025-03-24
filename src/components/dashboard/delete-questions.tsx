@@ -1,13 +1,9 @@
 import { RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import React from "react";
+import { toast } from "sonner";
 
-import { useQuizStore } from "@/store/z-store/quizz";
 import { Button } from "@/components/ui/button";
-import { DeleteEntities } from "@/queries";
-import type { HttpError } from "@/types";
-import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +11,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { DeleteEntities } from "@/queries";
+import { useQuizStore } from "@/store/z-store/quiz";
+import type { HttpError } from "@/types";
+import { IconLabel } from "../shared";
 
 interface Props {
 	chapterId: string;

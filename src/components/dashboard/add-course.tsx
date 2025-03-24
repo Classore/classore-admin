@@ -170,7 +170,6 @@ const Initial = (props: InnerProps) => {
 			toast.error("Please enter a description");
 			return;
 		}
-		console.log("values", values);
 		onModeChange("select");
 	};
 
