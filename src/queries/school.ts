@@ -27,6 +27,8 @@ export interface CreateSubjectDto {
 	name: string;
 	banner: File | string | null;
 	chapter_dripping: "YES" | "NO";
+	tags?: string[];
+	tutor?: string;
 }
 
 export interface CreateBundleDto {
@@ -57,6 +59,7 @@ export interface SubjectResponse {
 	chapter_dripping: "YES" | "NO";
 	banner: string;
 	is_published: "YES" | "NO";
+	tutor: string;
 }
 
 export interface ChangeDirectoryDto {

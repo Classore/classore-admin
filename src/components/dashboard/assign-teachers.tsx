@@ -1,46 +1,43 @@
 import { RiHashtag, RiLoaderLine, RiUserAddLine } from "@remixicon/react";
 import { useMutation, useQueries } from "@tanstack/react-query";
-import { useRouter } from "next/router";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import * as Yup from "yup";
 import React from "react";
 
-import { GetChapterModules, GetRolesQuery, GetStaffs, UpdateChapter } from "@/queries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useCourseStore } from "@/store/z-store";
+import type { CreateSubjectDto, GetStaffsResponse, RoleResponse } from "@/queries";
+import { GetRolesQuery, GetStaffs, UpdateSubject } from "@/queries";
 import { Textarea } from "../ui/textarea";
+import { queryClient } from "@/providers";
 import { Button } from "../ui/button";
 import { TabPanel } from "../shared";
-import type {
-	CreateChapterDto,
-	GetChapterModuleResponse,
-	GetStaffsResponse,
-	RoleResponse,
-} from "@/queries";
 
 type UseMutationProps = {
 	id: string;
-	payload: Partial<CreateChapterDto>;
+	payload: Partial<CreateSubjectDto>;
 };
 
 interface Props {
+	courseId: string;
 	tab: string;
+	tutor?: string;
 }
 
-export const AssignTeachers = ({ tab }: Props) => {
+export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 	const [admin_role, setAdminRole] = React.useState("");
-	const { chapterModule } = useCourseStore();
-	const courseId = useRouter().query.courseId as string;
 
 	const { isPending, mutate } = useMutation({
-		mutationFn: ({ id, payload }: UseMutationProps) => UpdateChapter(id, payload),
+		mutationFn: ({ id, payload }: UseMutationProps) => UpdateSubject(id, payload),
 		onSuccess: () => {
-			toast.success("Module updated successfully");
+			toast.success("Course updated successfully");
 		},
 		onError: (error) => {
-			toast.error("Failed to update module");
+			toast.error("Failed to update course");
 			console.error(error);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });
 		},
 	});
 
@@ -54,7 +51,7 @@ export const AssignTeachers = ({ tab }: Props) => {
 			if (!admin_role) {
 				return;
 			}
-			const payload: Partial<CreateChapterDto> = {
+			const payload: Partial<CreateSubjectDto> = {
 				tags: values.tags.split(",").map((tag) => tag.trim()),
 				tutor: values.tutor,
 			};
@@ -62,7 +59,7 @@ export const AssignTeachers = ({ tab }: Props) => {
 		},
 	});
 
-	const [{ data: roles }, { data: users }, { data: modules }] = useQueries({
+	const [{ data: roles }, { data: users }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-roles"],
@@ -75,24 +72,8 @@ export const AssignTeachers = ({ tab }: Props) => {
 				enabled: !!admin_role,
 				select: (data) => (data as GetStaffsResponse).data.admins,
 			},
-			{
-				queryKey: ["get-module"],
-				queryFn: () => GetChapterModules({ limit: 100 }),
-				enabled: !!chapterModule?.id,
-				select: (data) => (data as GetChapterModuleResponse).data.data,
-			},
 		],
 	});
-
-	const tutor = React.useMemo(() => {
-		if (modules) {
-			const mod = modules.find((module) => module.chapter_module_id === String(chapterModule?.id));
-			if (mod) {
-				return mod.chapter_module_tutor ?? "";
-			}
-		}
-		return "";
-	}, [chapterModule?.id, modules]);
 
 	React.useEffect(() => {
 		if (roles) {
@@ -138,7 +119,7 @@ export const AssignTeachers = ({ tab }: Props) => {
 								</div>
 							</div>
 						</div>
-						<Button type="submit" className="w-fit">
+						<Button type="submit" size="sm" className="w-fit">
 							Update Course
 						</Button>
 					</div>
