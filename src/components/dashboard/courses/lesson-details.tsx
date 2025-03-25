@@ -1,25 +1,6 @@
-import { PublishModal } from "@/components/publish-modal";
-import { Spinner, VideoPlayer } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { endpoints } from "@/config";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
-import {
-	GetStaffs,
-	PublishResource,
-	UpdateChapterModule,
-	type CreateChapterModuleDto,
-	type GetStaffsResponse,
-} from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
@@ -28,9 +9,16 @@ import {
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as React from "react";
-import { toast } from "sonner";
+
+import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import type { ChapterModuleProps, HttpResponse } from "@/types";
+import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { Spinner, VideoPlayer } from "@/components/shared";
+import { PublishModal } from "@/components/publish-modal";
+import { Button } from "@/components/ui/button";
+import { endpoints } from "@/config";
+import { PublishResource, UpdateChapterModule, type CreateChapterModuleDto } from "@/queries";
 
 type LessonProps = {
 	activeLessonId: string;
@@ -43,15 +31,9 @@ interface UseMutationProps {
 	module: CreateChapterModuleDto;
 }
 
-const {
-	addLessonTitle,
-	addLessonContent,
-	addLessonTutor,
-	addLessonAttachments,
-	removeLessonAttachment,
-} = chapterActions;
+const { addLessonTitle, addLessonContent, addLessonAttachments, removeLessonAttachment } =
+	chapterActions;
 
-const admin_role = "2e3415e1-8e0f-4bf4-9503-9d114f6ae3ff";
 export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: LessonProps) => {
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === activeLessonId);
@@ -60,13 +42,6 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 	const abortController = React.useRef<AbortController | null>(null);
 
 	const [open, setOpen] = React.useState(false);
-
-	const { data: tutors } = useQuery({
-		queryKey: ["get-staffs", admin_role],
-		queryFn: () => GetStaffs({ admin_role, limit: 50 }),
-		enabled: !!admin_role,
-		select: (data) => (data as GetStaffsResponse).data.admins,
-	});
 
 	// SAVE LESSON
 	const { isPending, mutate } = useMutation({
@@ -121,11 +96,6 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			return;
 		}
 
-		if (!lesson.tutor) {
-			toast.error("Please select a tutor for this lesson");
-			return;
-		}
-
 		mutate({
 			chapter_id: chapterId ?? "",
 			module: {
@@ -166,11 +136,6 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			toast.error("Add description for this lesson");
 			return;
 		}
-
-		// if (lesson.videos.length === 0) {
-		// 	toast.error("Upload a video for this lesson");
-		// 	return;
-		// }
 
 		updateMutate({
 			chapter_id: chapterId ?? "",
@@ -291,7 +256,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 				<div className="flex flex-col gap-4">
 					{/* ADD TUTOR */}
-					<label className="flex-1 space-y-1">
+					{/* <label className="flex-1 space-y-1">
 						<p className="text-sm text-neutral-400">Select Teacher:</p>
 
 						<Select
@@ -309,7 +274,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 								))}
 							</SelectContent>
 						</Select>
-					</label>
+					</label> */}
 
 					{/* ADD FILE ATTACHMENTS */}
 					<div className="flex flex-col gap-4 rounded-md bg-neutral-100 px-4 py-3 text-sm">

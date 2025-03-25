@@ -1,20 +1,22 @@
-import { Chapters } from "@/components/dashboard/courses/chapters";
-import { Modules } from "@/components/dashboard/courses/modules";
-import { DeleteSubject } from "@/components/dashboard/delete-subject";
-import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
-import { EditCourse } from "@/components/dashboard/edit-course";
-import { DashboardLayout } from "@/components/layout";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { create_course_tabs } from "@/config";
-import { capitalize } from "@/lib";
-import { GetSubject } from "@/queries";
-import { chapterActions } from "@/store/z-store/chapter";
-import { RiArrowLeftSLine } from "@remixicon/react";
 import { skipToken, useQuery } from "@tanstack/react-query";
+import { RiArrowLeftSLine } from "@remixicon/react";
 import { useRouter } from "next/router";
 import React from "react";
+
+import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
+import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { Chapters } from "@/components/dashboard/courses/chapters";
+import { Modules } from "@/components/dashboard/courses/modules";
+import { EditCourse } from "@/components/dashboard/edit-course";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { chapterActions } from "@/store/z-store/chapter";
+import { AssignTeachers } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { create_course_tabs } from "@/config";
+import { GetSubject } from "@/queries";
+import { capitalize } from "@/lib";
 
 const { setChapters, setChapterLessons } = chapterActions;
 
@@ -129,9 +131,6 @@ const Page = () => {
 								subjectId={courseId}
 								subjectName={course?.data.name}
 							/>
-							{/* <Button className="w-fit" size="sm" variant="outline">
-								Save and Exit
-							</Button> */}
 							<DuplicateCourse courseId={courseId} />
 							<EditCourse
 								course={course.data}
@@ -139,9 +138,6 @@ const Page = () => {
 								open={openEditModal}
 								setOpen={setOpenEditModal}
 							/>
-							{/* <Button className="w-fit" size="sm">
-								Next <RiArrowLeftSLine className="rotate-180" />
-							</Button> */}
 						</div>
 					</section>
 
@@ -156,10 +152,6 @@ const Page = () => {
 								</button>
 							))}
 						</div>
-
-						{/* <button className="flex items-center gap-x-1 text-sm text-neutral-400">
-							<RiEyeLine size={16} /> Preview
-						</button> */}
 					</section>
 
 					<TabPanel selected={tab} value="course">
@@ -178,6 +170,8 @@ const Page = () => {
 					</TabPanel>
 
 					<QuizSettingsTab tab={tab} />
+
+					<AssignTeachers courseId={courseId} tab={tab} tutor={course?.data.tutor} />
 				</div>
 			</DashboardLayout>
 		</>

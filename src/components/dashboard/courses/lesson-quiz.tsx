@@ -1,4 +1,4 @@
-import { RiArrowLeftSLine, RiImportLine } from "@remixicon/react";
+import { RiArrowLeftSLine, RiImportLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
@@ -84,7 +84,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		},
 	});
 
-	useQuery({
+	const { data: existingQuestions, isLoading } = useQuery({
 		queryKey: ["get-questions", activeLessonId],
 		queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
 		enabled: !!chapterId,
@@ -109,6 +109,13 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			meta: data.data.meta,
 		}),
 	});
+
+	React.useEffect(() => {
+		const questions = existingQuestions?.questions;
+		if (questions && questions.length > 0) {
+			updateQuestions(String(chapterId), activeLessonId, questions);
+		}
+	}, [activeLessonId, chapterId, existingQuestions, updateQuestions]);
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],
@@ -196,6 +203,14 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		}
 		mutate(moduleQuestions);
 	};
+
+	if (isLoading) {
+		return (
+			<div className="grid min-h-60 w-full place-items-center">
+				<RiLoaderLine className="size-14 animate-spin text-primary-400" />
+			</div>
+		);
+	}
 
 	if (!lesson) return null;
 
