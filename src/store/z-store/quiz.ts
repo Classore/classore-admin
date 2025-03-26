@@ -1,10 +1,11 @@
 import { toast } from "sonner";
-import { createPersistMiddleware } from "../middleware";
+
+import { createReportableStore } from "../middleware";
 import type { QuestionTypeProps } from "@/types";
 
 export type Option = {
 	content: string;
-	is_correct: "YES" | "NO";
+	is_correct: boolean;
 	sequence_number: number;
 	images?: (File | string)[];
 };
@@ -21,7 +22,7 @@ export type QuestionDto = {
 
 interface QuizStore {
 	questions: Record<string, Record<string, QuestionDto[]>>;
-	selectedQuestions: Record<string, Record<string, number[]>>;
+	selectedQuestions: Record<string, Record<string, QuestionDto[]>>;
 	addImagesToQuestion: (chapterId: string, moduleId: string, id: number, images: File[]) => void;
 	addOption: (chapterId: string, moduleId: string, id: number) => void;
 	addOptionContent: (
@@ -91,7 +92,7 @@ const createEmptyQuestion = (sequence: number): QuestionDto => ({
 
 const createEmptyOption = (sequence: number): Option => ({
 	content: "",
-	is_correct: "NO",
+	is_correct: false,
 	sequence_number: sequence,
 	images: [],
 });
@@ -108,7 +109,7 @@ const resequenceItems = <T extends { sequence_number: number; sequence?: number 
 const validateImageSize = (file: File): boolean =>
 	file.size / (1024 * 1024) <= CONSTANTS.MAX_IMAGE_SIZE_MB;
 
-const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get) => {
+const useQuizStore = createReportableStore<QuizStore>((set, get) => {
 	return {
 		questions: {},
 		selectedQuestions: {},
@@ -206,7 +207,7 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 						[chapterId]: {
 							...state.selectedQuestions[chapterId],
 							[moduleId]: (state.selectedQuestions[chapterId]?.[moduleId] || []).filter(
-								(seq) => seq !== id
+								(que) => que.sequence !== id
 							),
 						},
 					},
@@ -218,10 +219,10 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 				const currentQuestions = state.questions[chapterId]?.[moduleId] || [];
 				const optionTemplates: Record<QuestionTypeProps, Option[]> = {
 					MULTICHOICE: [createEmptyOption(1)],
-					FILL_IN_THE_GAP: [{ content: "", is_correct: "YES", sequence_number: 1 }],
+					FILL_IN_THE_GAP: [{ content: "", is_correct: true, sequence_number: 1 }],
 					YES_OR_NO: [
-						{ content: "True", is_correct: "YES", sequence_number: 1 },
-						{ content: "False", is_correct: "NO", sequence_number: 2 },
+						{ content: "True", is_correct: true, sequence_number: 1 },
+						{ content: "False", is_correct: false, sequence_number: 2 },
 					],
 				};
 
@@ -315,12 +316,12 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 											is_correct:
 												q.question_type === "SINGLE_CHOICE"
 													? opt.sequence_number === option_id
-														? "YES"
-														: "NO"
+														? true
+														: false
 													: opt.sequence_number === option_id
-														? opt.is_correct === "YES"
-															? "NO"
-															: "YES"
+														? opt.is_correct === true
+															? false
+															: true
 														: opt.is_correct,
 										})),
 									};
@@ -486,13 +487,13 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 				errors.push(`Question cannot have more than ${MAX_OPTIONS} options`);
 			}
 
-			if (!question.options.some((opt) => opt.is_correct === "YES")) {
+			if (!question.options.some((opt) => opt.is_correct === true)) {
 				errors.push("Question must have at least one correct option");
 			}
 
 			if (
 				question.question_type === "SINGLE_CHOICE" &&
-				question.options.filter((opt) => opt.is_correct === "YES").length > 1
+				question.options.filter((opt) => opt.is_correct === true).length > 1
 			) {
 				errors.push("Single choice questions can only have one correct option");
 			}
@@ -516,17 +517,22 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 		// New functions for multi-select and delete
 		toggleQuestionSelection: (chapterId, moduleId, id) =>
 			set((state) => {
+				const currentQuestions = state.questions[chapterId]?.[moduleId] || [];
 				const currentSelected = state.selectedQuestions[chapterId]?.[moduleId] || [];
-				const isSelected = currentSelected.includes(id);
+				const questionToToggle = currentQuestions.find((q) => q.sequence === id);
+
+				if (!questionToToggle) return state;
+
+				const isCurrentlySelected = currentSelected.some((q) => q.sequence === id);
 
 				return {
 					selectedQuestions: {
 						...state.selectedQuestions,
 						[chapterId]: {
 							...state.selectedQuestions[chapterId],
-							[moduleId]: isSelected
-								? currentSelected.filter((seq) => seq !== id)
-								: [...currentSelected, id],
+							[moduleId]: isCurrentlySelected
+								? currentSelected.filter((q) => q.sequence !== id)
+								: [...currentSelected, questionToToggle],
 						},
 					},
 				};
@@ -535,14 +541,13 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 		selectAllQuestions: (chapterId, moduleId) =>
 			set((state) => {
 				const currentQuestions = state.questions[chapterId]?.[moduleId] || [];
-				const allSequences = currentQuestions.map((q) => q.sequence);
 
 				return {
 					selectedQuestions: {
 						...state.selectedQuestions,
 						[chapterId]: {
 							...state.selectedQuestions[chapterId],
-							[moduleId]: allSequences,
+							[moduleId]: [...currentQuestions],
 						},
 					},
 				};
@@ -562,18 +567,20 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 		deleteSelectedQuestions: (chapterId, moduleId) =>
 			set((state) => {
 				const currentQuestions = state.questions[chapterId]?.[moduleId] || [];
-				const selectedSequences = state.selectedQuestions[chapterId]?.[moduleId] || [];
+				const selectedQuestions = state.selectedQuestions[chapterId]?.[moduleId] || [];
 
-				if (selectedSequences.length === 0) {
+				if (selectedQuestions.length === 0) {
 					toast.info("No questions selected");
 					return state;
 				}
 
-				const updatedQuestions = currentQuestions.filter(
-					(q) => !selectedSequences.includes(q.sequence)
-				);
+				// Create a set of selected sequence numbers for efficient lookup
+				const selectedSequences = new Set(selectedQuestions.map((q) => q.sequence));
 
-				toast.success(`${selectedSequences.length} question(s) deleted`);
+				// Filter out selected questions
+				const updatedQuestions = currentQuestions.filter((q) => !selectedSequences.has(q.sequence));
+
+				toast.success(`${selectedQuestions.length} question(s) deleted`);
 
 				return {
 					questions: {
@@ -595,7 +602,7 @@ const useQuizStore = createPersistMiddleware<QuizStore>("quiz-store", (set, get)
 
 		isQuestionSelected: (chapterId, moduleId, id) => {
 			const selected = get().selectedQuestions[chapterId]?.[moduleId] || [];
-			return selected.includes(id);
+			return selected.some((q) => q.sequence === id);
 		},
 
 		getSelectedCount: (chapterId, moduleId) => {

@@ -183,7 +183,7 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 			moduleQuestions?.some(
 				(question) =>
 					(question.question_type === "MULTICHOICE" || question.question_type === "YES_OR_NO") &&
-					question.options.every((option) => option.is_correct !== "YES")
+					question.options.every((option) => !option.is_correct)
 			)
 		) {
 			toast.error("Multiple choice and boolean questions must have a correct answer");
