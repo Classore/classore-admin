@@ -112,6 +112,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 
 	React.useEffect(() => {
 		const questions = existingQuestions?.questions;
+		console.log(questions);
 		if (questions && questions.length > 0) {
 			updateQuestions(String(chapterId), activeLessonId, questions);
 		}
@@ -150,6 +151,10 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		}
 		addQuestion(chapterId, activeLessonId);
 	};
+
+	const filterExistingQuestions = React.useCallback((questions: QuestionDto[]) => {
+		return questions.filter((question) => !question.id);
+	}, []);
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -195,19 +200,22 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			moduleQuestions?.some(
 				(question) =>
 					(question.question_type === "MULTICHOICE" || question.question_type === "YES_OR_NO") &&
-					question.options.every((option) => option.is_correct !== "YES")
+					question.options.every((option) => !option.is_correct)
 			)
 		) {
 			toast.error("Multiple choice and boolean questions must have a correct answer");
 			return;
 		}
-		mutate(moduleQuestions);
+		const newQuestions = filterExistingQuestions(moduleQuestions);
+		console.log(newQuestions);
+		mutate(newQuestions);
 	};
 
 	if (isLoading) {
 		return (
-			<div className="grid min-h-60 w-full place-items-center">
-				<RiLoaderLine className="size-14 animate-spin text-primary-400" />
+			<div className="flex items-center justify-center gap-x-2">
+				<p className="text-sm text-primary-400">Fetching quiz</p>{" "}
+				<RiLoaderLine className="size-4 animate-spin text-primary-400" />
 			</div>
 		);
 	}

@@ -51,7 +51,6 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 				formData.append("attachments", attachment);
 			});
 			formData.append("sequence", module.sequence.toString());
-			formData.append("tutor", module.tutor);
 			formData.append("title", module.title);
 			formData.append("content", module.content);
 			abortController.current = new AbortController();
@@ -85,6 +84,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			toast.error("Failed to create module");
 		},
 	});
+
 	const onSaveLesson = () => {
 		if (!lesson?.title) {
 			toast.error("Lesson title is required");

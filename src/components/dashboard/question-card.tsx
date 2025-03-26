@@ -1,4 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import React from "react";
 import {
 	RiAddLine,
 	RiAlignLeft,
@@ -15,9 +17,12 @@ import {
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Textarea } from "../ui/textarea";
-import { useFileHandler } from "@/hooks";
 import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
+import { DeleteEntities } from "@/queries";
+import { Textarea } from "../ui/textarea";
+import { queryClient } from "@/providers";
+import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 
@@ -55,6 +60,23 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		toggleQuestionSelection,
 	} = useQuizStore();
 
+	const { isPending, mutate } = useMutation({
+		mutationFn: (ids: string[]) => DeleteEntities({ ids, model_type: "QUESTION" }),
+		onSuccess: () => {
+			toast.success("Questions deleted successfully");
+		},
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error.response.data.message)
+				? error.response.data.message[0]
+				: error.response.data.message;
+			const message = errorMessage || "Failed to delete questions";
+			toast.error(message);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-questions"] });
+		},
+	});
+
 	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
 		onValueChange: (files) => {
 			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
@@ -70,6 +92,20 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 			minFiles: 1,
 		},
 	});
+
+	const handleDelete = (chapterId: string, moduleId: string, question: QuestionDto) => {
+		removeQuestion(chapterId, moduleId, question.sequence_number);
+		if (question.id) {
+			const ids = [question.id];
+			mutate(ids);
+		}
+	};
+
+	React.useEffect(() => {
+		if (isPending) {
+			toast.loading("Deleting questions...");
+		}
+	}, [isPending]);
 
 	return (
 		<div className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
@@ -111,7 +147,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 								key={index}
 								onClick={() => {
 									if (label === "delete") {
-										removeQuestion(chapterId, moduleId, question.sequence_number);
+										handleDelete(chapterId, moduleId, question);
 									}
 								}}
 								className="group grid size-7 place-items-center border transition-all duration-500 first:rounded-l-md last:rounded-r-md hover:bg-primary-100">
@@ -261,7 +297,7 @@ const OptionItem = ({
 								className="flex-1 border-0 bg-transparent px-0 py-1 text-sm outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0"
 							/>
 							<div className="flex w-fit items-center gap-x-2">
-								{option.is_correct === "YES" && (
+								{option.is_correct && (
 									<div className="rounded-md bg-primary-100 px-2 py-1 text-xs font-medium text-primary-400">
 										Correct Answer
 									</div>
@@ -272,7 +308,7 @@ const OptionItem = ({
 										setCorrectOption(chapterId, moduleId, question.sequence_number, option.sequence_number)
 									}>
 									<RiCheckboxCircleFill
-										className={`size-5 ${option.is_correct === "YES" ? "text-primary-400" : "text-neutral-400"}`}
+										className={`size-5 ${option.is_correct ? "text-primary-400" : "text-neutral-400"}`}
 									/>
 								</button>
 							</div>

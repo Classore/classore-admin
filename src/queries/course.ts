@@ -240,18 +240,7 @@ const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload
 
 export type DeleteEntitiesPayload = {
 	ids: string[];
-	model_type:
-		| "ADMIN"
-		| "CHAPTER"
-		| "CHAPTER_MODULE"
-		| "QUESTION"
-		| "EXAM_BUNDLE"
-		| "EXAMINATION"
-		| "SUBJECT"
-		| "USER"
-		| "TEST"
-		| "TEST_SECTION"
-		| "TEST_QUESTION";
+	model_type: "CHAPTER" | "CHAPTER_MODULE" | "EXAM_BUNDLE" | "EXAMINATION" | "QUESTION" | "SUBJECT";
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {

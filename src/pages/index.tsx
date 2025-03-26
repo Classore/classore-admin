@@ -95,7 +95,7 @@ const Page = () => {
 						</div>
 						<div className="mt-2 flex flex-col gap-2">
 							<Button type="submit" disabled={isPending}>
-								{isPending ? <RiLoader2Line /> : "Sign In"}
+								{isPending ? <RiLoader2Line className="animate-spin" /> : "Sign In"}
 							</Button>
 						</div>
 					</form>

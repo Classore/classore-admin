@@ -1,8 +1,9 @@
-import { TabPanel } from "@/components/shared";
 import * as React from "react";
-import { LessonDetails } from "./lesson-details";
-import { LessonQuiz } from "./lesson-quiz";
+
 import { LessonVideoUpload } from "./lesson-video-upload";
+import { LessonDetails } from "./lesson-details";
+import { TabPanel } from "@/components/shared";
+import { LessonQuiz } from "./lesson-quiz";
 
 type LessonProps = {
 	activeLessonId: string;
