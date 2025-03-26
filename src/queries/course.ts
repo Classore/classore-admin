@@ -250,7 +250,8 @@ export type DeleteEntitiesPayload = {
 		| "EXAMINATION"
 		| "QUESTION"
 		| "SUBJECT"
-		| "USER";
+		| "USER"
+		| string & {}
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
