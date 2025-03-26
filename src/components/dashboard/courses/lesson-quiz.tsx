@@ -112,7 +112,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 
 	React.useEffect(() => {
 		const questions = existingQuestions?.questions;
-		console.log(questions);
 		if (questions && questions.length > 0) {
 			updateQuestions(String(chapterId), activeLessonId, questions);
 		}
@@ -207,7 +206,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			return;
 		}
 		const newQuestions = filterExistingQuestions(moduleQuestions);
-		console.log(newQuestions);
 		mutate(newQuestions);
 	};
 
