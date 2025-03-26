@@ -1,7 +1,7 @@
 import { RiArrowLeftSLine, RiImportLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "sonner";
+import React from "react";
 
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
 import { CreateQuestions, GetQuestions } from "@/queries";
@@ -123,6 +123,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		mutationFn: (payload: QuestionDto[]) => CreateQuestions(activeLessonId, payload),
 		onSuccess: (data) => {
 			console.log(data);
+			toast.success("Questions added successfully");
 			queryClient.invalidateQueries({ queryKey: ["get-questions", activeLessonId] });
 		},
 		onError: (error: HttpError) => {
