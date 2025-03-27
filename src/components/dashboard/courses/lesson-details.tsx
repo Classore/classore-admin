@@ -31,7 +31,7 @@ interface UseMutationUpdateProps {
 	module: CreateChapterModuleDto;
 }
 interface UseMutationProps {
-	chapter_id: string;
+	id: string;
 	module: CreateChapterModuleDto;
 }
 
@@ -49,7 +49,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 	// SAVE LESSON
 	const { isPending, mutate } = useMutation({
-		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
+		mutationFn: async ({ id, module }: UseMutationProps) => {
 			const formData = new FormData();
 			module.attachments.forEach((attachment) => {
 				formData.append("attachments", attachment);
@@ -60,7 +60,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			abortController.current = new AbortController();
 			try {
 				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
-					endpoints(chapter_id).school.create_chapter_module,
+					endpoints(id).school.create_chapter_module,
 					formData,
 					{
 						signal: abortController.current.signal,
@@ -101,7 +101,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 		}
 
 		mutate({
-			chapter_id: chapterId ?? "",
+			id: chapterId ?? "",
 			module: {
 				attachment_urls: [],
 				image_urls: [],
