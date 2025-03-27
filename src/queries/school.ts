@@ -43,6 +43,7 @@ export interface CreateBundleDto {
 	max_subjects: number;
 	name: string;
 	start_date: Date;
+	description: string;
 }
 
 export interface ExamBundleResponse {
@@ -287,5 +288,6 @@ export {
 	GetSubjects,
 	PublishResource,
 	UpdateBundle,
-	UpdateSubject,
+	UpdateSubject
 };
+

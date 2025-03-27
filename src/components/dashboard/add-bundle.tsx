@@ -6,21 +6,14 @@ import {
 	RiLoaderLine,
 } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useFormik } from "formik";
-import { addDays } from "date-fns";
 import { DatePicker } from "antd";
-import { toast } from "sonner";
-import Image from "next/image";
-import * as Yup from "yup";
+import { addDays } from "date-fns";
 import dayjs from "dayjs";
-import React from "react";
+import { useFormik } from "formik";
+import Image from "next/image";
+import { toast } from "sonner";
+import * as Yup from "yup";
 
-import { CreateBundle, GetExaminations } from "@/queries";
-import type { CreateBundleDto } from "@/queries";
-import { useFileHandler } from "@/hooks";
-import { Button } from "../ui/button";
-import { IconLabel } from "../shared";
-import { Input } from "../ui/input";
 import {
 	Dialog,
 	DialogContent,
@@ -28,9 +21,16 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useFileHandler } from "@/hooks";
+import type { CreateBundleDto } from "@/queries";
+import { CreateBundle, GetExaminations } from "@/queries";
+import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
+import { Textarea } from "../ui/textarea";
 dayjs.locale("en-gb");
 
 interface Props {
@@ -77,6 +77,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		name: "",
 		start_date: new Date(),
 		banner: null,
+		description: "",
 	};
 
 	const { clearFiles, handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -122,6 +123,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 				.required("Max Subjects is required")
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
+			description: Yup.string().required("Bundle description is required"),
 		}),
 		onSubmit: (values) => {
 			mutate(values);
@@ -141,7 +143,7 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 						<DialogTitle>Add New Subcategory</DialogTitle>
 						<DialogDescription hidden>Add New Subcategory</DialogDescription>
 						<form onSubmit={handleSubmit} className="w-full space-y-4">
-							<div className="relative aspect-video w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
+							<div className="relative h-48 w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 								{values.banner ? (
 									<Image
 										src={
@@ -186,6 +188,13 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 								name="name"
 								onChange={handleChange}
 								error={touched.name && errors.name ? errors.name : ""}
+							/>
+							<Textarea
+								label="Description"
+								name="description"
+								className="col-span-full h-32"
+								onChange={handleChange}
+								error={touched.description && errors.description ? errors.description : ""}
 							/>
 							<Input
 								label="Amount"

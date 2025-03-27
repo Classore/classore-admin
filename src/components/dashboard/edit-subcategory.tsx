@@ -1,22 +1,21 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
 import { RiCameraLine, RiLoaderLine } from "@remixicon/react";
-import { useFormik } from "formik";
-import { addDays } from "date-fns";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { DatePicker } from "antd";
+import { addDays } from "date-fns";
+import dayjs from "dayjs";
+import { useFormik } from "formik";
 import Image from "next/image";
 import { toast } from "sonner";
-import dayjs from "dayjs";
 import * as Yup from "yup";
-import React from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useFileHandler } from "@/hooks";
 import type { BundleResponse, CreateBundleDto, ExaminationResponse } from "@/queries";
 import { GetBundle, GetExaminations, UpdateBundle } from "@/queries";
-import { DialogDescription, DialogTitle } from "../ui/dialog";
 import type { CastedExamBundleProps, HttpError } from "@/types";
-import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
+import { DialogDescription, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
 dayjs.locale("en-gb");
@@ -28,6 +27,7 @@ interface Props {
 }
 
 export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
+	console.log("subcategory", subcategory);
 	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: Partial<CreateBundleDto>) => UpdateBundle(id, payload),
 		mutationKey: ["update-bundle", id],
@@ -78,6 +78,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 		max_subjects: subcategory.examinationbundle_max_subjects,
 		name: subcategory.examinationbundle_name,
 		start_date: subcategory.examinationbundle_start_date,
+		// description: subcategory.examinationbundle_description,
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -123,6 +124,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 				.required("Max Subjects is required")
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
+			description: Yup.string().required("Bundle description is required"),
 		}),
 		onSubmit: (values) => {
 			mutate(values);

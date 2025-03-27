@@ -9,13 +9,13 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { PublishResource } from "@/queries";
+import { DeleteEntities, PublishResource } from "@/queries";
 import type { CastedExamBundleProps } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { EditSubcategory } from "../dashboard";
 import { PublishModal } from "../publish-modal";
-import { IconLabel } from "../shared";
+import { IconLabel, Spinner } from "../shared";
 import { Button } from "../ui/button";
 
 interface Props {
@@ -36,6 +36,17 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 				queryKey: ["bundles"],
 			});
 			setOpenPublishModal(false);
+		},
+	});
+
+	const { mutate: deleteMutate, isPending: deletePending } = useMutation({
+		mutationFn: DeleteEntities,
+		onSuccess: () => {
+			toast.success("Exam bundle deleted successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
+			setOpen({ ...open, remove: false });
 		},
 	});
 
@@ -95,13 +106,18 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 						<DialogDescription>Are you sure you want to delete this bundle?</DialogDescription>
 						<div className="mt-6 flex w-full items-center justify-end gap-x-4">
 							<Button
+								disabled={deletePending}
 								onClick={() => setOpen({ ...open, remove: false })}
 								className="w-fit"
 								variant="outline">
 								Cancel
 							</Button>
-							<Button className="w-fit" variant="destructive">
-								Yes, Delete
+							<Button
+								disabled={deletePending}
+								className="w-fit"
+								variant="destructive"
+								onClick={() => deleteMutate({ ids: [id], model_type: "EXAM_BUNDLE" })}>
+								{deletePending ? <Spinner /> : "Yes, Delete"}
 							</Button>
 						</div>
 					</div>
