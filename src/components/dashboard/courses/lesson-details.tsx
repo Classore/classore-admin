@@ -27,7 +27,7 @@ type LessonProps = {
 };
 
 interface UseMutationProps {
-	chapter_id: string;
+	id: string;
 	module: CreateChapterModuleDto;
 }
 
@@ -45,7 +45,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 	// SAVE LESSON
 	const { isPending, mutate } = useMutation({
-		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
+		mutationFn: async ({ id, module }: UseMutationProps) => {
 			const formData = new FormData();
 			module.attachments.forEach((attachment) => {
 				formData.append("attachments", attachment);
@@ -56,7 +56,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			abortController.current = new AbortController();
 			try {
 				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
-					endpoints(chapter_id).school.create_chapter_module,
+					endpoints(id).school.create_chapter_module,
 					formData,
 					{
 						signal: abortController.current.signal,
@@ -97,7 +97,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 		}
 
 		mutate({
-			chapter_id: chapterId ?? "",
+			id: chapterId ?? "",
 			module: {
 				attachment_urls: [],
 				image_urls: [],
@@ -115,7 +115,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 	// UPDATE LESSON
 	const { isPending: updatePending, mutate: updateMutate } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) => UpdateChapterModule(chapter_id, module),
+		mutationFn: ({ id, module }: UseMutationProps) => UpdateChapterModule(id, module),
 		mutationKey: ["update-chapter-module"],
 		onSuccess: () => {
 			toast.success("Chapter module update successfully!");
@@ -138,7 +138,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 		}
 
 		updateMutate({
-			chapter_id: chapterId ?? "",
+			id: activeLessonId,
 			module: {
 				attachment_urls: [],
 				image_urls: [],
