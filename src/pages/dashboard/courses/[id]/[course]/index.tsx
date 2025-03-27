@@ -1,28 +1,29 @@
-import { skipToken, useQuery } from "@tanstack/react-query";
 import { RiArrowLeftSLine } from "@remixicon/react";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
-import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
-import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { AssignTeachers } from "@/components/dashboard";
 import { Chapters } from "@/components/dashboard/courses/chapters";
 import { Modules } from "@/components/dashboard/courses/modules";
+import { DeleteSubject } from "@/components/dashboard/delete-subject";
+import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
-import { QuizSettingsTab } from "@/components/quiz-settings";
-import { chapterActions } from "@/store/z-store/chapter";
-import { AssignTeachers } from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
+import { QuizSettingsTab } from "@/components/quiz-settings";
+import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { create_course_tabs } from "@/config";
-import { GetSubject } from "@/queries";
 import { capitalize } from "@/lib";
+import { GetSubject } from "@/queries";
+import { chapterActions } from "@/store/z-store/chapter";
 
 const { setChapters, setChapterLessons } = chapterActions;
 
 const Page = () => {
 	const router = useRouter();
 	const courseId = router.query.course as string;
+	const ref = React.useRef<HTMLDivElement>(null);
 
 	const [tab, setTab] = React.useState("course");
 	const [section, setSection] = React.useState("chapters");
@@ -104,7 +105,7 @@ const Page = () => {
 			<Seo title={capitalize(course?.data.name) || "Course"} />
 
 			<DashboardLayout>
-				<div className="flex w-full flex-col gap-y-4">
+				<div className="flex w-full flex-col gap-y-4" ref={ref}>
 					<section className="flex w-full items-center justify-between rounded-lg bg-white px-5 py-3">
 						<div className="flex flex-col gap-y-2">
 							<div className="flex items-center gap-x-4">
@@ -155,7 +156,7 @@ const Page = () => {
 					</section>
 
 					<TabPanel selected={tab} value="course">
-						<section className="grid h-dvh grid-cols-[repeat(16,minmax(0,1fr))] gap-2 rounded-lg bg-white p-2.5">
+						<section className="relative grid grid-cols-[repeat(16,minmax(0,1fr))] gap-2 rounded-lg bg-white p-2.5">
 							{/* CHAPTERS */}
 							<Chapters
 								setSection={setSection}

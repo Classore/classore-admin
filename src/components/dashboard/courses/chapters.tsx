@@ -125,7 +125,7 @@ export const Chapters = ({
 	return (
 		<>
 			<article
-				className={`${section === "chapters" ? "col-[span_15_/_span_15]" : "col-span-1"} w-full overflow-y-auto rounded-md bg-neutral-100 p-4 transition-all`}>
+				className={`${section === "chapters" ? "col-[span_15_/_span_15]" : "col-span-1"} sticky left-0 top-0 h-full w-full self-start rounded-md bg-neutral-100 p-4 transition-all`}>
 				<header
 					className={`flex items-center justify-between transition-all ${section !== "chapters" ? "writing-vertical-lr gap-3" : "writing-horizontal-tb"}`}>
 					<p className="text-xs uppercase tracking-widest">All chapters</p>
@@ -237,7 +237,7 @@ export const Chapters = ({
 										dangerouslySetInnerHTML={{
 											__html: sanitize(chapter?.content).replace(/\n/g, "<br />"),
 										}}
-										className="prose-xs max-h-28 overflow-auto prose-p:text-left prose-p:text-xs prose-p:text-neutral-400"
+										className="prose-xs max-h-32 w-full overflow-auto text-left text-xs prose-p:text-neutral-400 prose-li:list-outside prose-li:list-disc"
 									/>
 								</div>
 							</button>

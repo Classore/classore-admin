@@ -201,6 +201,7 @@ const GetQuestion = async (id: string) => {
 	return id;
 };
 
+
 const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) => {
 	const formData = new FormData();
 	if (payload.title) formData.append("title", payload.title);
@@ -251,7 +252,7 @@ export type DeleteEntitiesPayload = {
 		| "QUESTION"
 		| "SUBJECT"
 		| "USER"
-		| string & {}
+		| (string & {});
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
@@ -304,3 +305,4 @@ export {
 	UpdateQuestion,
 	UpdateQuizSettings,
 };
+
