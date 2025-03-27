@@ -1,15 +1,15 @@
 import { RiLogoutBoxRLine } from "@remixicon/react";
-import { useRouter } from "next/router";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
 
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { dashboard_links } from "@/config";
+import { normalize } from "@/lib";
 import { useUserStore } from "@/store/z-store";
 import { Appbar, IconLabel } from "../shared";
-import { dashboard_links } from "@/config";
 import { Button } from "../ui/button";
-import { normalize } from "@/lib";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const [open, setOpen] = React.useState(false);

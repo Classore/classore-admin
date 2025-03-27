@@ -2,9 +2,6 @@
 import { cn } from "@/lib";
 import {
 	RiBold,
-	RiH1,
-	RiH2,
-	RiH3,
 	RiItalic,
 	RiListOrdered,
 	RiListUnordered,
@@ -72,7 +69,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 			{/* <button onClick={() => editor.chain().focus().unsetAllMarks().run()}>Clear marks</button>
 				<button onClick={() => editor.chain().focus().clearNodes().run()}>Clear nodes</button> */}
 
-			<button
+			{/* <button
 				type="button"
 				title="Heading 1"
 				onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -92,7 +89,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 				onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
 				className={editor.isActive("heading", { level: 3 }) ? "is-active" : ""}>
 				<RiH3 className="size-3" />
-			</button>
+			</button> */}
 			{/* <button
 				type="button"
 				title="Heading 4"
@@ -203,22 +200,30 @@ export const TiptapEditor = ({
 		editorProps: {
 			attributes: {
 				class: cn(
-					"prose-sm w-full focus:outline-none prose-li:list-item min-h-32 pb-2 px-3",
+					"prose-sm prose-p:text-sm w-full prose-li:list-disc prose-li:list-outside focus:outline-none min-h-32 pb-2 px-3",
 					editorClassName
 				),
 			},
 		},
 	});
 
+	// Resolves cursor moving to the end of the editor
 	React.useEffect(() => {
-		if (editor && initialValue) {
-			editor.commands.setContent(initialValue);
+		if (!editor) return;
+
+		const div = document.createElement("div");
+		div.innerHTML = initialValue || value;
+		const isSame = editor.getHTML() === div.innerHTML;
+		if (isSame) {
+			return;
 		}
 
+		editor.commands.setContent(value, false);
+
 		if (!initialValue) {
-			editor?.commands.setContent("");
+			editor.commands.setContent("", false);
 		}
-	}, [initialValue, editor]);
+	}, [value, editor, initialValue]);
 
 	return (
 		<div
@@ -227,7 +232,7 @@ export const TiptapEditor = ({
 				className
 			)}>
 			<MenuBar editor={editor} />
-			<EditorContent editor={editor} />
+			<EditorContent editor={editor} className="overflow-y-auto" />
 		</div>
 	);
 };
