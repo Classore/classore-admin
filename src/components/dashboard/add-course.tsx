@@ -61,19 +61,9 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		mutationFn: (payload: CreateSubjectDto) => CreateSubject(payload),
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient
-				.invalidateQueries({
-					queryKey: [
-						"get-bundle",
-						"get-bundles",
-						"get-subject",
-						"get-subjects",
-						"get-bundle-for-subjects",
-					],
-				})
-				.then(() => {
-					onOpenChange(false);
-				});
+			queryClient.invalidateQueries().then(() => {
+				onOpenChange(false);
+			});
 		},
 		onError: (error) => {
 			const isHttpError = IsHttpError(error);
