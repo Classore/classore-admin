@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import * as Yup from "yup";
 
 import { useFileHandler } from "@/hooks";
+import { httpErrorhandler, IsHttpError } from "@/lib";
 import { queryClient } from "@/providers";
 import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
 import { Button } from "../ui/button";
@@ -26,12 +27,19 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 		mutationKey: ["update-subject"],
 		mutationFn: (data: Partial<CreateSubjectDto>) => UpdateSubject(courseId, data),
 		onSuccess: (data) => {
-			console.log(data);
+			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });
 			setOpen(false);
 		},
 		onError: (error) => {
-			console.log(error);
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
 		},
 	});
 
