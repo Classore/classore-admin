@@ -128,7 +128,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 				.required("Max Subjects is required")
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
-			description: Yup.string().required("Bundle description is required"),
+			description: Yup.string().required("Description is required"),
 		}),
 		onSubmit: (values) => {
 			mutate(values);
