@@ -1,5 +1,5 @@
 import { RiCameraLine, RiLoaderLine } from "@remixicon/react";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "antd";
 import { addDays } from "date-fns";
 import dayjs from "dayjs";
@@ -18,6 +18,7 @@ import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
+import { Textarea } from "../ui/textarea";
 dayjs.locale("en-gb");
 
 interface Props {
@@ -27,12 +28,15 @@ interface Props {
 }
 
 export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
-	console.log("subcategory", subcategory);
+	const queryClient = useQueryClient()
 	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: Partial<CreateBundleDto>) => UpdateBundle(id, payload),
 		mutationKey: ["update-bundle", id],
 		onSuccess: (data) => {
 			toast.success(data.message);
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
 			onOpenChange(false);
 		},
 		onError: (error: HttpError) => {
@@ -78,7 +82,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 		max_subjects: subcategory.examinationbundle_max_subjects,
 		name: subcategory.examinationbundle_name,
 		start_date: subcategory.examinationbundle_start_date,
-		// description: subcategory.examinationbundle_description,
+		description: subcategory.examinationbundle_description,
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -133,10 +137,10 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 
 	return (
 		<form onSubmit={handleSubmit} className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
-			<DialogTitle className="my-4">Edit Subcategory</DialogTitle>
+			<DialogTitle className="mb-4">Edit Subcategory</DialogTitle>
 			<DialogDescription hidden>Edit Subcategory</DialogDescription>
 			<div className="space-y-2">
-				<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
+				<div className="relative h-48 w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 					{values.banner ? (
 						<Image
 							src={typeof values.banner === "string" ? values.banner : URL.createObjectURL(values.banner)}
@@ -170,6 +174,14 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 					onChange={handleChange}
 					error={touched.name && errors.name ? errors.name : ""}
 				/>
+				<Textarea
+					label="Description"
+					name="description"
+					className="col-span-full h-32"
+					value={values.description}
+					onChange={handleChange}
+					error={touched.description && errors.description ? errors.description : ""}
+				/>
 				<Input
 					label="Amount"
 					type="number"
@@ -189,6 +201,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 							errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
 						}
 					/>
+
 					<Input
 						label="Extra Charge"
 						type="number"

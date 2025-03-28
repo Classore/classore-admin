@@ -5,7 +5,7 @@ import {
 	RiDeleteBin6Line,
 	RiLoaderLine,
 } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "antd";
 import { addDays } from "date-fns";
 import dayjs from "dayjs";
@@ -39,10 +39,14 @@ interface Props {
 }
 
 export const AddBundle = ({ onOpenChange, open }: Props) => {
+	const queryClient = useQueryClient();
 	const { isPending, mutate } = useMutation({
 		mutationFn: (data: CreateBundleDto) => CreateBundle(data),
 		onSuccess: () => {
 			toast.success("Examination bundle created successfully");
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
 			onOpenChange(false);
 		},
 		onError: (error) => {

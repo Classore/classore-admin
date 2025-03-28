@@ -104,7 +104,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		onSuccess: (data) => {
 			console.log(data);
 			toast.success("Questions added successfully");
-			queryClient.invalidateQueries({ queryKey: ["get-questions", activeLessonId] });
+			queryClient.invalidateQueries({ queryKey: ["get-questions"] });
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -117,13 +117,13 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		if (chapterId && activeLessonId) {
 			const existingQuestions = questions[chapterId]?.[activeLessonId];
 			if (!existingQuestions || existingQuestions.length === 0) {
-				addQuestion(chapterId, activeLessonId);
+				// addQuestion(chapterId, activeLessonId);
 				return questions[chapterId]?.[activeLessonId];
 			}
 			return existingQuestions;
 		}
 		return [];
-	}, [chapterId, activeLessonId, questions, addQuestion]);
+	}, [chapterId, activeLessonId, questions]);
 
 	const handleAddQuestion = () => {
 		if (!chapterId || !activeLessonId) {
@@ -188,6 +188,12 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			return;
 		}
 		const newQuestions = filterExistingQuestions(moduleQuestions);
+		if (newQuestions.length === 0) {
+			toast.error("No new questions provided, all questions already exist. Please add new questions");
+			return;
+		}
+
+		console.log("newQuestions", newQuestions);
 		mutate(newQuestions);
 	};
 
@@ -273,7 +279,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 						</Button>
 					</div>
 
-					<Button
+					{/* <Button
 						disabled={isPending}
 						className="w-32"
 						variant="ghost"
@@ -281,7 +287,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 						type="button"
 						onClick={() => setCurrentTab("lesson")}>
 						Back to Lesson
-					</Button>
+					</Button> */}
 				</div>
 			</div>
 		</form>

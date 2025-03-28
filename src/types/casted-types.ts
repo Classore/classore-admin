@@ -33,6 +33,7 @@ export type CastedExamBundleProps = {
 	examinationbundle_max_subjects: number;
 	examinationbundle_name: string;
 	examinationbundle_rating: number;
+	examinationbundle_description: string;
 	examinationbundle_start_date: Date;
 	examinationbundle_updatedby: Maybe<string>;
 	examinationbundle_updatedon: Maybe<Date>;
