@@ -1,24 +1,24 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
 import { RiCameraLine, RiLoaderLine } from "@remixicon/react";
-import { useFormik } from "formik";
-import { addDays } from "date-fns";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "antd";
+import { addDays } from "date-fns";
+import dayjs from "dayjs";
+import { useFormik } from "formik";
 import Image from "next/image";
 import { toast } from "sonner";
-import dayjs from "dayjs";
 import * as Yup from "yup";
-import React from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useFileHandler } from "@/hooks";
 import type { BundleResponse, CreateBundleDto, ExaminationResponse } from "@/queries";
 import { GetBundle, GetExaminations, UpdateBundle } from "@/queries";
-import { DialogDescription, DialogTitle } from "../ui/dialog";
 import type { CastedExamBundleProps, HttpError } from "@/types";
-import { useFileHandler } from "@/hooks";
 import { Button } from "../ui/button";
+import { DialogDescription, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
+import { Textarea } from "../ui/textarea";
 dayjs.locale("en-gb");
 
 interface Props {
@@ -28,11 +28,15 @@ interface Props {
 }
 
 export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
+	const queryClient = useQueryClient()
 	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: Partial<CreateBundleDto>) => UpdateBundle(id, payload),
 		mutationKey: ["update-bundle", id],
 		onSuccess: (data) => {
 			toast.success(data.message);
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
 			onOpenChange(false);
 		},
 		onError: (error: HttpError) => {
@@ -78,6 +82,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 		max_subjects: subcategory.examinationbundle_max_subjects,
 		name: subcategory.examinationbundle_name,
 		start_date: subcategory.examinationbundle_start_date,
+		description: subcategory.examinationbundle_description,
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -123,6 +128,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 				.required("Max Subjects is required")
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
+			description: Yup.string().required("Description is required"),
 		}),
 		onSubmit: (values) => {
 			mutate(values);
@@ -131,10 +137,10 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 
 	return (
 		<form onSubmit={handleSubmit} className="h-full w-full rounded-lg border px-4 pb-4 pt-[59px]">
-			<DialogTitle className="my-4">Edit Subcategory</DialogTitle>
+			<DialogTitle className="mb-4">Edit Subcategory</DialogTitle>
 			<DialogDescription hidden>Edit Subcategory</DialogDescription>
 			<div className="space-y-2">
-				<div className="relative h-[160px] w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
+				<div className="relative h-48 w-full rounded-md bg-gradient-to-r from-[#6f42c1]/20 to-[#f67f36]/15">
 					{values.banner ? (
 						<Image
 							src={typeof values.banner === "string" ? values.banner : URL.createObjectURL(values.banner)}
@@ -168,6 +174,14 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 					onChange={handleChange}
 					error={touched.name && errors.name ? errors.name : ""}
 				/>
+				<Textarea
+					label="Description"
+					name="description"
+					className="col-span-full h-32"
+					value={values.description}
+					onChange={handleChange}
+					error={touched.description && errors.description ? errors.description : ""}
+				/>
 				<Input
 					label="Amount"
 					type="number"
@@ -187,6 +201,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 							errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
 						}
 					/>
+
 					<Input
 						label="Extra Charge"
 						type="number"

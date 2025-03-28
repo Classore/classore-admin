@@ -9,13 +9,13 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { PublishResource } from "@/queries";
+import { DeleteEntities, PublishResource } from "@/queries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
 import { PublishModal } from "../publish-modal";
-import { IconLabel } from "../shared";
+import { IconLabel, Spinner } from "../shared";
 import { Button } from "../ui/button";
 
 interface Props {
@@ -35,7 +35,24 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 		onSuccess: () => {
 			toast.success("Course published successfully!");
 			queryClient.invalidateQueries({
-				queryKey: ["get-subjects"],
+				queryKey: ["get-bundle"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
+			});
+			setOpen(false);
+		},
+	});
+
+	const { mutate: deleteMutate, isPending: deletePending } = useMutation({
+		mutationFn: DeleteEntities,
+		onSuccess: () => {
+			toast.success("Exam bundle deleted successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["get-bundle"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["bundles"],
 			});
 			setOpen(false);
 		},
@@ -49,19 +66,21 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 				<RiInformationLine size={18} /> View Details
 			</Link>
 
-			<PublishModal
-				open={open}
-				setOpen={setOpen}
-				type="course"
-				published={published}
-				isPending={isPending}
-				onConfirm={() =>
-					mutate({
-						id,
-						model_type: "SUBJECT",
-					})
-				}
-			/>
+			{!published ? (
+				<PublishModal
+					open={open}
+					setOpen={setOpen}
+					type="course"
+					published={published}
+					isPending={isPending}
+					onConfirm={() =>
+						mutate({
+							id: subject_id,
+							model_type: "SUBJECT",
+						})
+					}
+				/>
+			) : null}
 
 			<Dialog>
 				<DialogTrigger asChild>
@@ -79,12 +98,16 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 						<DialogDescription>Are you sure you want to delete this course?</DialogDescription>
 						<div className="mt-6 flex w-full items-center justify-end gap-x-4">
 							<DialogClose asChild>
-								<Button className="w-fit" variant="outline">
+								<Button disabled={deletePending} className="w-fit" variant="outline">
 									Cancel
 								</Button>
 							</DialogClose>
-							<Button className="w-fit" variant="destructive">
-								Yes, Delete
+							<Button
+								disabled={deletePending}
+								className="w-fit"
+								variant="destructive"
+								onClick={() => deleteMutate({ ids: [subject_id], model_type: "SUBJECT" })}>
+								{deletePending ? <Spinner /> : "Yes, Delete"}
 							</Button>
 						</div>
 					</div>
