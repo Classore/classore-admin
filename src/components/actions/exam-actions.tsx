@@ -33,6 +33,9 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 		onSuccess: () => {
 			toast.success("Exam bundle published successfully!");
 			queryClient.invalidateQueries({
+				queryKey: ["get-bundle"],
+			});
+			queryClient.invalidateQueries({
 				queryKey: ["bundles"],
 			});
 			setOpenPublishModal(false);
@@ -43,6 +46,9 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 		mutationFn: DeleteEntities,
 		onSuccess: () => {
 			toast.success("Exam bundle deleted successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["get-bundle"],
+			});
 			queryClient.invalidateQueries({
 				queryKey: ["bundles"],
 			});
@@ -58,19 +64,21 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 				<RiInformationLine size={18} /> View Details
 			</Link>
 
-			<PublishModal
-				open={openPublishModal}
-				setOpen={setOpenPublishModal}
-				type="bundle"
-				published={subcategory.examinationbundle_is_published === "YES"}
-				isPending={isPending}
-				onConfirm={() =>
-					mutate({
-						id,
-						model_type: "EXAM_BUNDLE",
-					})
-				}
-			/>
+			{subcategory.examinationbundle_is_published === "NO" ? (
+				<PublishModal
+					open={openPublishModal}
+					setOpen={setOpenPublishModal}
+					type="bundle"
+					// published={subcategory.examinationbundle_is_published === "YES"}
+					isPending={isPending}
+					onConfirm={() =>
+						mutate({
+							id,
+							model_type: "EXAM_BUNDLE",
+						})
+					}
+				/>
+			) : null}
 
 			<Dialog open={open.edit} onOpenChange={(edit) => setOpen({ ...open, edit })}>
 				<DialogTrigger asChild>
