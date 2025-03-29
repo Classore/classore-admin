@@ -43,6 +43,7 @@ export interface CreateBundleDto {
 	max_subjects: number;
 	name: string;
 	start_date: Date;
+	description: string;
 }
 
 export interface ExamBundleResponse {
@@ -223,6 +224,9 @@ const UpdateBundle = async (id: string, payload: Partial<CreateBundleDto>) => {
 	}
 	if (payload.start_date) {
 		formData.append("start_date", format(payload.start_date, "MM/dd/yyyy"));
+	}
+	if (payload.description) {
+		formData.append("description", payload.description);
 	}
 	return axios
 		.put<HttpResponse<CastedExamBundleProps>>(endpoints(id).school.update_exam_bundle, formData)

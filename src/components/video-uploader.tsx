@@ -1,19 +1,18 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { type Socket, io } from "socket.io-client";
-import Cookies from "js-cookie";
-import { toast } from "sonner";
+import { Logger, embedUrl, generateUuid, getFileChunks, validateFile } from "@/lib";
 import {
 	RiDeleteBin5Line,
 	RiRefreshLine,
 	RiUploadCloud2Line,
 	RiVideoAddLine,
 } from "@remixicon/react";
-
-import { Logger, embedUrl, generateUuid, getFileChunks, validateFile } from "@/lib";
-import { UploadProgress } from "./shared/upload-progress";
 import { useQueryClient } from "@tanstack/react-query";
+import Cookies from "js-cookie";
+import * as React from "react";
+import { type Socket, io } from "socket.io-client";
+import { toast } from "sonner";
 import { PasteLink } from "./dashboard";
 import { VideoPlayer } from "./shared";
+import { UploadProgress } from "./shared/upload-progress";
 import { Button } from "./ui/button";
 
 interface Props {
@@ -56,25 +55,30 @@ const showNotification = (title: string, options: NotificationOptions) => {
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const queryClient = useQueryClient();
-	const [uploadStatus, setUploadStatus] = useState<VideoUploadStatus>({
+	const [uploadStatus, setUploadStatus] = React.useState<VideoUploadStatus>({
 		status: "",
 		progress: 0,
 		chunk: undefined,
 	});
 
 	// const abortController = useRef<AbortController | null>(new AbortController());
-	const socket = useRef<Socket | null>(null);
-	const fileInputRef = useRef<HTMLInputElement>(null);
-	const isRunningRef = useRef(false);
+	// Using this to cleanup video element i will be creating later to get the duration
+	const videoRef = React.useRef<{
+		element: HTMLVideoElement | null;
+		cleanup: () => void;
+	}>({ element: null, cleanup: () => {} });
+
+	const socket = React.useRef<Socket | null>(null);
+	const fileInputRef = React.useRef<HTMLInputElement>(null);
+	const isRunningRef = React.useRef(false);
 
 	const [retryCount, setRetryCount] = React.useState(0);
-	const [isUploading, setIsUploading] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
-	const [previewUrl, setPreviewUrl] = useState("");
-	const [open, setOpen] = useState(false);
-	const [duration, setDuration] = useState(0);
+	const [isUploading, setIsUploading] = React.useState(false);
+	const [isLoading, setIsLoading] = React.useState(false);
+	const [previewUrl, setPreviewUrl] = React.useState("");
+	const [open, setOpen] = React.useState(false);
 
-	const upload_id = useMemo(() => generateUuid(), []);
+	const upload_id = React.useMemo(() => generateUuid(), []);
 	const hasVideo = Boolean(video_array.length > 0);
 
 	React.useEffect(() => {
@@ -124,11 +128,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		};
 	}, [moduleId, queryClient]);
 
-	React.useEffect(() => {
-		console.log("uploadStatus", uploadStatus);
-	}, [uploadStatus]);
-
-	const handleCancelUpload = useCallback(() => {
+	const handleCancelUpload = React.useCallback(() => {
 		isRunningRef.current = false;
 		setIsLoading(false);
 		setIsUploading(false);
@@ -142,8 +142,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		setPreviewUrl("");
 	}, []);
 
-	const uploadChunk = useCallback(
-		async (chunks: Chunk[], file: File): Promise<void> => {
+	const uploadChunk = React.useCallback(
+		async (chunks: Chunk[], file: File, duration: number): Promise<void> => {
 			isRunningRef.current = true;
 
 			for (const chunk of chunks) {
@@ -224,14 +224,14 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 			isRunningRef.current = false;
 		},
-		[moduleId, upload_id, duration]
+		[moduleId, upload_id]
 	);
 
-	const uploadChunkWithRetry = useCallback(
-		async (chunks: Chunk[], file: File): Promise<void> => {
+	const uploadChunkWithRetry = React.useCallback(
+		async (chunks: Chunk[], file: File, duration: number): Promise<void> => {
 			while (retryCount < MAX_RETRIES) {
 				try {
-					return await uploadChunk(chunks, file);
+					return await uploadChunk(chunks, file, duration);
 				} catch (error) {
 					setRetryCount((prev) => prev + 1);
 					if (retryCount === MAX_RETRIES) {
@@ -245,7 +245,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	);
 
 	const uploader = React.useCallback(
-		async (file: File, moduleId: string) => {
+		async (file: File, moduleId: string, duration: number) => {
 			if (!file || !moduleId) {
 				toast.error("Please save this lesson before trying to upload a video");
 				return;
@@ -256,15 +256,17 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				toast.error("Authentication token missing");
 				return;
 			}
+
 			const chunks = getFileChunks(file.size);
-			uploadChunkWithRetry(chunks, file);
+			uploadChunkWithRetry(chunks, file, duration);
 		},
 		[uploadChunkWithRetry]
 	);
 
-	const handleFileChange = useCallback(
+	const handleFileChange = React.useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			if (!e.target.files?.length) return;
+			videoRef.current.cleanup();
 
 			if (isUploading) {
 				toast.error("An upload is already in progress");
@@ -280,26 +282,52 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				minFiles: 1,
 			});
 
-			if (!error) {
-				const objectURL = URL.createObjectURL(selectedFile);
-				setPreviewUrl(objectURL);
-				uploader(selectedFile, moduleId);
-			} else {
+			if (error) {
 				toast.error(error.message, {
 					description: "Please try again.",
 				});
+				return;
 			}
+
+			const objectURL = URL.createObjectURL(selectedFile);
+			setPreviewUrl(objectURL);
+
+			const video = document.createElement("video");
+			video.src = objectURL;
+			video.preload = "metadata";
+
+			video.addEventListener("loadedmetadata", () => {
+				const duration = video.duration;
+				uploader(selectedFile, moduleId, duration);
+			});
+
+			videoRef.current = {
+				element: video,
+				cleanup: () => {
+					video.removeEventListener("loadedmetadata", () => {});
+					if (video.parentNode) {
+						video.parentNode.removeChild(video);
+					}
+				},
+			};
 		},
-		[isUploading, moduleId, uploader]
+		[isUploading]
 	);
 
-	const handleFileRemove = useCallback(() => {
+	const handleFileRemove = React.useCallback(() => {
 		URL.revokeObjectURL(previewUrl);
 		setPreviewUrl("");
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
 	}, [previewUrl]);
+
+	// cleanup on unmount
+	React.useEffect(() => {
+		return () => {
+			videoRef.current.cleanup();
+		};
+	}, []);
 
 	const video = video_array[0];
 	const uploadedVideo = typeof video === "string" ? video : "";
@@ -356,11 +384,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				{previewUrl ? (
 					<div className="h-full w-full">
 						<div className="relative aspect-video w-full rounded-lg border border-neutral-200">
-							<VideoPlayer
-								src={previewUrl}
-								onReady={(duration) => setDuration(duration ?? 0)}
-								className="h-full w-full rounded-lg"
-							/>
+							<VideoPlayer src={previewUrl} className="h-full w-full rounded-lg" />
 							<button
 								onClick={() => {
 									handleFileRemove();

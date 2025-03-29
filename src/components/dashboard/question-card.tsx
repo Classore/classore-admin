@@ -1,6 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import React from "react";
 import {
 	RiAddLine,
 	RiAlignLeft,
@@ -15,16 +12,18 @@ import {
 	RiFileCopyLine,
 	RiImageAddLine,
 } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
-import { DeleteEntities } from "@/queries";
-import { Textarea } from "../ui/textarea";
-import { queryClient } from "@/providers";
 import { useFileHandler } from "@/hooks";
+import { queryClient } from "@/providers";
+import { DeleteEntities } from "@/queries";
+import { useQuizStore, type QuestionDto } from "@/store/z-store/quiz";
 import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
 	chapterId: string;
@@ -60,7 +59,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		toggleQuestionSelection,
 	} = useQuizStore();
 
-	const { isPending, mutate } = useMutation({
+	const { mutate } = useMutation({
 		mutationFn: (ids: string[]) => DeleteEntities({ ids, model_type: "QUESTION" }),
 		onSuccess: () => {
 			toast.success("Questions deleted successfully");
@@ -100,12 +99,6 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 			mutate(ids);
 		}
 	};
-
-	React.useEffect(() => {
-		if (isPending) {
-			toast.loading("Deleting questions...");
-		}
-	}, [isPending]);
 
 	return (
 		<div className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">

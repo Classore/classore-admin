@@ -1,6 +1,14 @@
 import { RiDeleteBin6Line, RiInformationLine } from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import { toast } from "sonner";
+import * as React from "react";
 import Link from "next/link";
 
+import { DeleteEntities, PublishResource } from "@/queries";
+import { PublishModal } from "../publish-modal";
+import { IconLabel, Spinner } from "../shared";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -9,14 +17,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { PublishResource } from "@/queries";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
-import { PublishModal } from "../publish-modal";
-import { IconLabel } from "../shared";
-import { Button } from "../ui/button";
 
 interface Props {
 	subject_id: string;
@@ -38,6 +38,16 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 				queryKey: ["get-bundle"],
 			});
 			setOpen(false);
+		},
+	});
+
+	const { isPending: isDeleting, mutate: deleteMutate } = useMutation({
+		mutationFn: DeleteEntities,
+		onSuccess: () => {
+			toast.success("Course deleted successfully!");
+			queryClient.invalidateQueries({
+				queryKey: ["get-bundle"],
+			});
 		},
 	});
 
@@ -79,12 +89,16 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 						<DialogDescription>Are you sure you want to delete this course?</DialogDescription>
 						<div className="mt-6 flex w-full items-center justify-end gap-x-4">
 							<DialogClose asChild>
-								<Button className="w-fit" variant="outline">
+								<Button disabled={isDeleting} className="w-fit" variant="outline">
 									Cancel
 								</Button>
 							</DialogClose>
-							<Button className="w-fit" variant="destructive">
-								Yes, Delete
+							<Button
+								disabled={isDeleting}
+								className="w-fit"
+								variant="destructive"
+								onClick={() => deleteMutate({ ids: [subject_id], model_type: "SUBJECT" })}>
+								{isDeleting ? <Spinner /> : "Yes, Delete"}
 							</Button>
 						</div>
 					</div>
