@@ -35,7 +35,7 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 		onSuccess: () => {
 			toast.success("Course published successfully!");
 			queryClient.invalidateQueries({
-				queryKey: ["get-subjects"],
+				queryKey: ["get-bundle"],
 			});
 			setOpen(false);
 		},
@@ -57,7 +57,7 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 				isPending={isPending}
 				onConfirm={() =>
 					mutate({
-						id,
+						id: subject_id,
 						model_type: "SUBJECT",
 					})
 				}

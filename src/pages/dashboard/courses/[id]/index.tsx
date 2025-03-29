@@ -3,11 +3,16 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { AddCourse } from "@/components/dashboard";
-import { DashboardLayout } from "@/components/layout";
+import { type ExamBundleResponse, GetBundle, GetSubjects } from "@/queries";
 import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
+import type { HttpResponse, PaginatedResponse } from "@/types";
+import type { CastedCourseProps } from "@/types/casted-types";
+import { DashboardLayout } from "@/components/layout";
+import { useNavigationStore } from "@/store/z-store";
+import { AddCourse } from "@/components/dashboard";
 import { CourseTable } from "@/components/tables";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks";
 import {
 	Select,
 	SelectContent,
@@ -15,12 +20,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useDebounce } from "@/hooks";
-import type { ExamBundleResponse } from "@/queries";
-import { GetBundle, GetSubjects } from "@/queries";
-import { useNavigationStore } from "@/store/z-store";
-import type { HttpResponse, PaginatedResponse } from "@/types";
-import type { CastedCourseProps } from "@/types/casted-types";
 
 const course_status = ["all", "published", "unpublished"] as const;
 const sort_options = ["recent", "oldest"] as const;
