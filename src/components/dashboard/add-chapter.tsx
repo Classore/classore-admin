@@ -1,18 +1,18 @@
 import { RiAddLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
-import React from "react";
 import { toast } from "sonner";
 import * as Yup from "yup";
+import React from "react";
 
-import { queryClient } from "@/providers";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { CreateChapter, type CreateChapterDto } from "@/queries";
+import { TiptapEditor } from "../ui/tiptap-editor";
+import { queryClient } from "@/providers";
 import type { HttpError } from "@/types";
 import { IconLabel } from "../shared";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { TiptapEditor } from "../ui/tiptap-editor";
 
 interface Props {
 	courseId: string;
@@ -33,10 +33,10 @@ export const AddChapter = ({ courseId, sequence }: Props) => {
 			toast.error(message);
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-bundle"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			setOpen(false);
-			window.location.reload();
 		},
 	});
 

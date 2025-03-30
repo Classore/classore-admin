@@ -218,16 +218,14 @@ const Initial = (props: InnerProps) => {
 					onChange={handleChange}
 					wrapperClassName="h-40"
 				/> */}
-				<label className="font-body flex flex-col gap-1.5">
-					<p className="text-xs text-neutral-400">
-						Describe what the students will learn
-					</p>
-				<TiptapEditor
-					value={values.description ?? ""}
-					initialValue={values.description ?? ""}
-					onChange={(value) => setFieldValue("description", value)}
-					editorClassName="max-h-52"
-				/>
+				<label className="flex flex-col gap-1.5 font-body">
+					<p className="text-xs text-neutral-400">Describe what the students will learn</p>
+					<TiptapEditor
+						value={values.description ?? ""}
+						initialValue={values.description ?? ""}
+						onChange={(value) => setFieldValue("description", value)}
+						editorClassName="max-h-52"
+					/>
 				</label>
 
 				<label className="flex items-center justify-between pt-2 text-xs">

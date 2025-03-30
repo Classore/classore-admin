@@ -28,7 +28,7 @@ interface Props {
 }
 
 export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 	const { isPending, mutate } = useMutation({
 		mutationFn: (payload: Partial<CreateBundleDto>) => UpdateBundle(id, payload),
 		mutationKey: ["update-bundle", id],

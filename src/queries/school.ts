@@ -291,6 +291,5 @@ export {
 	GetSubjects,
 	PublishResource,
 	UpdateBundle,
-	UpdateSubject
+	UpdateSubject,
 };
-
