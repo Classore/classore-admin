@@ -23,7 +23,7 @@ import CustomRadio from "../shared/radio";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
-import { Textarea } from "../ui/textarea";
+import { TiptapEditor } from "../ui/tiptap-editor";
 
 type Mode = "initial" | "select" | "create";
 
@@ -61,19 +61,9 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		mutationFn: (payload: CreateSubjectDto) => CreateSubject(payload),
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient
-				.invalidateQueries({
-					queryKey: [
-						"get-bundle",
-						"get-bundles",
-						"get-subject",
-						"get-subjects",
-						"get-bundle-for-subjects",
-					],
-				})
-				.then(() => {
-					onOpenChange(false);
-				});
+			queryClient.invalidateQueries().then(() => {
+				onOpenChange(false);
+			});
 		},
 		onError: (error) => {
 			const isHttpError = IsHttpError(error);
@@ -87,15 +77,7 @@ export const AddCourse = ({ onOpenChange, open }: Props) => {
 		},
 		onSettled: () => {
 			setMode("initial");
-			queryClient.invalidateQueries({
-				queryKey: [
-					"get-bundle",
-					"get-bundles",
-					"get-subject",
-					"get-subjects",
-					"get-bundle-for-subjects",
-				],
-			});
+			queryClient.invalidateQueries();
 		},
 	});
 
@@ -195,7 +177,7 @@ const Initial = (props: InnerProps) => {
 			<DialogTitle>Add New Course</DialogTitle>
 			<DialogDescription hidden>Add New Course</DialogDescription>
 			<div className="w-full space-y-4">
-				<div className="aspect-video w-full rounded-lg border">
+				<div className="h-40 w-full rounded-lg border">
 					{values.banner ? (
 						<div className="relative size-full rounded-lg">
 							<Image
@@ -229,13 +211,22 @@ const Initial = (props: InnerProps) => {
 				</div>
 
 				<Input label="Enter course title" name="name" value={values.name} onChange={handleChange} />
-				<Textarea
+				{/* <Textarea
 					label="Describe what the students will learn"
 					name="description"
 					value={values.description}
 					onChange={handleChange}
-					wrapperClassName="h-[90px]"
-				/>
+					wrapperClassName="h-40"
+				/> */}
+				<label className="flex flex-col gap-1.5 font-body">
+					<p className="text-xs text-neutral-400">Describe what the students will learn</p>
+					<TiptapEditor
+						value={values.description ?? ""}
+						initialValue={values.description ?? ""}
+						onChange={(value) => setFieldValue("description", value)}
+						editorClassName="max-h-52"
+					/>
+				</label>
 
 				<label className="flex items-center justify-between pt-2 text-xs">
 					<p>Add Chapter Dripping</p>

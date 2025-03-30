@@ -3,7 +3,11 @@ import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
+import { useQuizStore } from "@/store/z-store/quiz";
 import { Button } from "@/components/ui/button";
+import { DeleteEntities } from "@/queries";
+import type { HttpError } from "@/types";
+import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -11,10 +15,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { DeleteEntities } from "@/queries";
-import { useQuizStore } from "@/store/z-store/quiz";
-import type { HttpError } from "@/types";
-import { IconLabel } from "../shared";
 
 interface Props {
 	chapterId: string;
@@ -24,14 +24,16 @@ interface Props {
 export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
 	const [open, setOpen] = React.useState(false);
 
-	const { deleteSelectedQuestions } = useQuizStore();
+	const { selectedQuestions, deleteSelectedQuestions } = useQuizStore();
 
 	const ids = React.useMemo(() => {
-		return [];
-	}, []);
+		const questions = selectedQuestions[chapterId][moduleId];
+		if (!questions) return [];
+		return questions.map((question) => question.id || "");
+	}, [chapterId, moduleId, selectedQuestions]);
 
-	const { isPending } = useMutation({
-		mutationFn: () => DeleteEntities({ ids, model_type: "QUESTION" }),
+	const { isPending, mutate } = useMutation({
+		mutationFn: (ids: string[]) => DeleteEntities({ ids, model_type: "QUESTION" }),
 		onSuccess: () => {
 			toast.success("Questions deleted successfully");
 		},
@@ -49,6 +51,7 @@ export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
 
 	const handleDelete = () => {
 		deleteSelectedQuestions(chapterId, moduleId);
+		mutate(ids);
 		setOpen(false);
 	};
 

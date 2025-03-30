@@ -358,7 +358,7 @@ export type OptionsProps = Node & {
 	chapter: string;
 	content: string;
 	images: string[];
-	is_correct: "YES" | "NO";
+	is_correct: boolean;
 	module: string;
 	question: string;
 	sequence_number: number;

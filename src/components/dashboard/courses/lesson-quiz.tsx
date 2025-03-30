@@ -3,19 +3,18 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
-import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
-import { CreateQuestions, GetQuestions } from "@/queries";
-import { useChapterStore } from "@/store/z-store/chapter";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { DeleteQuestions } from "../delete-questions";
-import { useQuizStore } from "@/store/z-store/quiz";
-import type { QuestionDto } from "@/store/z-store";
-import { Button } from "@/components/ui/button";
-import { QuestionCard } from "../question-card";
 import { Spinner } from "@/components/shared";
-import { queryClient } from "@/providers";
+import { Button } from "@/components/ui/button";
 import { useFileHandler } from "@/hooks";
+import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
+import { queryClient } from "@/providers";
+import { CreateQuestions, GetQuestions } from "@/queries";
+import type { QuestionDto } from "@/store/z-store";
+import { useChapterStore } from "@/store/z-store/chapter";
+import { useQuizStore } from "@/store/z-store/quiz";
 import type { HttpError } from "@/types";
+import { DeleteQuestions } from "../delete-questions";
+import { QuestionCard } from "../question-card";
 
 interface Props {
 	chapterId: string | undefined;
@@ -34,26 +33,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 	} = useQuizStore();
 	const lessons = useChapterStore((state) => state.lessons);
 	const lesson = lessons.find((lesson) => lesson.id === activeLessonId);
-	const [scrollPosition, setScrollPosition] = React.useState(0);
-	const ref = React.useRef<HTMLInputElement>(null);
-
-	const handleScroll = () => {
-		if (ref.current) {
-			setScrollPosition(ref.current.scrollTop);
-		}
-	};
-
-	React.useEffect(() => {
-		if (ref.current) {
-			ref.current.scrollTop = 0;
-		}
-	}, [activeLessonId]);
-
-	React.useLayoutEffect(() => {
-		if (ref.current && scrollPosition > 0) {
-			ref.current.scrollTop = scrollPosition;
-		}
-	}, [scrollPosition, questions]);
 
 	const { getSelectedCount } = useQuizStore();
 
@@ -66,6 +45,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		onValueChange: (files) => {
 			const file = files[0];
 			quizQuestionFromXlsxToJSON(file, 0).then((questions) => {
+				console.log(questions);
 				updateQuestions(String(chapterId), activeLessonId, questions);
 			});
 		},
@@ -86,8 +66,9 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 
 	const { data: existingQuestions, isLoading } = useQuery({
 		queryKey: ["get-questions", activeLessonId],
-		queryFn: () => GetQuestions({ module_id: activeLessonId, limit: 100, page: 1 }),
-		enabled: !!chapterId,
+		queryFn: () =>
+			GetQuestions({ chapter_id: chapterId, module_id: activeLessonId, limit: 100, page: 1 }),
+		enabled: !!(chapterId && activeLessonId),
 		select: (data) => ({
 			questions: data.data.data.map((question) => {
 				const q: QuestionDto = {
@@ -122,7 +103,8 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		mutationFn: (payload: QuestionDto[]) => CreateQuestions(activeLessonId, payload),
 		onSuccess: (data) => {
 			console.log(data);
-			queryClient.invalidateQueries({ queryKey: ["get-questions", activeLessonId] });
+			toast.success("Questions added successfully");
+			queryClient.invalidateQueries({ queryKey: ["get-questions"] });
 		},
 		onError: (error: HttpError) => {
 			const { message } = error.response.data;
@@ -135,13 +117,13 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		if (chapterId && activeLessonId) {
 			const existingQuestions = questions[chapterId]?.[activeLessonId];
 			if (!existingQuestions || existingQuestions.length === 0) {
-				addQuestion(chapterId, activeLessonId);
+				// addQuestion(chapterId, activeLessonId);
 				return questions[chapterId]?.[activeLessonId];
 			}
 			return existingQuestions;
 		}
 		return [];
-	}, [chapterId, activeLessonId, questions, addQuestion]);
+	}, [chapterId, activeLessonId, questions]);
 
 	const handleAddQuestion = () => {
 		if (!chapterId || !activeLessonId) {
@@ -150,6 +132,10 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		}
 		addQuestion(chapterId, activeLessonId);
 	};
+
+	const filterExistingQuestions = React.useCallback((questions: QuestionDto[]) => {
+		return questions.filter((question) => !question.id);
+	}, []);
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -195,19 +181,27 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			moduleQuestions?.some(
 				(question) =>
 					(question.question_type === "MULTICHOICE" || question.question_type === "YES_OR_NO") &&
-					question.options.every((option) => option.is_correct !== "YES")
+					question.options.every((option) => !option.is_correct)
 			)
 		) {
 			toast.error("Multiple choice and boolean questions must have a correct answer");
 			return;
 		}
-		mutate(moduleQuestions);
+		const newQuestions = filterExistingQuestions(moduleQuestions);
+		if (newQuestions.length === 0) {
+			toast.error("No new questions provided, all questions already exist. Please add new questions");
+			return;
+		}
+
+		console.log("newQuestions", newQuestions);
+		mutate(newQuestions);
 	};
 
 	if (isLoading) {
 		return (
-			<div className="grid min-h-60 w-full place-items-center">
-				<RiLoaderLine className="size-14 animate-spin text-primary-400" />
+			<div className="flex items-center justify-center gap-x-2 pt-4">
+				<p className="text-sm text-primary-400">Fetching quiz</p>{" "}
+				<RiLoaderLine className="size-4 animate-spin text-primary-400" />
 			</div>
 		);
 	}
@@ -215,61 +209,61 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 	if (!lesson) return null;
 
 	return (
-		<ScrollArea className="h-full w-full" onScroll={handleScroll} ref={ref}>
-			<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
-				<div className="flex w-full items-center justify-between">
-					<p className="text-xs uppercase tracking-widest">
-						Lesson {convertNumberToWord(lesson.sequence)} - Chapter{" "}
-						{convertNumberToWord(lesson.chapter_sequence)}
-					</p>
+		<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
+			<div className="flex w-full items-center justify-between">
+				<p className="text-xs uppercase tracking-widest">
+					Lesson {convertNumberToWord(lesson.sequence)} Quizzes - Chapter{" "}
+					{convertNumberToWord(lesson.chapter_sequence)}
+				</p>
 
-					<div className="flex items-center gap-x-2">
-						{selectCount > 0 && (
-							<DeleteQuestions chapterId={String(chapterId)} moduleId={activeLessonId} />
-						)}
-						<label htmlFor="xlsx-upload">
-							<input
-								type="file"
-								id="xlsx-upload"
-								className="sr-only hidden"
-								ref={inputRef}
-								onChange={handleFileChange}
-								accept=".xlsx"
-							/>
-							<button
-								type="button"
-								onClick={handleClick}
-								className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-								<RiImportLine className="size-4" />
-								<span>Import Questions</span>
-							</button>
-						</label>
+				<div className="flex items-center gap-x-2">
+					{selectCount > 0 && (
+						<DeleteQuestions chapterId={String(chapterId)} moduleId={activeLessonId} />
+					)}
+					<label htmlFor="xlsx-upload">
+						<input
+							type="file"
+							id="xlsx-upload"
+							className="sr-only hidden"
+							ref={inputRef}
+							onChange={handleFileChange}
+							accept=".xlsx"
+						/>
 						<button
 							type="button"
-							onClick={() => setCurrentTab("lesson")}
+							onClick={handleClick}
 							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
-							<RiArrowLeftSLine className="size-4" />
-							<span>Back to Lesson</span>
+							<RiImportLine className="size-4" />
+							<span>Import Questions</span>
 						</button>
-					</div>
+					</label>
+					<button
+						type="button"
+						onClick={() => setCurrentTab("lesson")}
+						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+						<RiArrowLeftSLine className="size-4" />
+						<span>Back to Lesson</span>
+					</button>
 				</div>
+			</div>
 
+			<div className="w-full space-y-2">
 				<div className="w-full space-y-2">
-					<div className="w-full space-y-2">
-						{moduleQuestions?.map((question, index) => (
-							<QuestionCard
-								key={index}
-								chapterId={String(chapterId)}
-								moduleId={activeLessonId}
-								onDelete={(sequence) => removeQuestion(String(chapterId), activeLessonId, sequence)}
-								onDuplicate={(sequence) => duplicateQuestion(String(chapterId), activeLessonId, sequence)}
-								onReorder={(sequence, direction) =>
-									reorderQuestion(String(chapterId), activeLessonId, sequence, direction)
-								}
-								question={question}
-							/>
-						))}
-					</div>
+					{moduleQuestions?.map((question, index) => (
+						<QuestionCard
+							key={index}
+							chapterId={String(chapterId)}
+							moduleId={activeLessonId}
+							onDelete={(sequence) => removeQuestion(String(chapterId), activeLessonId, sequence)}
+							onDuplicate={(sequence) => duplicateQuestion(String(chapterId), activeLessonId, sequence)}
+							onReorder={(sequence, direction) =>
+								reorderQuestion(String(chapterId), activeLessonId, sequence, direction)
+							}
+							question={question}
+						/>
+					))}
+				</div>
+				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						<Button disabled={isPending} className="w-32" size="sm" type="submit">
 							{isPending ? <Spinner /> : "Save Quiz"}
@@ -284,8 +278,18 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 							Add Question
 						</Button>
 					</div>
+
+					{/* <Button
+						disabled={isPending}
+						className="w-32"
+						variant="ghost"
+						size="sm"
+						type="button"
+						onClick={() => setCurrentTab("lesson")}>
+						Back to Lesson
+					</Button> */}
 				</div>
-			</form>
-		</ScrollArea>
+			</div>
+		</form>
 	);
 };

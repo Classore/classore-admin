@@ -102,9 +102,7 @@ export const VideoPlayer = React.memo(
 				video.src = src;
 
 				video.addEventListener("loadedmetadata", () => {
-					// get video duration
-					const duration = video.duration;
-					onReady?.(duration);
+					onReady?.();
 					if (autoPlay) {
 						video.play().catch(handleMediaError);
 					}

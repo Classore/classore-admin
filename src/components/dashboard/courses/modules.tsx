@@ -2,11 +2,10 @@ import { RiAddLine, RiArrowLeftDoubleLine, RiDeleteBinLine, RiDraggable } from "
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { Spinner } from "@/components/shared";
-import { convertNumberToWord } from "@/lib";
-import { Lesson } from "./lesson";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDrag } from "@/hooks";
+import { convertNumberToWord } from "@/lib";
 import {
 	DeleteEntities,
 	GetChapterModules,
@@ -14,6 +13,8 @@ import {
 	type DeleteEntitiesPayload,
 	type UpdateChapterModuleSequencePayload,
 } from "@/queries";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { Lesson } from "./lesson";
 
 type ModulesProps = {
 	setSection: React.Dispatch<React.SetStateAction<string>>;
@@ -129,65 +130,69 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 				</div>
 			) : lessons.length ? (
 				<>
-					<div className={`${section !== "lessons" ? "hidden" : "mt-4 grid grid-cols-8 gap-3"} `}>
-						<div className="sticky left-0 top-0 col-span-3 flex flex-col gap-1.5 self-start overflow-y-auto">
-							{lessons.map((lesson, index) => (
-								<button
-									onClick={() => setActiveLessonId(lesson.id)}
-									{...getDragProps(index)}
-									key={lesson.id}
-									className={`flex cursor-pointer items-center gap-x-2 rounded-md border px-2 py-2.5 text-sm text-neutral-500 ${activeLessonId === lesson.id ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
-									<RiDraggable className="size-4" />
-									<p className="flex-1 truncate text-left capitalize">
-										{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
-									</p>
+					<div className={`${section !== "lessons" ? "hidden" : "mt-4 grid grid-cols-10 gap-3"} `}>
+						<ScrollArea className="col-span-4 h-[500px] overflow-y-auto">
+							<div className="flex flex-col gap-1.5 self-start">
+								{lessons.map((lesson, index) => (
+									<button
+										onClick={() => setActiveLessonId(lesson.id)}
+										{...getDragProps(index)}
+										key={lesson.id}
+										className={`flex w-full cursor-pointer items-center gap-x-2 rounded-md border px-2 py-2.5 text-sm text-neutral-500 ${activeLessonId === lesson.id ? "border-primary-400 bg-primary-50" : "border-neutral-200 bg-white"}`}>
+										<RiDraggable className="size-4" />
+										<p className="flex-1 text-left capitalize">
+											{lesson.title || `Lesson ${convertNumberToWord(lesson.sequence)}`}
+										</p>
 
-									{isOpen && currentLesson === lesson.id ? (
-										<div className="flex items-center gap-1 text-xs">
-											<button
-												type="button"
-												className="rounded bg-neutral-50 px-2 py-1"
-												onClick={(e) => {
-													e.stopPropagation();
-													setIsOpen(false);
-												}}>
-												Cancel
-											</button>
-											<button
-												onClick={(e) => {
-													e.stopPropagation();
-													// setLessonTab("");
-													if (lesson?.lesson_chapter) {
-														// delete the data immediately and send the request in the background
-														deleteMutate({
-															ids: [lesson.id],
-															model_type: "CHAPTER_MODULE",
-														});
-													}
-													removeLesson(chapter?.sequence || 0, lesson.sequence);
-													setIsOpen(false);
-												}}
-												type="button"
-												className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-												{/* {isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"} */}
-												Confirm
-											</button>
+										<div>
+											{isOpen && currentLesson === lesson.id ? (
+												<div className="flex items-center gap-1 text-xs">
+													<button
+														type="button"
+														className="rounded bg-neutral-50 px-2 py-1"
+														onClick={(e) => {
+															e.stopPropagation();
+															setIsOpen(false);
+														}}>
+														Cancel
+													</button>
+													<button
+														onClick={(e) => {
+															e.stopPropagation();
+															// setLessonTab("");
+															if (lesson?.lesson_chapter) {
+																// delete the data immediately and send the request in the background
+																deleteMutate({
+																	ids: [lesson.id],
+																	model_type: "CHAPTER_MODULE",
+																});
+															}
+															removeLesson(chapter?.sequence || 0, lesson.sequence);
+															setIsOpen(false);
+														}}
+														type="button"
+														className="rounded bg-red-600 px-2 py-1 font-medium text-white">
+														{/* {isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"} */}
+														Confirm
+													</button>
+												</div>
+											) : (
+												<button
+													onClick={(e) => {
+														e.stopPropagation();
+														setCurrentLesson(lesson.id);
+														setIsOpen(true);
+													}}
+													type="button"
+													className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+													<RiDeleteBinLine className="size-4" />
+												</button>
+											)}
 										</div>
-									) : (
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												setCurrentLesson(lesson.id);
-												setIsOpen(true);
-											}}
-											type="button"
-											className="ml-auto rounded border border-neutral-200 bg-neutral-50 p-1 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-											<RiDeleteBinLine className="size-4" />
-										</button>
-									)}
-								</button>
-							))}
-						</div>
+									</button>
+								))}
+							</div>
+						</ScrollArea>
 
 						<Lesson activeLessonId={activeLessonId} chapterId={activeChapterId} />
 					</div>

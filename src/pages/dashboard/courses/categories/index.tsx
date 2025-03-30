@@ -1,13 +1,19 @@
 import { RiArrowLeftSLine, RiDeleteBin6Line, RiMore2Line, RiStarFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import { format } from "date-fns";
+import Image from "next/image";
+import { toast } from "sonner";
 import React from "react";
 
+import { Breadcrumbs, IconLabel, Pagination, Seo, Spinner } from "@/components/shared";
+import { DeleteEntities, GetExaminations, PublishResource } from "@/queries";
+import { PublishModal } from "@/components/publish-modal";
 import { AddExamination } from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
-import { PublishModal } from "@/components/publish-modal";
-import { Breadcrumbs, IconLabel, Pagination, Seo, Spinner } from "@/components/shared";
+import { hasPermission } from "@/lib/permission";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/z-store";
 import {
 	Dialog,
 	DialogClose,
@@ -25,12 +31,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { hasPermission } from "@/lib/permission";
-import { DeleteEntities, GetExaminations, PublishResource } from "@/queries";
-import { useUserStore } from "@/store/z-store";
-import { format } from "date-fns";
-import Image from "next/image";
-import { toast } from "sonner";
 
 const breadcrumbs = [
 	{ label: "Manage Courses", href: "/dashboard/courses" },

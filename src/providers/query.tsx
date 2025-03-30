@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { toast } from "sonner";
 import React from "react";
+import { toast } from "sonner";
 
 import { IsHttpError, httpErrorhandler } from "@/lib";
 
@@ -34,7 +34,7 @@ export const QueryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 	return (
 		<QueryClientProvider client={queryClient}>
 			{children}
-			<ReactQueryDevtools />
+			<ReactQueryDevtools buttonPosition="bottom-left" />
 		</QueryClientProvider>
 	);
 };

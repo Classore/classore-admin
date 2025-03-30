@@ -94,6 +94,7 @@ export const TestCenterSectionAction = ({ is_published, sectionId, sectionTitle 
 	const { isPending: isDeleting, mutate: remove } = useMutation({
 		mutationFn: () => DeleteEntities({ ids: [sectionId], model_type: "TEST_SECTION" }),
 		mutationKey: ["delete-test-section", sectionId],
+
 		onSuccess: () => {
 			toast.success("Section deleted successfully");
 		},

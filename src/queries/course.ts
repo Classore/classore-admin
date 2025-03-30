@@ -174,7 +174,9 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 		.then((res) => res.data);
 };
 
-const GetQuestions = async (params?: PaginationProps & { module_id: string }) => {
+const GetQuestions = async (
+	params?: PaginationProps & { chapter_id?: string; module_id?: string }
+) => {
 	if (params) {
 		for (const key in params) {
 			if (!params[key as keyof typeof params] || params[key as keyof typeof params] === undefined) {
@@ -244,14 +246,12 @@ export type DeleteEntitiesPayload = {
 		| "ADMIN"
 		| "CHAPTER"
 		| "CHAPTER_MODULE"
-		| "QUESTION"
 		| "EXAM_BUNDLE"
 		| "EXAMINATION"
+		| "QUESTION"
 		| "SUBJECT"
 		| "USER"
-		| "TEST"
-		| "TEST_SECTION"
-		| "TEST_QUESTION";
+		| (string & {});
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {

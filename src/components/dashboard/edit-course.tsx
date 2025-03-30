@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import * as Yup from "yup";
 
 import { useFileHandler } from "@/hooks";
+import { httpErrorhandler, IsHttpError } from "@/lib";
 import { queryClient } from "@/providers";
 import { UpdateSubject, type CreateSubjectDto, type SubjectResponse } from "@/queries";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
+import { TiptapEditor } from "../ui/tiptap-editor";
 
 interface Props {
 	course: SubjectResponse;
@@ -25,12 +27,19 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 		mutationKey: ["update-subject"],
 		mutationFn: (data: Partial<CreateSubjectDto>) => UpdateSubject(courseId, data),
 		onSuccess: (data) => {
-			console.log(data);
+			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });
 			setOpen(false);
 		},
 		onError: (error) => {
-			console.log(error);
+			const isHttpError = IsHttpError(error);
+			if (isHttpError) {
+				const { message } = httpErrorhandler(error);
+				toast.error(message);
+				return;
+			} else {
+				toast.error("Something went wrong");
+			}
 		},
 	});
 
@@ -47,6 +56,7 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 			name: Yup.string().required("Name is required"),
 			description: Yup.string().required("Description is required"),
 			banner: Yup.mixed(),
+			chapter_dripping: Yup.string().required("Chapter Dripping is required"),
 		}),
 		onSubmit: (values) => {
 			mutateAsync(values);
@@ -84,7 +94,7 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 						<DialogDescription></DialogDescription>
 					</div>
 					<form onSubmit={handleSubmit} className="w-full space-y-4">
-						<div className="aspect-video w-full rounded-lg border">
+						<div className="h-40 w-full rounded-lg border">
 							{values.banner ? (
 								<div className="relative size-full rounded-lg">
 									<Image
@@ -147,24 +157,32 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 							onChange={handleChange}
 							error={touched.name && errors.name ? errors.name : ""}
 						/>
-						<Textarea
-							label="Description"
-							name="description"
-							value={values.description}
-							onChange={handleChange}
-							className="h-[150px]"
-							error={touched.description && errors.description ? errors.description : ""}
-						/>
+
+						<label className="flex flex-col gap-1.5 font-body">
+							<p className="text-xs text-neutral-400">Description</p>
+							<TiptapEditor
+								value={values.description ?? ""}
+								initialValue={values.description ?? ""}
+								onChange={(value) => setFieldValue("description", value)}
+								editorClassName="max-h-52"
+							/>
+						</label>
+						<label className="flex items-center justify-between pt-2 text-xs">
+							<p>Add Chapter Dripping</p>
+							<Switch
+								value={values.chapter_dripping === "YES" ? "NO" : "YES"}
+								checked={values.chapter_dripping === "YES"}
+								onCheckedChange={() => {
+									setFieldValue("chapter_dripping", values.chapter_dripping === "YES" ? "NO" : "YES");
+								}}
+							/>
+						</label>
+
 						<div className="flex w-full items-center justify-end gap-x-4">
-							<Button
-								type="button"
-								className="w-fit"
-								onClick={() => setOpen(false)}
-								size="sm"
-								variant="outline">
+							<Button type="button" className="w-fit" onClick={() => setOpen(false)} variant="outline">
 								Cancel
 							</Button>
-							<Button type="submit" className="w-fit" size="sm">
+							<Button disabled={isPending} type="submit" className="w-fit">
 								{isPending ? <RiLoaderLine className="animate-spin" /> : "Update"}
 							</Button>
 						</div>

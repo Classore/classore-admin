@@ -3,11 +3,16 @@ import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React from "react";
 
-import { AddCourse } from "@/components/dashboard";
+import { Breadcrumbs, SearchInput, Seo, Spinner } from "@/components/shared";
+import { type ExamBundleResponse, GetBundle, GetSubjects } from "@/queries";
+import type { HttpResponse, PaginatedResponse } from "@/types";
+import type { CastedCourseProps } from "@/types/casted-types";
 import { DashboardLayout } from "@/components/layout";
-import { Breadcrumbs, SearchInput, Seo } from "@/components/shared";
+import { useNavigationStore } from "@/store/z-store";
+import { AddCourse } from "@/components/dashboard";
 import { CourseTable } from "@/components/tables";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks";
 import {
 	Select,
 	SelectContent,
@@ -15,12 +20,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useDebounce } from "@/hooks";
-import type { ExamBundleResponse } from "@/queries";
-import { GetBundle, GetSubjects } from "@/queries";
-import { useNavigationStore } from "@/store/z-store";
-import type { HttpResponse, PaginatedResponse } from "@/types";
-import type { CastedCourseProps } from "@/types/casted-types";
 
 const course_status = ["all", "published", "unpublished"] as const;
 const sort_options = ["recent", "oldest"] as const;
@@ -42,34 +41,36 @@ const Page = () => {
 	const { setIds } = useNavigationStore();
 	useDebounce(query, 500);
 
-	const [{ data: bundle }, { data: subjects }, {}] = useQueries({
-		queries: [
-			{
-				queryKey: ["get-bundle", id, page],
-				queryFn: () => GetBundle(id, { limit: 10, page }),
-				enabled: !!id,
-				select: (data: unknown) => (data as BundleResponse).data,
-			},
-			{
-				queryKey: ["get-bundle-for-subjects", id],
-				queryFn: () => GetBundle(id, { limit: 50 }),
-				enabled: !!id,
-				select: (data: unknown) => (data as BundleResponse).data.subjects,
-			},
-			{
-				queryKey: ["get-subjects", bundleId, id, page],
-				queryFn: () =>
-					GetSubjects({
-						examination: id,
-						examination_bundle: bundleId,
-						limit: 30,
-						page,
-					}),
-				enabled: false,
-				select: (data: unknown) => (data as CoursesResponse).data,
-			},
-		],
-	});
+	const [{ data: bundle }, { data: subjects, isPending: subjectsPending, isError }, {}] = useQueries(
+		{
+			queries: [
+				{
+					queryKey: ["get-bundle", id, page],
+					queryFn: () => GetBundle(id, { limit: 10, page }),
+					enabled: !!id,
+					select: (data: unknown) => (data as BundleResponse).data,
+				},
+				{
+					queryKey: ["get-bundle-for-subjects", id],
+					queryFn: () => GetBundle(id, { limit: 50 }),
+					enabled: !!id,
+					select: (data: unknown) => (data as BundleResponse).data.subjects,
+				},
+				{
+					queryKey: ["get-subjects", bundleId, id, page],
+					queryFn: () =>
+						GetSubjects({
+							examination: id,
+							examination_bundle: bundleId,
+							limit: 30,
+							page,
+						}),
+					enabled: false,
+					select: (data: unknown) => (data as CoursesResponse).data,
+				},
+			],
+		}
+	);
 
 	const breadcrumbs = [
 		{ label: "Manage Courses", href: "/dashboard/courses" },
@@ -92,6 +93,27 @@ const Page = () => {
 		}
 	}, [setIds, subjects]);
 
+	if (subjectsPending) {
+		return (
+			<DashboardLayout>
+				<div className="flex flex-col items-center justify-center gap-2">
+					<Spinner variant="primary" />
+					<p className="text-sm text-primary-300">Fetching course...</p>
+				</div>
+			</DashboardLayout>
+		);
+	}
+
+	if (isError) {
+		return (
+			<DashboardLayout>
+				<div className="flex flex-col items-center justify-center gap-2">
+					<p className="text-sm text-primary-300">Error Fetching course</p>
+					<p className="text-xs text-neutral-400">Refresh the page to try again...</p>
+				</div>
+			</DashboardLayout>
+		);
+	}
 	return (
 		<>
 			<Seo title="Course" />

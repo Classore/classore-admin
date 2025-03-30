@@ -268,7 +268,7 @@ export const quizQuestionFromXlsxToJSON = (
 										content = removeLeadingAndTrailingSlashes(content);
 										return {
 											content,
-											is_correct: Number(sheetRow.is_correct) === optionIndex + 1 ? "YES" : "NO",
+											is_correct: Number(sheetRow.is_correct) === optionIndex + 1 ? true : false,
 											sequence_number: optionIndex + 1,
 											images: [],
 										};

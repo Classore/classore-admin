@@ -1,6 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import * as React from "react";
-import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
@@ -9,16 +6,19 @@ import {
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+import { toast } from "sonner";
 
+import { PublishModal } from "@/components/publish-modal";
+import { Spinner, VideoPlayer } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { endpoints } from "@/config";
 import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { PublishResource, UpdateChapterModule, type CreateChapterModuleDto } from "@/queries";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { Spinner, VideoPlayer } from "@/components/shared";
-import { PublishModal } from "@/components/publish-modal";
-import { Button } from "@/components/ui/button";
-import { endpoints } from "@/config";
-import { PublishResource, UpdateChapterModule, type CreateChapterModuleDto } from "@/queries";
 
 type LessonProps = {
 	activeLessonId: string;
@@ -26,8 +26,12 @@ type LessonProps = {
 	setCurrentTab: React.Dispatch<React.SetStateAction<string>>;
 };
 
+interface UseMutationUpdateProps {
+	module_id: string;
+	module: CreateChapterModuleDto;
+}
 interface UseMutationProps {
-	chapter_id: string;
+	id: string;
 	module: CreateChapterModuleDto;
 }
 
@@ -45,19 +49,18 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 	// SAVE LESSON
 	const { isPending, mutate } = useMutation({
-		mutationFn: async ({ chapter_id, module }: UseMutationProps) => {
+		mutationFn: async ({ id, module }: UseMutationProps) => {
 			const formData = new FormData();
 			module.attachments.forEach((attachment) => {
 				formData.append("attachments", attachment);
 			});
 			formData.append("sequence", module.sequence.toString());
-			formData.append("tutor", module.tutor);
 			formData.append("title", module.title);
 			formData.append("content", module.content);
 			abortController.current = new AbortController();
 			try {
 				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
-					endpoints(chapter_id).school.create_chapter_module,
+					endpoints(id).school.create_chapter_module,
 					formData,
 					{
 						signal: abortController.current.signal,
@@ -85,6 +88,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			toast.error("Failed to create module");
 		},
 	});
+
 	const onSaveLesson = () => {
 		if (!lesson?.title) {
 			toast.error("Lesson title is required");
@@ -97,7 +101,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 		}
 
 		mutate({
-			chapter_id: chapterId ?? "",
+			id: chapterId ?? "",
 			module: {
 				attachment_urls: [],
 				image_urls: [],
@@ -115,7 +119,8 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 
 	// UPDATE LESSON
 	const { isPending: updatePending, mutate: updateMutate } = useMutation({
-		mutationFn: ({ chapter_id, module }: UseMutationProps) => UpdateChapterModule(chapter_id, module),
+		mutationFn: ({ module_id, module }: UseMutationUpdateProps) =>
+			UpdateChapterModule(module_id, module),
 		mutationKey: ["update-chapter-module"],
 		onSuccess: () => {
 			toast.success("Chapter module update successfully!");
@@ -126,7 +131,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			toast.error("Failed to update module");
 		},
 	});
-	const onUpdateLesson = () => {
+	const onUpdateLesson = (lesson_id: string) => {
 		if (!lesson?.title) {
 			toast.error("Lesson title is required");
 			return;
@@ -138,7 +143,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 		}
 
 		updateMutate({
-			chapter_id: chapterId ?? "",
+			module_id: lesson_id,
 			module: {
 				attachment_urls: [],
 				image_urls: [],
@@ -339,7 +344,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 					{lesson.lesson_chapter ? (
 						<Button
 							disabled={updatePending}
-							onClick={onUpdateLesson}
+							onClick={() => onUpdateLesson(lesson.id)}
 							className="w-40 text-sm font-medium">
 							{updatePending ? <Spinner /> : "Update Lesson"}
 						</Button>
