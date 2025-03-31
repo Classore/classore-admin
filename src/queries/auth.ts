@@ -43,6 +43,11 @@ export interface CreateRoleDto {
 	marketer_write: "NO" | "YES";
 }
 
+export interface UpdateAdminDto {
+	isBlocked?: "YES" | "NO";
+	isDeleted?: "YES" | "NO";
+}
+
 export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;
 
 const SignInMutation = async (payload: SignInDto) => {
@@ -66,6 +71,12 @@ const CreateRoleMutation = async (payload: CreateRoleDto) => {
 const GetRolesQuery = async (params?: PaginationProps) => {
 	return axios
 		.get<HttpResponse<PaginatedResponse<PaginatedRoleProps>>>(endpoints().auth.get_roles, { params })
+		.then((res) => res.data);
+};
+
+const UpdateAdmin = async (id: string, payload: UpdateAdminDto) => {
+	return axios
+		.put<HttpResponse<string>>(endpoints(id).auth.update_admin, payload)
 		.then((res) => res.data);
 };
 
@@ -103,5 +114,6 @@ export {
 	GetRolesQuery,
 	GetWaitlistQuery,
 	SignInMutation,
+	UpdateAdmin,
 	UpdateRole,
 };

@@ -64,21 +64,19 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 				<RiInformationLine size={18} /> View Details
 			</Link>
 
-			{subcategory.examinationbundle_is_published === "NO" ? (
-				<PublishModal
-					open={openPublishModal}
-					setOpen={setOpenPublishModal}
-					type="bundle"
-					// published={subcategory.examinationbundle_is_published === "YES"}
-					isPending={isPending}
-					onConfirm={() =>
-						mutate({
-							id,
-							model_type: "EXAM_BUNDLE",
-						})
-					}
-				/>
-			) : null}
+			<PublishModal
+				open={openPublishModal}
+				setOpen={setOpenPublishModal}
+				published={subcategory.examinationbundle_is_published === "YES"}
+				type="bundle"
+				isPending={isPending}
+				onConfirm={() =>
+					mutate({
+						id,
+						model_type: "EXAM_BUNDLE",
+					})
+				}
+			/>
 
 			<Dialog open={open.edit} onOpenChange={(edit) => setOpen({ ...open, edit })}>
 				<DialogTrigger asChild>

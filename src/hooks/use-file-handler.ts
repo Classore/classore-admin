@@ -1,10 +1,9 @@
 import React from "react";
 
-// Enhanced type definitions
 export type FileType = "audio" | "document" | "image" | "video";
 
 export interface FileValidationRules {
-	maxSize?: number; // in bytes
+	maxSize?: number;
 	allowedTypes?: readonly string[];
 	maxFiles?: number;
 	minFiles?: number;
@@ -20,19 +19,19 @@ interface UseFileHandlerProps {
 
 interface FileHandlerReturn {
 	clearFiles: () => void;
-	files: File[]; // Expose current files
+	files: File[];
 	handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	handleClick: () => void;
 	handleDrop: (e: React.DragEvent<HTMLElement>) => void;
 	handleDragLeave: (e: React.DragEvent<HTMLElement>) => void;
 	handleDragOver: (e: React.DragEvent<HTMLElement>) => void;
 	handleDragEnter: (e: React.DragEvent<HTMLElement>) => void;
+	handlePaste: (e: React.ClipboardEvent<HTMLElement>) => void;
 	handleRemoveFile: (fileToRemove: File) => void;
 	inputRef: React.RefObject<HTMLInputElement>;
 	isDragging: boolean;
 }
 
-// Memoized MIME type configurations
 export const DEFAULT_MIME_TYPES = {
 	audio: ["audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg"],
 	document: [
@@ -44,12 +43,6 @@ export const DEFAULT_MIME_TYPES = {
 	video: ["video/mp4", "video/webm", "video/ogg"],
 } as const;
 
-/**
- * @description Custom hook to handle file input and drag-and-drop file uploads with validation.
- *
- * @param props - Configuration options for the file handler
- * @returns Object containing file handling methods and state
- */
 export const useFileHandler = ({
 	onValueChange,
 	onError,
@@ -62,7 +55,6 @@ export const useFileHandler = ({
 	const inputRef = React.useRef<HTMLInputElement>(null);
 	const dragCountRef = React.useRef(0);
 
-	// Memoize validation rules
 	const rules = React.useMemo(
 		() => ({
 			maxSize: validationRules.maxSize,
@@ -130,7 +122,7 @@ export const useFileHandler = ({
 			if (!fileList) return;
 
 			processFiles(Array.from(fileList));
-			e.target.value = ""; // Reset input
+			e.target.value = "";
 		},
 		[processFiles]
 	);
@@ -152,7 +144,6 @@ export const useFileHandler = ({
 		setIsDragging(true);
 	}, []);
 
-	// Improved drag enter/leave handling to account for child elements
 	const handleDragEnter = React.useCallback((e: React.DragEvent<HTMLElement>) => {
 		e.preventDefault();
 		dragCountRef.current++;
@@ -166,6 +157,17 @@ export const useFileHandler = ({
 			setIsDragging(false);
 		}
 	}, []);
+
+	const handlePaste = React.useCallback(
+		(e: React.ClipboardEvent<HTMLElement>) => {
+			const clipboardData = e.clipboardData;
+			if (!clipboardData) return;
+
+			const pastedFiles = Array.from(clipboardData.files);
+			processFiles(pastedFiles);
+		},
+		[processFiles]
+	);
 
 	const handleRemoveFile = React.useCallback(
 		(fileToRemove: File) => {
@@ -188,10 +190,11 @@ export const useFileHandler = ({
 		handleDragOver,
 		handleDragLeave,
 		handleDragEnter,
+		handlePaste,
 		handleRemoveFile,
 		inputRef,
 		isDragging,
 		clearFiles,
-		files, // Expose current files
+		files,
 	};
 };

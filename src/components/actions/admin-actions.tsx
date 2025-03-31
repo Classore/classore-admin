@@ -18,7 +18,12 @@ export const AdminActions = ({ admin }: Props) => {
 	return (
 		<div className="flex w-full flex-col gap-y-1">
 			<EditAdmin isEditopen={isEditopen} setIsEditOpen={setIsEditOpen} />
-			<RevokeAdmin adminId={admin.id} isRevokeopen={isRevokeopen} setIsRevokeOpen={setIsRevokeOpen} />
+			<RevokeAdmin
+				adminId={admin.id}
+				isBlocked={admin.is_blocked}
+				isRevokeopen={isRevokeopen}
+				setIsRevokeOpen={setIsRevokeOpen}
+			/>
 			<DeleteAdmin adminId={admin.id} isDeleteOpen={isDeleteOpen} setIsDeleteOpen={setIsDeleteOpen} />
 		</div>
 	);

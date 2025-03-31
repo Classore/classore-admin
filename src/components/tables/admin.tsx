@@ -90,7 +90,7 @@ const LineItem = ({ admin }: { admin: AdminProps }) => {
 			<TableCell className="text-xs">
 				<div
 					className={`flex items-center justify-center rounded px-3 py-0.5 text-xs font-medium ${admin.is_blocked ? "bg-red-100 text-red-500" : "bg-green-100 text-green-500"}`}>
-					{admin.is_blocked ? "InActive" : "Active"}
+					{admin.is_blocked ? "Inactive" : "Active"}
 				</div>
 			</TableCell>
 			<TableCell>

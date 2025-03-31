@@ -18,16 +18,17 @@ import {
 
 interface Props {
 	chapterId: string;
+	disabled: boolean;
 	moduleId: string;
 }
 
-export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
+export const DeleteQuestions = ({ chapterId, disabled, moduleId }: Props) => {
 	const [open, setOpen] = React.useState(false);
 
 	const { selectedQuestions, deleteSelectedQuestions } = useQuizStore();
 
 	const ids = React.useMemo(() => {
-		const questions = selectedQuestions[chapterId][moduleId];
+		const questions = selectedQuestions[chapterId]?.[moduleId];
 		if (!questions) return [];
 		return questions.map((question) => question.id || "");
 	}, [chapterId, moduleId, selectedQuestions]);
@@ -58,7 +59,11 @@ export const DeleteQuestions = ({ chapterId, moduleId }: Props) => {
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
-				<Button className="h-6 w-fit rounded-md text-xs" size="sm" variant="destructive">
+				<Button
+					className="h-6 w-fit rounded-md text-xs"
+					disabled={disabled}
+					size="sm"
+					variant="destructive">
 					Delete Questions
 				</Button>
 			</DialogTrigger>
