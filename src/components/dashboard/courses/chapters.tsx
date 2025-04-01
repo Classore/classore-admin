@@ -1,6 +1,23 @@
-import { DeleteModal } from "@/components/delete-modal";
-import { PublishModal } from "@/components/publish-modal";
+import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
+import {
+	RiArrowLeftDoubleLine,
+	RiDeleteBin6Line,
+	RiDraggable,
+	RiEdit2Line,
+	RiEye2Line,
+	RiMoreLine,
+} from "@remixicon/react";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { PublishModal } from "@/components/publish-modal";
+import { DeleteModal } from "@/components/delete-modal";
+import { EditChapter } from "../edit-chapter";
+import { AddChapter } from "../add-chapter";
+import type { HttpError } from "@/types";
 import { useDrag } from "@/hooks";
 import { sanitize } from "@/lib";
 import {
@@ -11,37 +28,21 @@ import {
 	type DeleteEntitiesPayload,
 	type UpdateChapterSequencePayload,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { HttpError } from "@/types";
-import {
-	RiArrowLeftDoubleLine,
-	RiDeleteBin6Line,
-	RiDraggable,
-	RiEdit2Line,
-	RiEye2Line,
-	RiMoreLine,
-} from "@remixicon/react";
-import { skipToken, useMutation, usePrefetchQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
-import { AddChapter } from "../add-chapter";
-import { EditChapter } from "../edit-chapter";
 
 type ChaptersProps = {
-	setSection: React.Dispatch<React.SetStateAction<string>>;
+	activeChapterId: string;
 	section: string;
 	setActiveChapterId: React.Dispatch<React.SetStateAction<string>>;
-	activeChapterId: string;
+	setSection: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const { removeChapter, setChapters } = chapterActions;
 
 export const Chapters = ({
-	setSection,
-	section,
-	setActiveChapterId,
 	activeChapterId,
+	section,
+	setSection,
+	setActiveChapterId,
 }: ChaptersProps) => {
 	const queryClient = useQueryClient();
 
@@ -90,6 +91,9 @@ export const Chapters = ({
 	const { mutate: updateChapterSequenceMutate } = useMutation({
 		mutationFn: (payload: UpdateChapterSequencePayload) => UpdateChapterSequence(payload),
 		mutationKey: ["update-chapter-sequence"],
+		onSuccess: () => {
+			toast.success("Chapter sequence updated successfully!");
+		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 		},
@@ -100,7 +104,7 @@ export const Chapters = ({
 		onReorder: (items) => setChapters(items),
 		onReady: (items) => {
 			updateChapterSequenceMutate({
-				subject_id: String(chapterId),
+				subject_id: courseId,
 				updates: items.map((item, index) => ({
 					chapter_id: item.id,
 					sequence: index + 1,
