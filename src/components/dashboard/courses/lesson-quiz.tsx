@@ -36,9 +36,10 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 
 	const { getSelectedCount } = useQuizStore();
 
-	const selectCount = React.useMemo(() => {
-		if (!chapterId || !activeLessonId) return 0;
-		return getSelectedCount(chapterId, activeLessonId);
+	const disabled = React.useMemo(() => {
+		if (!chapterId || !activeLessonId) return false;
+		const selectedCount = getSelectedCount(chapterId, activeLessonId);
+		return !!selectedCount;
 	}, [chapterId, activeLessonId, getSelectedCount]);
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -101,8 +102,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ["create-question"],
 		mutationFn: (payload: QuestionDto[]) => CreateQuestions(activeLessonId, payload),
-		onSuccess: (data) => {
-			console.log(data);
+		onSuccess: () => {
 			toast.success("Questions added successfully");
 			queryClient.invalidateQueries({ queryKey: ["get-questions"] });
 		},
@@ -117,7 +117,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		if (chapterId && activeLessonId) {
 			const existingQuestions = questions[chapterId]?.[activeLessonId];
 			if (!existingQuestions || existingQuestions.length === 0) {
-				// addQuestion(chapterId, activeLessonId);
 				return questions[chapterId]?.[activeLessonId];
 			}
 			return existingQuestions;
@@ -217,9 +216,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 				</p>
 
 				<div className="flex items-center gap-x-2">
-					{selectCount > 0 && (
-						<DeleteQuestions chapterId={String(chapterId)} moduleId={activeLessonId} />
-					)}
+					<DeleteQuestions chapterId={String(chapterId)} moduleId={activeLessonId} disabled={disabled} />
 					<label htmlFor="xlsx-upload">
 						<input
 							type="file"

@@ -76,8 +76,19 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		},
 	});
 
-	const { handleFileChange, handleRemoveFile, inputRef } = useFileHandler({
+	const {
+		handleDragEnter,
+		handleDragLeave,
+		handleDragOver,
+		handleDrop,
+		handleFileChange,
+		handlePaste,
+		handleRemoveFile,
+		inputRef,
+		isDragging,
+	} = useFileHandler({
 		onValueChange: (files) => {
+			console.log(files);
 			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
 		},
 		fileType: "image",
@@ -87,7 +98,7 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		validationRules: {
 			allowedTypes: ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"],
 			maxFiles: 5,
-			maxSize: 1 * 1024 * 1024, // 1MB
+			maxSize: 5 * 1024 * 1024, // 1MB
 			minFiles: 1,
 		},
 	});
@@ -157,7 +168,12 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 					onChange={(e) =>
 						addQuestionContent(chapterId, moduleId, question.sequence_number, e.target.value)
 					}
-					className="h-44 w-full md:text-sm"
+					className={`h-44 w-full md:text-sm ${isDragging ? "border-primary-400" : ""}`}
+					onDragEnter={handleDragEnter}
+					onDragLeave={handleDragLeave}
+					onDragOver={handleDragOver}
+					onDrop={handleDrop}
+					onPaste={handlePaste}
 				/>
 
 				<label className="absolute bottom-2 right-2 ml-auto">

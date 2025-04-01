@@ -444,3 +444,19 @@ export type RatingProps = {
 	review: string;
 	user_id: string;
 };
+
+export type BankProps = {
+	bank_id: string;
+	bank_copied_from: Maybe<string>;
+	bank_createdOn: Maybe<Date>;
+	bank_updatedOn: Maybe<Date>;
+	bank_updatedBy: Maybe<string>;
+	bank_deletedOn: Maybe<Date>;
+	bank_deletedBy: Maybe<string>;
+	bank_isDeleted: boolean;
+	bank_isBlocked: boolean;
+	bank_name: string;
+	bank_slug: string;
+	bank_code: string;
+	bank_longcode: string;
+};
