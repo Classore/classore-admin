@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import * as Yup from "yup";
 import React from "react";
 
@@ -26,7 +27,11 @@ export const Profile = ({ selected }: Props) => {
 			console.log("success");
 		},
 		onError: (error: HttpError) => {
-			console.error(error);
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 

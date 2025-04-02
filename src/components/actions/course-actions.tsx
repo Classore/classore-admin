@@ -69,6 +69,7 @@ export const CourseActions = ({ subject_id, published }: Props) => {
 					mutate({
 						id: subject_id,
 						model_type: "SUBJECT",
+						publish: "YES",
 					})
 				}
 			/>

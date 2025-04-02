@@ -264,6 +264,7 @@ const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
 type PublishResourcePayload = {
 	id: string;
 	model_type: "EXAMINATION" | "EXAM_BUNDLE" | "SUBJECT" | "CHAPTER" | "CHAPTER_MODULE";
+	publish: "YES" | "NO";
 };
 
 const PublishResource = async (payload: PublishResourcePayload) => {

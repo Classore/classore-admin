@@ -175,6 +175,7 @@ const Page = () => {
 															publishMutate({
 																id: exam.examination_id,
 																model_type: "EXAMINATION",
+																publish: exam.examination_is_published === "YES" ? "NO" : "YES",
 															})
 														}
 													/>

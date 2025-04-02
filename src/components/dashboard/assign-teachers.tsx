@@ -10,6 +10,7 @@ import type { CreateSubjectDto, GetStaffsResponse, RoleResponse } from "@/querie
 import { GetRolesQuery, GetStaffs, UpdateSubject } from "@/queries";
 import { Textarea } from "../ui/textarea";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
 import { TabPanel } from "../shared";
 
@@ -32,9 +33,12 @@ export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 		onSuccess: () => {
 			toast.success("Course updated successfully");
 		},
-		onError: (error) => {
-			toast.error("Failed to update course");
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to update course";
+			toast.error(message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });

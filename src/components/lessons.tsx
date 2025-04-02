@@ -1,3 +1,7 @@
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 import {
 	RiAddLine,
 	RiDeleteBin5Line,
@@ -6,14 +10,17 @@ import {
 	RiFileUploadLine,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import * as React from "react";
-import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { endpoints } from "@/config";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import type { ChapterModuleProps, HttpError, HttpResponse } from "@/types";
+import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
+import { TiptapEditor } from "./ui/tiptap-editor";
+import { Button } from "@/components/ui/button";
+import { Spinner, VideoPlayer } from "./shared";
+import { PublishModal } from "./publish-modal";
+import { ScrollArea } from "./ui/scroll-area";
+import { endpoints } from "@/config";
 import {
 	type CreateChapterModuleDto,
 	GetChapterModules,
@@ -23,13 +30,6 @@ import {
 	PublishResource,
 	UpdateChapterModule,
 } from "@/queries";
-import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
-import type { ChapterModuleProps, HttpResponse } from "@/types";
-import { PublishModal } from "./publish-modal";
-import { Spinner, VideoPlayer } from "./shared";
-import { ScrollArea } from "./ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { TiptapEditor } from "./ui/tiptap-editor";
 
 type LessonsProps = {
 	lessonTab: string;
@@ -133,7 +133,12 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 				);
 				return res.data;
 			} catch (error) {
-				console.log(error);
+				const err = error as unknown as HttpError;
+				const errorMessage = Array.isArray(err.response.data.error)
+					? err?.response.data.error[0]
+					: err?.response.data.error;
+				const message = errorMessage || "Failed to create module";
+				throw new Error(message);
 			}
 		},
 		mutationKey: ["create-chapter-module"],
@@ -142,9 +147,12 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 		},
-		onError: (error) => {
-			console.log(error);
-			toast.error("Failed to create module");
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 
@@ -188,9 +196,12 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			toast.success("Chapter module update successfully!");
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
-		onError: (error) => {
-			console.log(error);
-			toast.error("Failed to update module");
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 
@@ -260,6 +271,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 							publishMutate({
 								id: lesson.id,
 								model_type: "CHAPTER_MODULE",
+								publish: lesson.is_published === "YES" ? "NO" : "YES",
 							})
 						}
 						trigger={

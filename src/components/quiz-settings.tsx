@@ -1,13 +1,15 @@
-import { toKebabCase } from "@/lib";
-import { GetSubject, UpdateQuizSettings, type UpdateQuizSettingsPayload } from "@/queries";
-import { quizSettingsActions, useQuizSettingsStore } from "@/store/z-store/quiz-settings";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Attempts, PassMark, Timer } from "./dashboard/quiz-setting-items";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { toast } from "sonner";
+
 import { answer_settings, question_settings, type QuestionSettings } from "./dashboard/data";
-import { Attempts, PassMark, Timer } from "./dashboard/quiz-setting-items";
+import { GetSubject, UpdateQuizSettings, type UpdateQuizSettingsPayload } from "@/queries";
+import { quizSettingsActions, useQuizSettingsStore } from "@/store/z-store/quiz-settings";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner, TabPanel } from "./shared";
+import type { HttpError } from "@/types";
+import { toKebabCase } from "@/lib";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 
@@ -44,9 +46,12 @@ export const QuizSettingsTab = ({ tab }: { tab: string }) => {
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 		},
-		onError: (error) => {
-			console.log(error);
-			toast.error("Failed to update quiz settings");
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to update quiz settings";
+			toast.error(message);
 		},
 	});
 

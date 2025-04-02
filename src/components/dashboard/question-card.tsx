@@ -88,7 +88,6 @@ export const QuestionCard = ({ chapterId, moduleId, question }: Props) => {
 		isDragging,
 	} = useFileHandler({
 		onValueChange: (files) => {
-			console.log(files);
 			addImagesToQuestion(chapterId, moduleId, question.sequence_number, files);
 		},
 		fileType: "image",
