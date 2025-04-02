@@ -54,7 +54,6 @@ export const EditChapter = ({ chapterId, sequence, open, setOpen }: Props) => {
 			content: Yup.string().required("Content is required"),
 		}),
 		onSubmit: (values) => {
-			// console.log("values", values);
 			mutate({
 				id: chapterId,
 				payload: {

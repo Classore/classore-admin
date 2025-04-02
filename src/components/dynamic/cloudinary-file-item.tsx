@@ -29,7 +29,6 @@ export const CloudinaryFileItem = ({ url, className }: Props) => {
 		try {
 			setLoading(true);
 			const publicId = extractPublicId(url);
-			console.log(publicId);
 			if (!publicId) {
 				throw new Error("Invalid Cloudinary URL");
 			}
@@ -38,9 +37,6 @@ export const CloudinaryFileItem = ({ url, className }: Props) => {
 				throw new Error("Failed to fetch file details");
 			}
 			const data = await response.json();
-			console.log("===========");
-			console.log(data);
-			console.log("===========");
 			setAsset(data);
 		} catch (error) {
 			setError(error instanceof Error ? error.message : "Error fetching file details");

@@ -73,8 +73,8 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 					}
 				);
 				return res.data;
-			} catch (error) {
-				console.log(error);
+			} catch (error: unknown) {
+				throw new Error(typeof error === "string" ? error : "An error occurred");
 			}
 		},
 		mutationKey: ["create-chapter-module"],
@@ -83,8 +83,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 		},
-		onError: (error) => {
-			console.log(error);
+		onError: () => {
 			toast.error("Failed to create module");
 		},
 	});
@@ -126,8 +125,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			toast.success("Chapter module update successfully!");
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
-		onError: (error) => {
-			console.log(error);
+		onError: () => {
 			toast.error("Failed to update module");
 		},
 	});
@@ -192,6 +190,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 							publishMutate({
 								id: lesson.id,
 								model_type: "CHAPTER_MODULE",
+								publish: lesson.is_published === "YES" ? "NO" : "YES",
 							})
 						}
 						trigger={

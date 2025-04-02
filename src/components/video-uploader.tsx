@@ -204,7 +204,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 					Logger.error(`Chunk ${chunk.index_number} upload failed:`, error);
 					if (error instanceof Error) {
 						if (error.name === "AbortError") {
-							console.log("Request was aborted");
+							toast.error("Request was aborted");
 						}
 					}
 
@@ -311,7 +311,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				},
 			};
 		},
-		[isUploading]
+		[isUploading, moduleId, uploader]
 	);
 
 	const handleFileRemove = React.useCallback(() => {

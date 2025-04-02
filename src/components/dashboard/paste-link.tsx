@@ -36,8 +36,7 @@ export const PasteLink = ({
 				setOpen(false);
 			});
 		},
-		onError: (error) => {
-			console.log(error);
+		onError: () => {
 			toast.error("Failed to update module");
 		},
 	});

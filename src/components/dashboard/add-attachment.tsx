@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -14,8 +15,8 @@ import { getFileSize, shortenFileName } from "@/lib";
 import { UpdateChapterModule } from "@/queries";
 import { queryClient } from "@/providers";
 import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
-import { format } from "date-fns";
 
 interface Props {
 	id: string;
@@ -42,9 +43,12 @@ export const AddAttachment = ({ id, sequence, setFieldValue, setOpen, values }: 
 				clearFiles();
 			});
 		},
-		onError: (error) => {
-			console.log(error);
-			toast.error("Failed to update module");
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to update module";
+			toast.error(message);
 		},
 	});
 

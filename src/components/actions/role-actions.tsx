@@ -1,6 +1,10 @@
-import { RiEditLine } from "@remixicon/react";
 import React, { useState, useEffect } from "react";
+import { RiEditLine } from "@remixicon/react";
+import { toast } from "sonner";
+
+import { Switch } from "@/components/ui/switch";
 import type { RoleProps } from "@/types";
+import { RoleBadge } from "../dashboard";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -9,8 +13,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { RoleBadge } from "../dashboard";
 
 interface Props {
 	role: RoleProps;
@@ -90,14 +92,12 @@ export const RoleActions = ({ role, id }: Props) => {
 				throw new Error(data.message || "Failed to update permissions.");
 			}
 
-			alert("Permissions updated successfully!");
+			toast.success("Permissions updated successfully!");
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				console.error("API Error:", error.message);
-				alert(`Error updating permissions: ${error.message}`);
+				toast.error(`Error updating permissions: ${error.message}`);
 			} else {
-				console.error("Unknown Error:", error);
-				alert("An unknown error occurred. Please try again.");
+				toast.error("An unknown error occurred. Please try again.");
 			}
 		} finally {
 			setLoading(false);

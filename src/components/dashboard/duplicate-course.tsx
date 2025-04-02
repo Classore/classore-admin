@@ -70,7 +70,6 @@ export const DuplicateCourse = ({ courseId }: Props) => {
 				is_questions: values.is_questions ? "YES" : "NO",
 				subject_id: values.subject_id,
 			};
-			console.log({ payload });
 			mutateAsync(payload);
 		},
 	});

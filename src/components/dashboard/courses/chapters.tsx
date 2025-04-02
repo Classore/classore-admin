@@ -276,6 +276,7 @@ export const Chapters = ({
 					publishMutate({
 						id: String(chapterId),
 						model_type: "CHAPTER",
+						publish: "YES",
 					});
 				}}
 				hasTrigger={false}

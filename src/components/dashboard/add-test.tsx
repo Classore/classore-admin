@@ -11,6 +11,7 @@ import { ImageUploader } from "../image-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import { IconLabel } from "../shared";
 import {
 	Dialog,
@@ -32,8 +33,12 @@ export const AddTest = () => {
 			toast.success(data.message);
 			queryClient.invalidateQueries({ queryKey: ["get-tests"] });
 		},
-		onError: (error) => {
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create test";
+			toast.error(message);
 		},
 		onSettled: () => {
 			setOpen(false);

@@ -86,6 +86,12 @@ const UpdateRole = async (id: string, payload: CreateRoleDto) => {
 		.then((res) => res.data);
 };
 
+const UpdatePassword = async (payload: { old_password: string; new_password: string }) => {
+	return axios
+		.put<HttpResponse<string>>(endpoints().auth.change_password, payload)
+		.then((res) => res.data);
+};
+
 const GetWaitlistQuery = async ({
 	limit,
 	page,
@@ -108,6 +114,7 @@ const DeleteWaitlistUser = async (id: string) => {
 };
 
 export {
+	UpdatePassword,
 	CreateAdminMutation,
 	CreateRoleMutation,
 	DeleteWaitlistUser,
