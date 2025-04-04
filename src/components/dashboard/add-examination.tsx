@@ -1,8 +1,15 @@
 import { RiAddLine, RiBookMarkedLine, RiLoaderLine } from "@remixicon/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import * as Yup from "yup";
 
+import type { CreateExaminationDto } from "@/queries";
+import { CreateExamination } from "@/queries";
+import type { HttpError } from "@/types";
+import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
 	Dialog,
 	DialogContent,
@@ -10,11 +17,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import type { CreateExaminationDto } from "@/queries";
-import { CreateExamination } from "@/queries";
-import { IconLabel } from "../shared";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 
 interface Props {
 	onOpenChange: (open: boolean) => void;
@@ -32,8 +34,12 @@ export const AddExamination = ({ onOpenChange, open }: Props) => {
 			});
 			onOpenChange(false);
 		},
-		onError: (error) => {
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 

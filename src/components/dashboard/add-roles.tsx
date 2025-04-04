@@ -7,6 +7,7 @@ import React from "react";
 import { type CreateRoleDto, CreateRoleMutation } from "@/queries";
 import { DialogTitle, DialogDescription } from "../ui/dialog";
 import { queryClient } from "@/providers";
+import type { HttpError } from "@/types";
 import { IconLabel } from "../shared";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
@@ -44,8 +45,12 @@ export const AddRoles = ({ setOpen }: Props) => {
 				setOpen(false);
 			});
 		},
-		onError: (error) => {
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create role";
+			toast.error(message);
 		},
 	});
 

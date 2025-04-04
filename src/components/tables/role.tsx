@@ -75,7 +75,6 @@ const LineItem = ({ role }: { role: RoleProps }) => {
 			})
 			.filter((item) => item.permission !== null);
 	}, [role]);
-	console.log(role);
 
 	return (
 		<TableRow>

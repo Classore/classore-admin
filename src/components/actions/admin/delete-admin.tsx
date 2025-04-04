@@ -1,10 +1,12 @@
 import { RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import React from "react";
 
-import { DeleteEntities } from "@/queries";
 import { Button } from "@/components/ui/button";
 import { IconLabel } from "@/components/shared";
+import { DeleteEntities } from "@/queries";
+import type { HttpError } from "@/types";
 import {
 	Dialog,
 	DialogContent,
@@ -22,11 +24,15 @@ interface Props {
 export const DeleteAdmin = ({ adminId, isDeleteOpen, setIsDeleteOpen }: Props) => {
 	const { isPending: isDeleting, mutate: remove } = useMutation({
 		mutationFn: () => DeleteEntities({ ids: [adminId], model_type: "ADMIN" }),
-		onSuccess: (data) => {
-			console.log(data);
+		onSuccess: () => {
+			toast.success("Admin deleted successfully");
 		},
-		onError: (error) => {
-			console.log(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 

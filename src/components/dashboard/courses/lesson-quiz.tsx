@@ -46,7 +46,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		onValueChange: (files) => {
 			const file = files[0];
 			quizQuestionFromXlsxToJSON(file, 0).then((questions) => {
-				console.log(questions);
 				updateQuestions(String(chapterId), activeLessonId, questions);
 			});
 		},
@@ -191,8 +190,6 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			toast.error("No new questions provided, all questions already exist. Please add new questions");
 			return;
 		}
-
-		console.log("newQuestions", newQuestions);
 		mutate(newQuestions);
 	};
 

@@ -43,9 +43,8 @@ export const QuizCard = ({ chapter, module }: QuizProps) => {
 		onSuccess: () => {
 			toast.success("Questions created successfully");
 		},
-		onError: (error) => {
+		onError: () => {
 			toast.error("Failed to create questions");
-			console.error(error);
 		},
 	});
 

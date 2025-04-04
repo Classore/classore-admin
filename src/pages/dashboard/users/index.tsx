@@ -1,4 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
+import { useFormik } from "formik";
 import React from "react";
 import {
 	RiArrowLeftSLine,
@@ -9,40 +10,58 @@ import {
 } from "@remixicon/react";
 
 import { DashboardLayout, Unauthorized } from "@/components/layout";
+import { UserFilter } from "@/components/actions/user/filter";
+import type { UserFilters } from "@/queries/user";
 import { UserCard } from "@/components/dashboard";
 import { hasPermission } from "@/lib/permission";
 import { UserTable } from "@/components/tables";
 import { useUserStore } from "@/store/z-store";
 import { Seo } from "@/components/shared";
 import { GetUsers } from "@/queries/user";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 
 const user_types = ["all", "student", "parent"] as const;
-const sort_options = ["NAME", "DATE_CREATED"] as const;
 type User_Type = (typeof user_types)[number];
-type Sort_By = (typeof sort_options)[number];
+
+const initialValues: UserFilters = {
+	is_blocked: "NO",
+	is_deleted: "NO",
+	sort_by: "NAME",
+	sort_order: "ASC",
+	timeline: "LAST_12_MONTHS",
+};
 
 const Page = () => {
 	const [user_type, setUserType] = React.useState<User_Type>("all");
-	const [sort_by, setSortBy] = React.useState<Sort_By>("NAME");
+	const [params, setParams] = React.useState<UserFilters>({
+		is_blocked: "NO",
+		is_deleted: "NO",
+		sort_by: "NAME",
+		sort_order: "ASC",
+		timeline: "LAST_12_MONTHS",
+	});
 	const [page, setPage] = React.useState(1);
 	const admin = useUserStore().user;
+
+	const { handleSubmit, setFieldValue, values } = useFormik({
+		initialValues,
+		onSubmit: (values) => {
+			setParams(values);
+		},
+	});
 
 	const [{ data, isLoading }, { data: all }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-users", page, sort_by, user_type],
+				queryKey: ["get-users", page, params],
 				queryFn: () =>
 					GetUsers({
+						is_blocked: params.is_blocked,
+						is_deleted: params.is_deleted,
 						limit: 10,
 						page,
-						sort_by,
+						sort_by: params.sort_by,
+						sort_order: params.sort_order,
+						timeline: params.timeline,
 						user_type: user_type === "all" ? "" : user_type.toUpperCase(),
 					}),
 			},
@@ -141,18 +160,7 @@ const Page = () => {
 									))}
 								</div>
 							</div>
-							<Select value={sort_by} onValueChange={(value) => setSortBy(value as Sort_By)}>
-								<SelectTrigger className="h-8 w-[90px] text-xs">
-									<SelectValue placeholder="Sort by" />
-								</SelectTrigger>
-								<SelectContent>
-									{sort_options.map((option) => (
-										<SelectItem key={option} value={option} className="text-xs">
-											{option}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+							<UserFilter onSubmit={handleSubmit} setFieldValue={setFieldValue} values={values} />
 						</div>
 						<div className="w-full">
 							<UserTable

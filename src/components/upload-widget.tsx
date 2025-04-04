@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import React, { useState, useRef } from "react";
 
 import { UpdateChapterModule, type UpdateChapterModuleDto } from "@/queries";
-import type { CloudinaryAssetResponse } from "@/types";
+import type { CloudinaryAssetResponse, HttpError } from "@/types";
 import { queryClient } from "@/providers";
 import { PasteLink } from "./dashboard";
 import { Button } from "./ui/button";
@@ -27,8 +27,12 @@ export const UploadWidget = ({ moduleId, sequence, video_url }: Props) => {
 			toast.success("Video added successfully");
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 		},
-		onError: (error) => {
-			console.error(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create module";
+			toast.error(message);
 		},
 	});
 

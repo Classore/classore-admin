@@ -1,11 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import * as Yup from "yup";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { TabPanel } from "@/components/shared";
 import { Input } from "@/components/ui/input";
+import { UpdatePassword } from "@/queries";
 import type { HttpError } from "@/types";
 
 interface Props {
@@ -19,13 +21,18 @@ const initialValues = {
 };
 
 export const ChangePassword = ({ selected }: Props) => {
-	const {} = useMutation({
+	const { mutate } = useMutation({
+		mutationFn: UpdatePassword,
 		mutationKey: ["update-password"],
 		onSuccess: () => {
-			console.log("success");
+			toast.success("Password updated successfully!");
 		},
 		onError: (error: HttpError) => {
-			console.error(error);
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to update password";
+			toast.error(message);
 		},
 	});
 
@@ -50,7 +57,7 @@ export const ChangePassword = ({ selected }: Props) => {
 			),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
+			mutate(values);
 		},
 	});
 

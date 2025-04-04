@@ -1,3 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
+import { RiLoaderLine } from "@remixicon/react";
+import { toast } from "sonner";
 import React from "react";
 import {
 	RiBook2Line,
@@ -10,9 +13,12 @@ import {
 } from "@remixicon/react";
 
 import type { CastedUserProps } from "@/types/casted-types";
+import { EditUser, type EditUserPayload } from "@/queries";
 import { Referrals } from "./user/referrals";
+import { queryClient } from "@/providers";
 import { Profile } from "./user/profile";
 import { Courses } from "./user/courses";
+import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import {
@@ -28,6 +34,11 @@ interface Props {
 	user: CastedUserProps;
 }
 
+type UseMutationProps = {
+	id: string;
+	payload: EditUserPayload;
+};
+
 const tabs = [
 	{ label: "user profile", icon: RiUserLine },
 	{ label: "referrals", icon: RiUserAddLine },
@@ -41,6 +52,44 @@ export const UserActions = ({ user }: Props) => {
 		edit: false,
 		suspend: false,
 		view: false,
+	});
+
+	const { isPending: isSuspending, mutate: suspend } = useMutation({
+		mutationFn: ({ id, payload }: UseMutationProps) => EditUser(id, payload),
+		mutationKey: ["suspend-user", user],
+		onSuccess: (data) => {
+			toast.success(data.message);
+		},
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error.response.data.message)
+				? error.response.data.message[0]
+				: error.response.data.message;
+			const message = errorMessage || "An error occurred while suspending the user.";
+			toast.error(message);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-users"] });
+			setOpen({ ...open, suspend: false });
+		},
+	});
+
+	const { isPending: isRemoving, mutate: remove } = useMutation({
+		mutationFn: ({ id, payload }: UseMutationProps) => EditUser(id, payload),
+		mutationKey: ["delete-user", user],
+		onSuccess: (data) => {
+			toast.success(data.message);
+		},
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error.response.data.message)
+				? error.response.data.message[0]
+				: error.response.data.message;
+			const message = errorMessage || "An error occurred while deleting the user.";
+			toast.error(message);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-users"] });
+			setOpen({ ...open, delete: false });
+		},
 	});
 
 	return (
@@ -138,8 +187,16 @@ export const UserActions = ({ user }: Props) => {
 					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 						<IconLabel icon={RiForbid2Line} variant="warning" />
 						<div className="my-4 space-y-2">
-							<DialogTitle>Suspend User</DialogTitle>
-							<DialogDescription>Are you sure you want to suspend this user?</DialogDescription>
+							<DialogTitle>{user.user_isBlocked ? "Unsuspend" : "Suspend"} Account</DialogTitle>
+							<DialogDescription>
+								Are you sure you want to {user.user_isBlocked ? "unsuspend" : "suspend"} this user account?
+								<br />
+								{user.user_isBlocked ? (
+									<span className="text-red-500">This user will be able to log in again.</span>
+								) : (
+									<span className="text-red-500">This user will no longer be able to log in.</span>
+								)}
+							</DialogDescription>
 						</div>
 						<div className="flex w-full items-center justify-end gap-x-4">
 							<Button
@@ -148,8 +205,22 @@ export const UserActions = ({ user }: Props) => {
 								variant="outline">
 								Cancel
 							</Button>
-							<Button className="w-fit" variant="warning">
-								Suspend User
+							<Button
+								className="w-fit"
+								onClick={() =>
+									suspend({
+										id: user.user_id,
+										payload: { isBlocked: user.user_isBlocked ? "NO" : "YES", isDeleted: "NO" },
+									})
+								}
+								variant="warning">
+								{isSuspending ? (
+									<RiLoaderLine className="animate-spin" />
+								) : user.user_isBlocked ? (
+									"Unsuspend User"
+								) : (
+									"Suspend User"
+								)}
 							</Button>
 						</div>
 					</div>
@@ -177,8 +248,11 @@ export const UserActions = ({ user }: Props) => {
 								variant="outline">
 								Cancel
 							</Button>
-							<Button className="w-fit" variant="destructive">
-								Delete User Account
+							<Button
+								className="w-fit"
+								onClick={() => remove({ id: user.user_id, payload: { isDeleted: "YES", isBlocked: "NO" } })}
+								variant="destructive">
+								{isRemoving ? <RiLoaderLine className="animate-spin" /> : "Delete User Account"}
 							</Button>
 						</div>
 					</div>

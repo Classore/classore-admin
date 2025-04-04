@@ -1,10 +1,12 @@
 import { RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
 import React from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { DeleteEntities } from "@/queries";
+import type { HttpError } from "@/types";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 
@@ -20,12 +22,15 @@ export const DeleteSubject = ({ open, setOpen, subjectId, subjectName }: Props) 
 
 	const { isPending } = useMutation({
 		mutationFn: () => DeleteEntities({ ids: [subjectId], model_type: "SUBJECT" }),
-		onSuccess: (data) => {
-			console.log(data);
+		onSuccess: () => {
 			router.push("/dashboard/courses");
 		},
-		onError: (error) => {
-			console.log(error);
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to delete module";
+			toast.error(message);
 		},
 	});
 

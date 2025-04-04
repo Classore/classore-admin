@@ -12,6 +12,7 @@ export const endpoints = (id?: string) => {
 			reset: "/admin/staff/password/reset",
 			delete_entity: `/auth/delete-entity`,
 			update_role: `/admin/role/update-one/${id}`,
+			change_password: "/auth/change-password",
 		},
 		calendar: {
 			create: "/admin/calendar/events/new",
@@ -71,6 +72,7 @@ export const endpoints = (id?: string) => {
 		users: {
 			all: "/admin/user/get-all",
 			one: `/admin/user/view-one/${id}`,
+			edit: `/admin/user/update-one/${id}`,
 		},
 		waitlist: {
 			get: `/admin/waitlist/fetch`,

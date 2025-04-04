@@ -1,3 +1,11 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addDays } from "date-fns";
+import { useFormik } from "formik";
+import { DatePicker } from "antd";
+import Image from "next/image";
+import { toast } from "sonner";
+import * as Yup from "yup";
+import dayjs from "dayjs";
 import {
 	RiAddLine,
 	RiBookMarkedLine,
@@ -5,15 +13,16 @@ import {
 	RiDeleteBin6Line,
 	RiLoaderLine,
 } from "@remixicon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DatePicker } from "antd";
-import { addDays } from "date-fns";
-import dayjs from "dayjs";
-import { useFormik } from "formik";
-import Image from "next/image";
-import { toast } from "sonner";
-import * as Yup from "yup";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { CreateBundle, GetExaminations } from "@/queries";
+import type { CreateBundleDto } from "@/queries";
+import { Textarea } from "../ui/textarea";
+import { useFileHandler } from "@/hooks";
+import type { HttpError } from "@/types";
+import { IconLabel } from "../shared";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
 	Dialog,
 	DialogContent,
@@ -21,16 +30,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { useFileHandler } from "@/hooks";
-import type { CreateBundleDto } from "@/queries";
-import { CreateBundle, GetExaminations } from "@/queries";
-import { IconLabel } from "../shared";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 import "dayjs/locale/en-gb";
-import { Textarea } from "../ui/textarea";
 dayjs.locale("en-gb");
 
 interface Props {
@@ -49,9 +50,12 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 			});
 			onOpenChange(false);
 		},
-		onError: (error) => {
-			console.error(error);
-			toast.error("Failed to create examination bundle");
+		onError: (error: HttpError) => {
+			const errorMessage = Array.isArray(error?.response.data.message)
+				? error?.response.data.message[0]
+				: error?.response.data.message;
+			const message = errorMessage || "Failed to create examination bundle";
+			toast.error(message);
 		},
 	});
 

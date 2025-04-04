@@ -1,7 +1,9 @@
 /* eslint-disable react/display-name */
-import { cn } from "@/lib";
-import Hls from "hls.js";
 import * as React from "react";
+import { toast } from "sonner";
+import Hls from "hls.js";
+
+import { cn } from "@/lib";
 
 export interface VideoPlayerProps {
 	src: string;
@@ -62,15 +64,15 @@ export const VideoPlayer = React.memo(
 						if (data.fatal) {
 							switch (data.type) {
 								case Hls.ErrorTypes.NETWORK_ERROR:
-									console.log("Fatal network error encountered, trying to recover");
+									toast.error("Fatal network error encountered, trying to recover");
 									hls.startLoad();
 									break;
 								case Hls.ErrorTypes.MEDIA_ERROR:
-									console.log("Fatal media error encountered, trying to recover");
+									toast.error("Fatal media error encountered, trying to recover");
 									hls.recoverMediaError();
 									break;
 								default:
-									console.log("Fatal error encountered, trying to recover");
+									toast.error("Fatal error encountered, trying to recover");
 									hls.recoverMediaError();
 									break;
 							}

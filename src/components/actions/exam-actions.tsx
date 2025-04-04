@@ -74,6 +74,7 @@ export const ExamActions = ({ id, subcategory }: Props) => {
 					mutate({
 						id,
 						model_type: "EXAM_BUNDLE",
+						publish: subcategory.examinationbundle_is_published === "YES" ? "NO" : "YES",
 					})
 				}
 			/>
