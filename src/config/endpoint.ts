@@ -72,6 +72,7 @@ export const endpoints = (id?: string) => {
 		users: {
 			all: "/admin/user/get-all",
 			one: `/admin/user/view-one/${id}`,
+			edit: `/admin/user/update-one/${id}`,
 		},
 		waitlist: {
 			get: `/admin/waitlist/fetch`,
