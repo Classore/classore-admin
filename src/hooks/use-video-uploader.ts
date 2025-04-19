@@ -2,31 +2,16 @@ import {
 	ALLOWED_VIDEO_TYPES,
 	API_URL,
 	MAX_CANCEL_TIMEOUT,
+	MAX_FILE_SIZE,
 	MAX_RETRIES,
 	MAX_TIMEOUT,
 } from "@/constants";
-import { Logger, embedUrl, generateUuid, getFileChunks, validateFile } from "@/lib";
-import {
-	RiDeleteBin5Line,
-	RiRefreshLine,
-	RiUploadCloud2Line,
-	RiVideoAddLine,
-} from "@remixicon/react";
+import { getFileChunks, Logger, validateFile } from "@/lib";
 import { useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import * as React from "react";
-import { type Socket, io } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { PasteLink } from "./dashboard";
-import { VideoPlayer } from "./shared";
-import { UploadProgress } from "./shared/upload-progress";
-import { Button } from "./ui/button";
-
-interface Props {
-	moduleId: string;
-	sequence: number;
-	video_array: (File | string)[];
-}
 
 type Chunk = {
 	index_number: number;
@@ -40,48 +25,38 @@ type VideoUploadStatus = {
 	chunk?: string;
 };
 
-const UPLOAD_STATUS = {
-	chunk: "Uploading...",
-	uploading: "Processing...",
-	transcoding_in_progress: "Transcoding...",
-	completed: "Completed",
-};
-
 const showNotification = (title: string, options: NotificationOptions) => {
 	if ("Notification" in window && Notification.permission === "granted") {
 		new Notification(title, options);
 	}
 };
 
-const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+type UseVideoUploadProps = {
+	upload_id: string;
+	id: string;
+	model_type?: string;
+};
 
-export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
+export const useVideoUploader = ({ upload_id, id, model_type }: UseVideoUploadProps) => {
 	const queryClient = useQueryClient();
 	const [uploadStatus, setUploadStatus] = React.useState<VideoUploadStatus>({
 		status: "",
 		progress: 0,
 		chunk: undefined,
 	});
+	const [retryCount, setRetryCount] = React.useState(0);
+	const [isUploading, setIsUploading] = React.useState(false);
+	const [isLoading, setIsLoading] = React.useState(false);
+	const [previewUrl, setPreviewUrl] = React.useState("");
 
-	// const abortController = useRef<AbortController | null>(new AbortController());
 	// Using this to cleanup video element i will be creating later to get the duration
 	const videoRef = React.useRef<{
 		element: HTMLVideoElement | null;
 		cleanup: () => void;
 	}>({ element: null, cleanup: () => {} });
-
 	const socket = React.useRef<Socket | null>(null);
 	const fileInputRef = React.useRef<HTMLInputElement>(null);
 	const isRunningRef = React.useRef(false);
-
-	const [retryCount, setRetryCount] = React.useState(0);
-	const [isUploading, setIsUploading] = React.useState(false);
-	const [isLoading, setIsLoading] = React.useState(false);
-	const [previewUrl, setPreviewUrl] = React.useState("");
-	const [open, setOpen] = React.useState(false);
-
-	const upload_id = React.useMemo(() => generateUuid(), []);
-	const hasVideo = Boolean(video_array.length > 0);
 
 	React.useEffect(() => {
 		socket.current = io(process.env.NEXT_PUBLIC_WSS_URL, {
@@ -93,7 +68,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		socket.current.on("error", (error) => {
 			Logger.error("Socket error", error);
 		});
-		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
+		socket.current.on(`video_upload_status.${id}`, (data) => {
 			if (data) {
 				setIsLoading(true);
 
@@ -103,7 +78,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				Logger.info("Video upload status", parsedData);
 
 				if (parsedData.status === "completed") {
-					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+					queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+					queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 					setIsLoading(false);
 					setIsUploading(false);
 					setRetryCount(0);
@@ -125,10 +101,10 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		return () => {
 			socket.current?.off("connect");
 			socket.current?.off("error");
-			socket.current?.off(`video_upload_status.${moduleId}`);
+			socket.current?.off(`video_upload_status.${id}`);
 			socket.current?.disconnect();
 		};
-	}, [moduleId, queryClient]);
+	}, [id, queryClient]);
 
 	const handleCancelUpload = React.useCallback(() => {
 		isRunningRef.current = false;
@@ -151,7 +127,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			for (const chunk of chunks) {
 				if (!isRunningRef.current) {
 					setTimeout(() => {
-						fetch(`${API_URL}/admin/learning/cancel_chunk_uploads/${moduleId}`, {
+						fetch(`${API_URL}/admin/learning/cancel_chunk_uploads/${id}`, {
 							method: "GET",
 							headers: {
 								Authorization: `Bearer ${Cookies.get("CLASSORE_ADMIN_TOKEN")}`,
@@ -175,12 +151,15 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				formData.append("upload_id", upload_id);
 				formData.append("file", blob);
 				formData.append("duration", duration.toString());
+				if (model_type) {
+					formData.append("model_type", model_type);
+				}
 
 				try {
 					setIsLoading(true);
 					setIsUploading(true);
 
-					const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${moduleId}`, {
+					const response = await fetch(`${API_URL}/admin/learning/chunk_uploads/${id}`, {
 						method: "PUT",
 						body: formData,
 						headers: {
@@ -226,7 +205,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 			isRunningRef.current = false;
 		},
-		[moduleId, upload_id]
+		[id, model_type, upload_id]
 	);
 
 	const uploadChunkWithRetry = React.useCallback(
@@ -300,7 +279,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 			video.addEventListener("loadedmetadata", () => {
 				const duration = video.duration;
-				uploader(selectedFile, moduleId, duration);
+				uploader(selectedFile, id, duration);
 			});
 
 			videoRef.current = {
@@ -313,7 +292,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 				},
 			};
 		},
-		[isUploading, moduleId, uploader]
+		[isUploading, id, uploader]
 	);
 
 	const handleFileRemove = React.useCallback(() => {
@@ -331,134 +310,15 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		};
 	}, []);
 
-	const video = video_array[0];
-	const uploadedVideo = typeof video === "string" ? video : "";
-
-	return (
-		<div className="w-full space-y-2">
-			<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
-				<strong>Note:</strong> Uploaded videos may take a while before being visible. It will go through
-				three stages: <strong>uploading</strong>, <strong>processing</strong>, and{" "}
-				<strong>transcoding</strong>. We will show you the progress of each stage.
-			</p>
-
-			<div>
-				<input
-					type="file"
-					className="sr-only hidden"
-					id="video-upload"
-					accept="video/*"
-					disabled={isUploading || isLoading}
-					multiple={false}
-					ref={fileInputRef}
-					onChange={handleFileChange}
-				/>
-				<button
-					onClick={() => fileInputRef.current?.click()}
-					disabled={isUploading || isLoading || !hasVideo}
-					type="button"
-					className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400 disabled:cursor-not-allowed">
-					<RiRefreshLine className="size-4" />
-					<span>Change video</span>
-				</button>
-			</div>
-
-			{isLoading ? (
-				<UploadProgress
-					progress={uploadStatus.progress}
-					title={UPLOAD_STATUS[uploadStatus.status as keyof typeof UPLOAD_STATUS]}
-					subtitle={
-						uploadStatus.chunk
-							? `${uploadStatus.chunk} - ${uploadStatus.progress}%`
-							: `${uploadStatus.progress}%`
-					}
-					rightComp={
-						isRunningRef.current && isUploading ? (
-							<button className="ml-2 text-xs" type="button" onClick={handleCancelUpload}>
-								Cancel
-							</button>
-						) : null
-					}
-				/>
-			) : null}
-
-			<div className="w-full rounded-lg bg-neutral-50">
-				{previewUrl ? (
-					<div className="h-full w-full">
-						<div className="relative aspect-video w-full rounded-lg border border-neutral-200">
-							<VideoPlayer src={previewUrl} className="h-full w-full rounded-lg" />
-							<button
-								onClick={() => {
-									handleFileRemove();
-									if (isUploading) {
-										handleCancelUpload();
-									}
-								}}
-								type="button"
-								className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
-								<RiDeleteBin5Line className="size-4" />
-							</button>
-						</div>
-					</div>
-				) : hasVideo && uploadedVideo ? (
-					<div className="aspect-video">
-						<VideoPlayer src={embedUrl(uploadedVideo)} className="h-full w-full rounded-lg" />
-					</div>
-				) : (
-					<label
-						htmlFor="video-upload"
-						draggable
-						className="has-disabled:cursor-not-allowed grid aspect-video w-full place-items-center border border-neutral-200 bg-white py-4">
-						{moduleId ? (
-							<>
-								<input
-									type="file"
-									className="sr-only hidden"
-									id="video-upload"
-									accept="video/*"
-									disabled={isUploading || isLoading}
-									multiple={false}
-									ref={fileInputRef}
-									onChange={handleFileChange}
-								/>
-								<div className="flex flex-col items-center gap-y-6 p-5">
-									<div className="grid size-10 place-items-center rounded-md bg-neutral-100">
-										<RiUploadCloud2Line size={20} />
-									</div>
-									<div className="text-center text-sm">
-										<p className="font-medium">
-											<span className="text-secondary-300">Click to upload</span> video
-										</p>
-										<p className="text-center text-xs text-neutral-400">mp4, webm, ogg, mkv (max. 200MB)</p>
-									</div>
-
-									<div className="relative h-[1px] w-full bg-neutral-300 before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-white before:px-1.5 before:py-0.5 before:text-xs before:font-medium before:text-neutral-300 before:content-['OR']"></div>
-									<div className="flex items-center justify-center gap-x-4">
-										<Button
-											onClick={() => fileInputRef.current?.click()}
-											className="w-fit"
-											size="sm"
-											variant="invert-outline"
-											disabled={isLoading}>
-											<RiUploadCloud2Line size={14} /> Upload Video
-										</Button>
-										<PasteLink open={open} sequence={sequence} setOpen={setOpen} disabled={isLoading} />
-									</div>
-								</div>
-							</>
-						) : (
-							<div className="flex flex-col items-center justify-center space-y-2">
-								<RiVideoAddLine size={50} className="text-neutral-400" />
-
-								<p className="text-center text-sm">
-									You can only upload a video, add a quiz once the lesson has been saved. <br /> Please save
-									the lesson first.
-								</p>
-							</div>
-						)}
-					</label>
-				)}
-			</div>
-		</div>
-	);
+	return {
+		handleFileChange,
+		handleFileRemove,
+		handleCancelUpload,
+		previewUrl,
+		isUploading,
+		isLoading,
+		uploadStatus,
+		fileInputRef,
+		isRunningRef,
+	};
 };

@@ -6,9 +6,9 @@ import React from "react";
 import { AssignTeachers } from "@/components/dashboard";
 import { Chapters } from "@/components/dashboard/courses/chapters";
 import { Modules } from "@/components/dashboard/courses/modules";
-import { DeleteSubject } from "@/components/dashboard/delete-subject";
 import { DuplicateCourse } from "@/components/dashboard/duplicate-course";
 import { EditCourse } from "@/components/dashboard/edit-course";
+import { PreviewVideoModal } from "@/components/dashboard/preview-video-modal";
 import { DashboardLayout } from "@/components/layout";
 import { QuizSettingsTab } from "@/components/quiz-settings";
 import { Breadcrumbs, Seo, Spinner, TabPanel, type BreadcrumbItemProps } from "@/components/shared";
@@ -28,7 +28,7 @@ const Page = () => {
 	const [tab, setTab] = React.useState("course");
 	const [section, setSection] = React.useState("chapters");
 	const [activeChapterId, setActiveChapterId] = React.useState<string>("");
-	const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+	// const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
 	const [openEditModal, setOpenEditModal] = React.useState(false);
 
 	const {
@@ -126,12 +126,12 @@ const Page = () => {
 						</div>
 
 						<div className="flex items-center gap-x-2">
-							<DeleteSubject
+							{/* <DeleteSubject
 								open={openDeleteModal}
 								setOpen={setOpenDeleteModal}
 								subjectId={courseId}
 								subjectName={course?.data.name}
-							/>
+							/> */}
 							<DuplicateCourse courseId={courseId} />
 							<EditCourse
 								course={course.data}
@@ -139,6 +139,7 @@ const Page = () => {
 								open={openEditModal}
 								setOpen={setOpenEditModal}
 							/>
+							<PreviewVideoModal course={course.data} courseId={courseId} />
 						</div>
 					</section>
 
