@@ -1,14 +1,10 @@
 import { RiDeleteBin6Line, RiInformationLine } from "@remixicon/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import { toast } from "sonner";
-import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import * as React from "react";
+import { toast } from "sonner";
 
-import { DeleteEntities, PublishResource } from "@/queries";
-import { PublishModal } from "../publish-modal";
-import { IconLabel, Spinner } from "../shared";
-import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -17,6 +13,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { DeleteEntities, PublishResource } from "@/queries";
+import { PublishModal } from "../publish-modal";
+import { IconLabel, Spinner } from "../shared";
+import { Button } from "../ui/button";
 
 interface Props {
 	subject_id: string;

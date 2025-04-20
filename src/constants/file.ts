@@ -39,3 +39,10 @@ export const MIME_TYPES = {
 		"audio/mp4",
 	],
 };
+
+export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/mkv"];
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+export const MAX_TIMEOUT = 60000; // 60 seconds
+export const MAX_RETRIES = 3;
+export const MAX_CANCEL_TIMEOUT = 60000; // 60 seconds

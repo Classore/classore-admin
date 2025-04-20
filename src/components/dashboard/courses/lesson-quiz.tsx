@@ -226,17 +226,18 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 						<button
 							type="button"
 							onClick={handleClick}
-							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+							title="Delete Questions"
+							className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs text-neutral-400">
 							<RiImportLine className="size-4" />
-							<span>Import Questions</span>
+							{/* <span>Import Questions</span> */}
 						</button>
 					</label>
 					<button
 						type="button"
 						onClick={() => setCurrentTab("lesson")}
-						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-400">
+						className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs text-neutral-400">
 						<RiArrowLeftSLine className="size-4" />
-						<span>Back to Lesson</span>
+						{/* <span>Back to Lesson</span> */}
 					</button>
 				</div>
 			</div>

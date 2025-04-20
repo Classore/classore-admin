@@ -1,13 +1,9 @@
-import { RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
+import { RiDeleteBin2Line, RiDeleteBin6Line, RiLoaderLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
-import { useQuizStore } from "@/store/z-store/quiz";
 import { Button } from "@/components/ui/button";
-import { DeleteEntities } from "@/queries";
-import type { HttpError } from "@/types";
-import { IconLabel } from "../shared";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +11,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { DeleteEntities } from "@/queries";
+import { useQuizStore } from "@/store/z-store/quiz";
+import type { HttpError } from "@/types";
+import { IconLabel } from "../shared";
 
 interface Props {
 	chapterId: string;
@@ -58,14 +58,11 @@ export const DeleteQuestions = ({ chapterId, disabled, moduleId }: Props) => {
 
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
-			<DialogTrigger asChild>
-				<Button
-					className="h-6 w-fit rounded-md text-xs"
-					disabled={disabled}
-					size="sm"
-					variant="destructive">
-					Delete Questions
-				</Button>
+			<DialogTrigger
+				disabled={disabled}
+				title="Delete Questions"
+				className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-red-50">
+				<RiDeleteBin2Line className="size-4" />
 			</DialogTrigger>
 			<DialogContent className="w-[400px] p-1">
 				<div className="w-full space-y-6 rounded-lg border border-neutral-300 p-4 px-4 pb-4 pt-14">
