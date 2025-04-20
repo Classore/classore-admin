@@ -1,17 +1,21 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { RiLoaderLine } from "@remixicon/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import React from "react";
 import { toast } from "sonner";
 import * as Yup from "yup";
-import React from "react";
 
+import {
+	type DuplicateResourceDto,
+	DuplicateResource,
+	GetBundles,
+	GetExaminations,
+} from "@/queries";
+import type { HttpError } from "@/types";
+import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { type DuplicateResourceDto, DuplicateResource } from "@/queries";
-import { GetExaminations, GetBundles } from "@/queries";
-import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
-import type { HttpError } from "@/types";
 
 interface Props {
 	courseId: string;

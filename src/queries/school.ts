@@ -53,6 +53,11 @@ export interface ExamBundleResponse {
 
 export interface SubjectResponse {
 	chapters: ChapterProps[];
+	videos: Array<{
+		duration: number;
+		secure_url: string;
+		derived_url: string;
+	}>;
 	examination: ExamProps;
 	examination_bundle: ExamBundleProps;
 	name: string;
@@ -294,3 +299,4 @@ export {
 	UpdateBundle,
 	UpdateSubject,
 };
+

@@ -131,7 +131,6 @@ export const getInitials = (value: string) => {
 };
 
 export const generateUuid = () => {
-	// crypto.randomUUID() could do this
 	return crypto.randomUUID();
 };
 
