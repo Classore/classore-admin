@@ -107,9 +107,9 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		formData.append(`questions[${index}][content]`, question.content);
 		formData.append(`questions[${index}][question_type]`, question.question_type);
 		formData.append(`questions[${index}][sequence_number]`, question.sequence_number.toString());
-		question.images.forEach((image, imageIndex) => {
+		question.images.forEach((image) => {
 			if (image instanceof File) {
-				formData.append(`questions[${index}][images][${imageIndex}]`, image, image.name);
+				formData.append(`questions[${index}][images]`, image, image.name);
 			}
 		});
 		question.options?.forEach((option, optionIndex) => {
@@ -131,6 +131,38 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 
 	return axios
 		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, formData)
+		.then((res) => res.data);
+};
+
+const UpdateQuestion = async (module_id: string, payload: QuestionDto) => {
+	const formData = new FormData();
+
+	formData.append(`sequence`, payload.sequence.toString());
+	formData.append(`content`, payload.content);
+	formData.append(`question_type`, payload.question_type);
+	formData.append(`sequence_number`, payload.sequence_number.toString());
+	payload.images.forEach((image) => {
+		if (image instanceof File) {
+			formData.append(`images`, image, image.name);
+		}
+	});
+	payload.options?.forEach((option, optionIndex) => {
+		formData.append(`options[${optionIndex}][sequence_number]`, option.sequence_number.toString());
+		if (option.content) {
+			formData.append(`option[${optionIndex}][content]`, option.content);
+		}
+		if (option.id) {
+			formData.append(`option[${optionIndex}][id]`, option.id);
+		}
+		if (option.is_correct !== undefined) {
+			formData.append(`option[${optionIndex}][is_correct]`, option.is_correct ? "YES" : "NO");
+		}
+	});
+
+	console.log("formData", formData);
+
+	return axios
+		.put<HttpResponse<string>>(endpoints(module_id).school.update_question, formData)
 		.then((res) => res.data);
 };
 
@@ -222,9 +254,9 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
-const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
-	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
-};
+// const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
+// 	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
+// };
 
 export type UpdateQuizSettingsPayload = {
 	bench_mark: number;
@@ -304,3 +336,4 @@ export {
 	UpdateQuestion,
 	UpdateQuizSettings,
 };
+

@@ -1,13 +1,14 @@
 import { toast } from "sonner";
 
-import { createReportableStore } from "../middleware";
 import type { QuestionTypeProps } from "@/types";
+import { createReportableStore } from "../middleware";
 
 export type Option = {
 	content: string;
 	is_correct: boolean;
 	sequence_number: number;
 	images?: (File | string)[];
+	id?: string;
 };
 
 export type QuestionDto = {
@@ -72,7 +73,7 @@ interface QuizStore {
 }
 
 const CONSTANTS = {
-	MAX_IMAGES: 5,
+	MAX_IMAGES: 4,
 	MAX_OPTIONS: 4,
 	MIN_OPTIONS: 1,
 	MAX_QUESTION_LENGTH: 1000,
@@ -84,7 +85,7 @@ const createEmptyQuestion = (sequence: number): QuestionDto => ({
 	content: "",
 	images: [],
 	options: [],
-	question_type: "SINGLE_CHOICE",
+	question_type: "",
 	sequence,
 	sequence_number: sequence,
 	id: "",
@@ -369,8 +370,8 @@ const useQuizStore = createReportableStore<QuizStore>((set, get) => {
 
 				if (!targetQuestion) return state;
 
-				const totalImages = targetQuestion.images.length + images.length;
-				if (totalImages > CONSTANTS.MAX_IMAGES) {
+				// const totalImages =  ;
+				if (targetQuestion.images.length > CONSTANTS.MAX_IMAGES) {
 					toast.error(`Cannot add more than ${CONSTANTS.MAX_IMAGES} images to a question`);
 					return state;
 				}
@@ -385,9 +386,11 @@ const useQuizStore = createReportableStore<QuizStore>((set, get) => {
 						...state.questions,
 						[chapterId]: {
 							...state.questions[chapterId],
-							[moduleId]: currentQuestions.map((q) =>
-								q.sequence === id ? { ...q, images: [...q.images, ...validImages] } : q
-							),
+							[moduleId]: currentQuestions.map((q) => {
+								const uniqueImages = [...new Set([...targetQuestion.images, ...validImages])];
+
+								return q.sequence === id ? { ...q, images: uniqueImages } : q;
+							}),
 						},
 					},
 				};

@@ -153,10 +153,10 @@ export const Quiz = ({ chapterId, lessonTab, setCurrentTab }: Props) => {
 			toast.error("At least one question is required");
 			return;
 		}
-		if (moduleQuestions?.some((question) => question.content === "")) {
-			toast.error("All questions must have content");
-			return;
-		}
+		// if (moduleQuestions?.some((question) => question.content === "")) {
+		// 	toast.error("All questions must have content");
+		// 	return;
+		// }
 		if (moduleQuestions?.some((question) => question.question_type === "")) {
 			toast.error("All questions must have a type");
 			return;

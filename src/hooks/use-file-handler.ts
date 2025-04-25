@@ -87,7 +87,7 @@ export const useFileHandler = ({
 
 				if (rules.allowedTypes?.length && !rules.allowedTypes.includes(file.type)) {
 					onError?.(
-						`File ${file.name} has unsupported type. Allowed types: ${rules.allowedTypes.join(", ")}`
+						`File "${file.name}" has unsupported type. Allowed types: ${rules.allowedTypes.join(", ").replaceAll("image/", "")}`
 					);
 					return false;
 				}

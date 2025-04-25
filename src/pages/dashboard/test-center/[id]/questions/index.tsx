@@ -20,6 +20,7 @@ import { useFileHandler } from "@/hooks";
 import { capitalize, testQuestionFromXlsxToJSON } from "@/lib";
 import { CreateTestQuestion, GetTestQuestions, type TestQuestionDto } from "@/queries/test-center";
 import { getEmptyOption, getEmptyQuestion, useTestCenterStore } from "@/store/z-store/test-center";
+import type { TestCenterQuestionProps } from "@/types";
 
 type QueryKey = {
 	sectionId: string;
@@ -60,30 +61,34 @@ const Page = () => {
 		},
 	});
 
+	const selectedQuestions = React.useCallback((data: TestCenterQuestionProps[]) => {
+		return data.map((question) => {
+			const mutatedQuestion: TestQuestionDto = {
+				content: question.content,
+				images: question.images,
+				instruction: question.instructions,
+				media: question.media,
+				options: question.options.map((option) => {
+					return {
+						content: option.content,
+						is_correct: option.is_correct ? "YES" : "NO",
+						sequence_number: option.sequence_number,
+						id: option.id,
+					};
+				}),
+				question_type: question.question_type,
+				sequence: 0,
+				id: question.id,
+			};
+			return mutatedQuestion;
+		});
+	}, []);
+
 	const { data } = useQuery({
 		queryKey: ["get-section-questions", sectionId],
 		queryFn: () => GetTestQuestions(sectionId, { limit: 100, page }),
 		enabled: !!sectionId,
-		select: (data) =>
-			data.data.data.map((question) => {
-				const mutatedQuestion: TestQuestionDto = {
-					content: question.content,
-					images: question.images,
-					instruction: question.instructions,
-					media: question.media,
-					options: question.options.map((option) => {
-						return {
-							content: option.content,
-							is_correct: option.is_correct ? "YES" : "NO",
-							sequence_number: option.sequence_number,
-						};
-					}),
-					question_type: question.question_type,
-					sequence: 0,
-					id: question.id,
-				};
-				return mutatedQuestion;
-			}),
+		select: (data) => selectedQuestions(data.data.data),
 	});
 
 	React.useEffect(() => {

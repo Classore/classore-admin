@@ -61,7 +61,7 @@ export const DeleteQuestions = ({ chapterId, disabled, moduleId }: Props) => {
 			<DialogTrigger
 				disabled={disabled}
 				title="Delete Questions"
-				className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-red-50">
+				className="flex items-center gap-1 rounded bg-red-600 px-2 py-1.5 text-xs text-red-50">
 				<RiDeleteBin2Line className="size-4" />
 			</DialogTrigger>
 			<DialogContent className="w-[400px] p-1">
