@@ -1,13 +1,13 @@
-import { axios, createFormDataFromObject } from "@/lib";
 import { endpoints } from "@/config";
+import { axios, createFormDataFromObject } from "@/lib";
 import type {
 	HttpResponse,
 	Maybe,
 	PaginatedResponse,
 	PaginationProps,
 	TestCenterProps,
-	TestCenterSectionProps,
 	TestCenterQuestionProps,
+	TestCenterSectionProps,
 } from "@/types";
 
 export interface CreateTestDto {
@@ -58,6 +58,7 @@ export interface TestOptionDto {
 	sequence_number: number;
 	content: string;
 	is_correct: "YES" | "NO";
+	id?: string;
 }
 
 export interface UpdateTestSettingsDto {
@@ -205,12 +206,12 @@ const UpdateTestQuestion = async (questionId: string, payload: UpdateQuestionDto
 
 export {
 	CreateTest,
-	CreateTestSection,
 	CreateTestQuestion,
+	CreateTestSection,
 	GetTest,
 	GetTestQuestions,
 	GetTests,
 	UpdateTest,
-	UpdateTestSection,
 	UpdateTestQuestion,
+	UpdateTestSection,
 };

@@ -49,7 +49,7 @@ export const endpoints = (id?: string) => {
 			update_subject: `/admin/examination/update-subject/${id}`,
 			update_chapter: `admin/learning/chapter/update-one/${id}`,
 			update_chapter_module: `admin/learning/chapter-module/update-one/${id}`,
-			update_question: `${id}`,
+			update_question: `/admin/learning/question/update/${id}`,
 			delete: "/admin/learning/delete-entities",
 			delete_entities: "admin/learning/delete-entities",
 			update_quiz_settings: `admin/learning/chapter/update-quiz-settings/${id}`,

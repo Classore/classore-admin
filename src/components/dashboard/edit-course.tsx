@@ -23,12 +23,12 @@ interface Props {
 }
 
 export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
-	const { isPending, mutateAsync } = useMutation({
+	const { isPending, mutate } = useMutation({
 		mutationKey: ["update-subject"],
 		mutationFn: (data: Partial<CreateSubjectDto>) => UpdateSubject(courseId, data),
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 			setOpen(false);
 		},
 		onError: (error) => {
@@ -47,6 +47,7 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 		name: course.name,
 		description: course.description,
 		banner: course.banner ?? null,
+		chapter_dripping: course.chapter_dripping,
 	};
 
 	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
@@ -56,10 +57,10 @@ export const EditCourse = ({ course, open, setOpen, courseId }: Props) => {
 			name: Yup.string().required("Name is required"),
 			description: Yup.string().required("Description is required"),
 			banner: Yup.mixed(),
-			chapter_dripping: Yup.string().required("Chapter Dripping is required"),
+			chapter_dripping: Yup.string().required("Dripping is required"),
 		}),
 		onSubmit: (values) => {
-			mutateAsync(values);
+			mutate(values);
 		},
 	});
 

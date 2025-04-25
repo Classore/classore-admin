@@ -65,7 +65,12 @@ export interface SubjectResponse {
 	chapter_dripping: "YES" | "NO";
 	banner: string;
 	is_published: "YES" | "NO";
-	tutor: string;
+	tutor: {
+		id: string;
+		first_name: string;
+		last_name: string;
+		email: string;
+	};
 }
 
 export interface ChangeDirectoryDto {
@@ -120,6 +125,8 @@ const CreateSubject = async (payload: CreateSubjectDto) => {
 	formData.append("description", payload.description);
 	formData.append("name", payload.name);
 	formData.append("banner", payload.banner as File);
+	formData.append("chapter_dripping", payload.chapter_dripping.toString());
+
 	return axios
 		.post<HttpResponse<CourseProps>>(endpoints().school.create_subject, formData)
 		.then((res) => res.data);
@@ -255,6 +262,13 @@ const UpdateSubject = async (id: string, payload: Partial<CreateSubjectDto>) => 
 	if (payload.banner && payload.banner instanceof File) {
 		formData.append("banner", payload.banner);
 	}
+	if (payload.chapter_dripping) {
+		formData.append("chapter_dripping", payload.chapter_dripping.toString());
+	}
+	if (payload.tutor) {
+		formData.append("tutor", payload.tutor.toString());
+	}
+
 	return axios
 		.put<HttpResponse<CourseProps>>(endpoints(id).school.update_subject, formData)
 		.then((res) => res.data);

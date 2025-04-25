@@ -1,18 +1,18 @@
 import { RiHashtag, RiLoaderLine, RiUserAddLine } from "@remixicon/react";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import React from "react";
 import { toast } from "sonner";
 import * as Yup from "yup";
-import React from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { queryClient } from "@/providers";
 import type { CreateSubjectDto, GetStaffsResponse, RoleResponse } from "@/queries";
 import { GetRolesQuery, GetStaffs, UpdateSubject } from "@/queries";
-import { Textarea } from "../ui/textarea";
-import { queryClient } from "@/providers";
 import type { HttpError } from "@/types";
-import { Button } from "../ui/button";
 import { TabPanel } from "../shared";
+import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 type UseMutationProps = {
 	id: string;
@@ -22,7 +22,12 @@ type UseMutationProps = {
 interface Props {
 	courseId: string;
 	tab: string;
-	tutor?: string;
+	tutor: {
+		id: string;
+		first_name: string;
+		last_name: string;
+		email: string;
+	};
 }
 
 export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
@@ -41,14 +46,14 @@ export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 			toast.error(message);
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["get-subject", courseId] });
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 		},
 	});
 
 	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
-		initialValues: { tags: "", tutor: "" },
+		initialValues: { tags: "", tutor: tutor ? tutor.id : "" },
 		validationSchema: Yup.object({
-			tags: Yup.string(),
+			// tags: Yup.string(),
 			tutor: Yup.string().required("Tutor is required"),
 		}),
 		onSubmit: (values) => {
@@ -56,9 +61,10 @@ export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 				return;
 			}
 			const payload: Partial<CreateSubjectDto> = {
-				tags: values.tags.split(",").map((tag) => tag.trim()),
+				// tags: values.tags.split(",").map((tag) => tag.trim()),
 				tutor: values.tutor,
 			};
+			console.log("payload", payload);
 			mutate({ id: courseId, payload });
 		},
 	});
@@ -102,15 +108,16 @@ export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 										<label className="text-sm font-medium" htmlFor="">
 											Select Teacher
 										</label>
-										{isPending && <RiLoaderLine className="animate-spin" size={18} />}
+										{/* {isPending && <RiLoaderLine className="animate-spin" size={18} />} */}
 									</div>
 									<Select
-										value={tutor}
+										value={values.tutor}
 										onValueChange={(value) => setFieldValue("tutor", value)}
 										disabled={isPending}>
 										<SelectTrigger className="w-full text-sm capitalize">
 											<SelectValue placeholder="Select Teacher" />
 										</SelectTrigger>
+
 										<SelectContent className="text-sm capitalize">
 											{users?.data.map((user) => (
 												<SelectItem key={user.id} value={user.id}>
@@ -123,8 +130,8 @@ export const AssignTeachers = ({ courseId, tab, tutor }: Props) => {
 								</div>
 							</div>
 						</div>
-						<Button type="submit" size="sm" className="w-fit">
-							Update Course
+						<Button disabled={isPending} type="submit" size="sm" className="w-fit">
+							{isPending ? <RiLoaderLine className="animate-spin" size={18} /> : "Update Course"}
 						</Button>
 					</div>
 				</div>
