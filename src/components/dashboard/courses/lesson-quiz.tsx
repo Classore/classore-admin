@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useFileHandler } from "@/hooks";
 import { convertNumberToWord, quizQuestionFromXlsxToJSON } from "@/lib";
 import { queryClient } from "@/providers";
-import { CreateQuestions, GetQuestions } from "@/queries";
+import { CreateQuestions, GetQuestions, type GetQuestionsResponse } from "@/queries";
 import type { QuestionDto } from "@/store/z-store";
 import { useChapterStore } from "@/store/z-store/chapter";
 import { useQuizStore } from "@/store/z-store/quiz";
@@ -64,12 +64,8 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 		},
 	});
 
-	const { data: existingQuestions, isLoading } = useQuery({
-		queryKey: ["get-questions", activeLessonId],
-		queryFn: () =>
-			GetQuestions({ chapter_id: chapterId, module_id: activeLessonId, limit: 100, page: 1 }),
-		enabled: !!(chapterId && activeLessonId),
-		select: (data) => ({
+	const select = React.useCallback(
+		(data: GetQuestionsResponse) => ({
 			questions: data.data.data.map((question) => {
 				const q: QuestionDto = {
 					content: question.question_content,
@@ -79,6 +75,7 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 						is_correct: option.is_correct,
 						sequence_number: option.sequence_number,
 						images: option.images,
+						id: option.id,
 					})),
 					question_type: question.question_question_type,
 					sequence: question.question_sequence,
@@ -89,6 +86,15 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			}),
 			meta: data.data.meta,
 		}),
+		[]
+	);
+
+	const { data: existingQuestions, isLoading } = useQuery({
+		queryKey: ["get-questions", activeLessonId],
+		queryFn: () =>
+			GetQuestions({ chapter_id: chapterId, module_id: activeLessonId, limit: 100, page: 1 }),
+		enabled: !!(chapterId && activeLessonId),
+		select: select,
 	});
 
 	React.useEffect(() => {
@@ -149,20 +155,20 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 			toast.error("At least one question is required");
 			return;
 		}
-		if (moduleQuestions?.some((question) => question.content === "")) {
-			toast.error("All questions must have content");
-			return;
-		}
+		// if (moduleQuestions?.some((question) => question.content === "")) {
+		// 	toast.error("All questions must have content");
+		// 	return;
+		// }
 		if (moduleQuestions?.some((question) => question.question_type === "")) {
 			toast.error("All questions must have a type");
 			return;
 		}
 		if (
 			moduleQuestions?.some(
-				(question) => question.question_type === "MULTICHOICE" && question.options.length < 2
+				(question) => question.question_type === "MULTICHOICE" && question.options.length < 4
 			)
 		) {
-			toast.error("Multiple options questions must have more than 1 option");
+			toast.error("Multiple options questions must have a minimum of 4 options");
 			return;
 		}
 		if (
@@ -206,6 +212,10 @@ export const LessonQuiz = ({ chapterId, activeLessonId, setCurrentTab }: Props) 
 
 	return (
 		<form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md p-4">
+			<p className="rounded bg-blue-100 px-4 py-2 text-center text-xs text-blue-600">
+				<strong>Note:</strong> Uploaded images may take a while before being visible.
+			</p>
+
 			<div className="flex w-full items-center justify-between">
 				<p className="text-xs uppercase tracking-widest">
 					Lesson {convertNumberToWord(lesson.sequence)} Quizzes - Chapter{" "}
