@@ -85,8 +85,7 @@ export const PointsAndReferrals = ({ handleChange, tab, values }: Props) => {
 							<div className="space-y-2">
 								<p className="text-sm">Referral Percentage for Parents</p>
 								<p className="text-xs text-neutral-400">
-									Define how much students when they refer new users. This is a flat rate across all
-									students.
+									Define how much parents when they refer new users. This is a flat rate across all parents.
 								</p>
 								<div className="flex w-full items-center gap-x-1.5">
 									<MetricInput
@@ -104,8 +103,8 @@ export const PointsAndReferrals = ({ handleChange, tab, values }: Props) => {
 							<div className="space-y-2">
 								<p className="text-sm">Referral Percentage for Marketers</p>
 								<p className="text-xs text-neutral-400">
-									Define how much students when they refer new users. This is a flat rate across all
-									students.
+									Define how much marketers when they refer new users. This is a flat rate across all
+									marketers.
 								</p>
 								<div className="flex w-full items-center gap-x-1.5">
 									<MetricInput
