@@ -1,6 +1,6 @@
-import { endpoints } from "@/config";
 import { axios, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
+import { endpoints } from "@/config";
 import type {
 	CastedChapterModuleProps,
 	CastedChapterProps,
@@ -336,4 +336,3 @@ export {
 	UpdateQuestion,
 	UpdateQuizSettings,
 };
-

@@ -58,6 +58,11 @@ export const endpoints = (id?: string) => {
 			publish_entity: "admin/examination/publish-resource",
 			duplicate_resource: "/admin/examination/duplicate-a-subject",
 		},
+		settings: {
+			get_config: "/admin/config/fetch",
+			update_config: "/admin/config/update",
+			update_admin_config: "/admin/config/update",
+		},
 		test_center: {
 			create: "admin/test-mgt/create-new-test",
 			all: "/admin/test-mgt/fetch-tests",
@@ -76,6 +81,13 @@ export const endpoints = (id?: string) => {
 		},
 		waitlist: {
 			get: `/admin/waitlist/fetch`,
+		},
+		marketer: {
+			get_referrals: "/admin/marketer/referral-report",
+			get_withdrawals: "/admin/marketer/fetch-withdrawals",
+			create_withdrawals: "/admin/marketer/make-withdrawal-request",
+			verify_withdrawals: "/withdrawals/verify",
+			get_banks: "/admin/payment/get-banks",
 		},
 	};
 };

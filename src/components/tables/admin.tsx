@@ -66,6 +66,7 @@ export const AdminTable = ({ admins, onPageChange, page, total, isLoading }: Pro
 };
 
 const LineItem = ({ admin }: { admin: AdminProps }) => {
+	const [open, setOpen] = React.useState(false);
 	const { user } = useUserStore();
 
 	return (
@@ -94,14 +95,14 @@ const LineItem = ({ admin }: { admin: AdminProps }) => {
 				</div>
 			</TableCell>
 			<TableCell>
-				<Popover>
+				<Popover onOpenChange={setOpen} open={open}>
 					<PopoverTrigger asChild disabled={!hasPermission(user, ["admin_write"])}>
 						<button className="grid h-8 w-9 place-items-center rounded-md border">
 							<RiMore2Line size={18} />
 						</button>
 					</PopoverTrigger>
 					<PopoverContent className="w-40">
-						<AdminActions admin={admin} id={admin.id} />
+						<AdminActions admin={admin} onClose={() => setOpen(false)} />
 					</PopoverContent>
 				</Popover>
 			</TableCell>
