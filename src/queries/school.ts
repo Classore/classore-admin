@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import { endpoints } from "@/config";
@@ -139,6 +140,14 @@ const GetExaminations = async (params?: PaginationProps & { search?: string }) =
 		>(endpoints().school.get_exams, { params })
 		.then((res) => res.data);
 };
+export const useGetAllExaminations = (params: PaginationProps) => {
+	return useQuery({
+		queryKey: ["get-examinations", params],
+		queryFn: () => GetExaminations(params),
+		staleTime: Infinity,
+		gcTime: Infinity,
+	});
+};
 
 const GetBundles = async (params?: PaginationProps & { examination?: string; search?: string }) => {
 	if (params) {
@@ -153,6 +162,14 @@ const GetBundles = async (params?: PaginationProps & { examination?: string; sea
 			HttpResponse<PaginatedResponse<CastedExamBundleProps>>
 		>(endpoints().school.get_exam_bundles, { params })
 		.then((res) => res.data);
+};
+export const useGetAllBundles = (params: PaginationProps) => {
+	return useQuery({
+		queryKey: ["get-bundles", params],
+		queryFn: () => GetBundles(params),
+		staleTime: Infinity,
+		gcTime: Infinity,
+	});
 };
 
 const GetBundle = async (
@@ -313,4 +330,3 @@ export {
 	UpdateBundle,
 	UpdateSubject,
 };
-

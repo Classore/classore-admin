@@ -2,7 +2,7 @@ import { Target04 } from "@untitled-ui/icons-react";
 import React from "react";
 
 interface Props {
-	value: string;
+	value: string | number;
 	label?: string;
 }
 

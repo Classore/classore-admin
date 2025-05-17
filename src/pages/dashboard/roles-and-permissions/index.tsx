@@ -34,6 +34,7 @@ const tabs = ["admins", "roles"];
 const Page = () => {
 	const [open, setOpen] = React.useState({ admin: false, roles: false });
 	const [user_type, setUserType] = React.useState<User_Type>("all");
+	const [admin_role, setAdminRole] = React.useState("all");
 	const [sort_by, setSortBy] = React.useState("");
 	const [tab, setTab] = React.useState("admins");
 	const [name, setName] = React.useState("");
@@ -45,8 +46,9 @@ const Page = () => {
 	const [{ data: admins, isLoading }, { data: roles }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-staffs", page, search],
-				queryFn: () => GetStaffs({ limit: 10, page, search }),
+				queryKey: ["get-staffs", admin_role, page, search],
+				queryFn: () =>
+					GetStaffs({ admin_role: admin_role === "all" ? "" : admin_role, limit: 10, page, search }),
 			},
 			{
 				queryKey: ["get-roles"],
@@ -161,6 +163,19 @@ const Page = () => {
 											{sort_options.map((option) => (
 												<SelectItem key={option} value={option} className="text-xs">
 													{option}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<Select value={admin_role} onValueChange={(value) => setAdminRole(value)}>
+										<SelectTrigger className="h-8 w-[180px] text-xs capitalize">
+											<SelectValue placeholder="Filter by role" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All</SelectItem>
+											{roles?.data.data.map((role) => (
+												<SelectItem key={role.role_id} value={role.role_id} className="text-xs capitalize">
+													{role.role_name}
 												</SelectItem>
 											))}
 										</SelectContent>

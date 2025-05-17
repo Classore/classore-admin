@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+
 import type { EventProps, HttpResponse, PaginationProps } from "@/types";
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
@@ -36,6 +38,15 @@ const GetCalendarEvents = async (params?: PaginationProps & { month: number }) =
 	return axios
 		.get<HttpResponse<GetEventsResponse>>(endpoints().calendar.all, { params })
 		.then((res) => res.data);
+};
+export const useGetAllCalendarEvants = (params?: PaginationProps & { month: number }) => {
+	return useQuery({
+		queryKey: ["calendar-events", params],
+		queryFn: () => GetCalendarEvents(params),
+		staleTime: Infinity,
+		gcTime: Infinity,
+		select: (data) => data.data,
+	});
 };
 
 const GetCalendarEvent = async (id: string) => {
