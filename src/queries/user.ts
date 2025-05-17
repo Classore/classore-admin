@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
 import type {
@@ -18,6 +20,12 @@ export const periods = [
 export type PeriodProps = (typeof periods)[number];
 
 interface UsersResponse {
+	analytics: {
+		total_active_users: number;
+		total_inactive_users: number;
+		student_count: number;
+		parent_count: number;
+	};
 	users: PaginatedResponse<CastedUserProps>;
 }
 
@@ -47,6 +55,15 @@ const GetUsers = async (params?: PaginationProps & UserFilters & { user_type?: s
 	return axios
 		.get<HttpResponse<UsersResponse>>(endpoints().users.all, { params })
 		.then((res) => res.data);
+};
+export const useGetAllUsers = (params?: PaginationProps & UserFilters & { user_type?: string }) => {
+	return useQuery({
+		queryKey: ["users", params],
+		queryFn: () => GetUsers(params),
+		staleTime: Infinity,
+		gcTime: Infinity,
+		select: (data) => data.data,
+	});
 };
 
 const GetUser = async (id: string) => {

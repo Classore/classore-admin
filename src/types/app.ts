@@ -80,6 +80,10 @@ export type MustInclude<T, U extends T[]> = [T] extends [ValueOf<U>] ? U : never
 
 export type OptionalString<T> = T | (string & {});
 
+export interface IconProps extends React.SVGProps<SVGSVGElement> {
+	className?: string;
+}
+
 export interface HttpResponse<T> {
 	error: string;
 	data: T;
@@ -115,6 +119,8 @@ export type PaginationProps = {
 	limit?: number;
 	page?: number;
 };
+
+export type Period = "THIS_YEAR" | "THIS_MONTH" | "THIS_WEEK" | "TODAY";
 
 export type QueryParamsProps = {
 	[key: string]: string | number | boolean | undefined | null;
@@ -459,4 +465,16 @@ export type BankProps = {
 	bank_slug: string;
 	bank_code: string;
 	bank_longcode: string;
+};
+
+export type SettingConfig = {
+	Withdrawal_limit: number;
+	allow_withdrawal: "NO" | "YES";
+	limit_withdrawal: "NO" | "YES";
+	point_conversion_factor: string | number;
+	point_per_completed_module: string | number;
+	referral_active: "NO" | "YES";
+	referral_percentage_for_marketers: string | number;
+	referral_percentage_for_parents: string | number;
+	referral_percentage_for_students: string | number;
 };
