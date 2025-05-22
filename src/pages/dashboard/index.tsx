@@ -24,8 +24,6 @@ const Page = () => {
 	const { data: bundles } = useGetAllBundles({ page: 1, limit: 10 });
 	const { data: users } = useGetAllUsers({ page: 1, limit: 10 });
 
-	console.log(examinations);
-
 	const calendarAnalytics = React.useMemo(() => {
 		if (!calendar)
 			return {
