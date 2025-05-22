@@ -38,24 +38,6 @@ const Page = () => {
 		return data.data;
 	}, [data]);
 
-	const { handleChange, resetForm, setFieldValue, values } = useFormik<SettingConfig>({
-		initialValues: {
-			allow_withdrawal: "YES",
-			Withdrawal_limit: config.Withdrawal_limit,
-			limit_withdrawal: config.limit_withdrawal || "YES",
-			point_conversion_factor: config.point_conversion_factor || 0.5,
-			point_per_completed_module: config.point_per_completed_module,
-			referral_active: config.referral_active || "YES",
-			referral_percentage_for_marketers: config.referral_percentage_for_marketers,
-			referral_percentage_for_parents: config.referral_percentage_for_parents,
-			referral_percentage_for_students: config.referral_percentage_for_students,
-		},
-		onSubmit: (values) => {
-			console.log(values);
-		},
-		enableReinitialize: true,
-	});
-
 	const { isPending, mutate } = useUpdateConfig({
 		onError: (error) => {
 			const errorMessage = Array.isArray(error.response?.data.message)
@@ -70,6 +52,25 @@ const Page = () => {
 		onSuccess: () => {
 			toast.success("Settings updated successfully");
 		},
+	});
+
+	const { handleChange, handleSubmit, resetForm, setFieldValue, values } = useFormik<SettingConfig>({
+		initialValues: {
+			allow_withdrawal: "YES",
+			Withdrawal_limit: config.Withdrawal_limit,
+			limit_withdrawal: config.limit_withdrawal || "YES",
+			point_conversion_factor: config.point_conversion_factor || 0.6,
+			point_per_completed_module: config.point_per_completed_module,
+			referral_active: config.referral_active || "YES",
+			referral_percentage_for_marketers: config.referral_percentage_for_marketers,
+			referral_percentage_for_parents: config.referral_percentage_for_parents,
+			referral_percentage_for_students: config.referral_percentage_for_students,
+		},
+		onSubmit: (values) => {
+			console.log(values);
+			mutate(values);
+		},
+		enableReinitialize: true,
 	});
 
 	return (
@@ -87,7 +88,7 @@ const Page = () => {
 								variant="outline">
 								Discard Changes
 							</Button>
-							<Button onClick={() => mutate(values)} size="sm">
+							<Button onClick={() => handleSubmit()} size="sm">
 								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Changes"}
 							</Button>
 						</div>
