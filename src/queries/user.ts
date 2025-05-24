@@ -8,6 +8,7 @@ import type {
 	PaginatedResponse,
 	PaginationProps,
 	UserProps,
+	ViewUserProps,
 } from "@/types";
 
 export const periods = [
@@ -67,7 +68,16 @@ export const useGetAllUsers = (params?: PaginationProps & UserFilters & { user_t
 };
 
 const GetUser = async (id: string) => {
-	return axios.get<HttpResponse<UserProps>>(endpoints(id).users.one).then((res) => res.data);
+	return axios.get<HttpResponse<ViewUserProps>>(endpoints(id).users.one).then((res) => res.data);
+};
+export const useGetUser = (id: string) => {
+	return useQuery({
+		queryKey: ["user", id],
+		queryFn: () => GetUser(id),
+		staleTime: Infinity,
+		gcTime: Infinity,
+		select: (data) => data.data,
+	});
 };
 
 const EditUser = async (id: string, payload: EditUserPayload) => {

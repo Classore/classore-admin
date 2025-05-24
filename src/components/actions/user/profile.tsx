@@ -4,11 +4,11 @@ import { format } from "date-fns";
 import React from "react";
 
 import { TabPanel } from "@/components/shared";
-import type { CastedUserProps } from "@/types";
+import type { ViewUserProps } from "@/types";
 
 interface Props {
 	tab: string;
-	user: CastedUserProps;
+	user?: ViewUserProps;
 }
 
 export const Profile = ({ tab, user }: Props) => {
@@ -21,24 +21,24 @@ export const Profile = ({ tab, user }: Props) => {
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Full Name</p>
 						<p className="text-xs font-medium capitalize">
-							{user?.user_first_name} {user?.user_last_name}
+							{user?.first_name.toLowerCase()} {user?.last_name.toLowerCase()}
 						</p>
 					</div>
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Email Address</p>
-						<p className="text-xs font-medium lowercase">{user?.user_email}</p>
+						<p className="text-xs font-medium lowercase">{user?.email}</p>
 					</div>
 					<div className="flex w-full items-center justify-between py-2">
 						<p className="text-xs text-neutral-400">Date and Time Joined</p>
 						<p className="text-xs font-medium">
-							{user?.user_createdOn && format(user.user_createdOn, "MMM dd, yyyy HH:mm a")}
+							{user?.createdOn && format(user.createdOn, "MMM dd, yyyy HH:mm a")}
 						</p>
 					</div>
 				</div>
 				<div className="flex w-full items-center gap-x-3 rounded-lg bg-gradient-to-r from-primary-200 to-primary-600 px-4 py-2">
 					<div className="size-9 rounded-full bg-neutral-100"></div>
 					<div>
-						<p className="text-xs text-white"></p>
+						<p className="text-xs text-white">{user?.classore_points}</p>
 						<p className="text-[10px] text-neutral-200">Classore Points</p>
 					</div>
 				</div>
@@ -48,7 +48,7 @@ export const Profile = ({ tab, user }: Props) => {
 							<RiTrophyLine className="size-3.5" />
 						</div>
 						<div>
-							<p className="text-xs font-medium"></p>
+							<p className="text-xs font-medium">{user?.ranking}</p>
 							<p className="text-xs text-neutral-400">Ranking</p>
 						</div>
 					</div>
@@ -57,7 +57,7 @@ export const Profile = ({ tab, user }: Props) => {
 							<RiUserAddLine className="size-3.5" />
 						</div>
 						<div>
-							<p className="text-xs font-medium"></p>
+							<p className="text-xs font-medium">{user?.referrals}</p>
 							<p className="text-xs text-neutral-400">Referrals</p>
 						</div>
 					</div>
@@ -66,7 +66,7 @@ export const Profile = ({ tab, user }: Props) => {
 							<RiFlashlightLine className="size-3.5" />
 						</div>
 						<div>
-							<p className="text-xs font-medium"></p>
+							<p className="text-xs font-medium">{user?.streak}</p>
 							<p className="text-xs text-neutral-400">Streak</p>
 						</div>
 					</div>
@@ -75,7 +75,7 @@ export const Profile = ({ tab, user }: Props) => {
 							<Target04 className="size-3.5" />
 						</div>
 						<div>
-							<p className="text-xs font-medium"></p>
+							<p className="text-xs font-medium">{user?.quiz_points}</p>
 							<p className="text-xs text-neutral-400">Quiz Points</p>
 						</div>
 					</div>

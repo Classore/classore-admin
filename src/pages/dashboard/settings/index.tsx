@@ -20,12 +20,12 @@ const initialConfig: SettingConfig = {
 	allow_withdrawal: "YES",
 	Withdrawal_limit: 0,
 	limit_withdrawal: "YES",
-	point_conversion_factor: "",
-	point_per_completed_module: "",
+	point_conversion_factor: 0,
+	point_per_completed_module: 0,
 	referral_active: "YES",
-	referral_percentage_for_marketers: "",
-	referral_percentage_for_parents: "",
-	referral_percentage_for_students: "",
+	referral_percentage_for_marketers: 0,
+	referral_percentage_for_parents: 0,
+	referral_percentage_for_students: 0,
 };
 
 const Page = () => {
@@ -59,15 +59,14 @@ const Page = () => {
 			allow_withdrawal: "YES",
 			Withdrawal_limit: config.Withdrawal_limit,
 			limit_withdrawal: config.limit_withdrawal || "YES",
-			point_conversion_factor: config.point_conversion_factor || 0.6,
-			point_per_completed_module: config.point_per_completed_module,
+			point_conversion_factor: Number(config.point_conversion_factor) || 0.6,
+			point_per_completed_module: Number(config.point_per_completed_module),
 			referral_active: config.referral_active || "YES",
-			referral_percentage_for_marketers: config.referral_percentage_for_marketers,
-			referral_percentage_for_parents: config.referral_percentage_for_parents,
-			referral_percentage_for_students: config.referral_percentage_for_students,
+			referral_percentage_for_marketers: Number(config.referral_percentage_for_marketers),
+			referral_percentage_for_parents: Number(config.referral_percentage_for_parents),
+			referral_percentage_for_students: Number(config.referral_percentage_for_students),
 		},
 		onSubmit: (values) => {
-			console.log(values);
 			mutate(values);
 		},
 		enableReinitialize: true,

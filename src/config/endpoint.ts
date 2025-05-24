@@ -6,6 +6,7 @@ export const endpoints = (id?: string) => {
 			create_role: `/admin/role/create`,
 			get_roles: `/admin/role/fetch`,
 			get_admins: `/admin/staff/fetch`,
+			get_admin: `/admin/staff/view-one/${id}`,
 			update_admin: `/admin/staff/update/${id}`,
 			request_reset: "/admin/staff/password/reset-request",
 			approve_reset: "/admin/staff/password/approve-reset-request",
