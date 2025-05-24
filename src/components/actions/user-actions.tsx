@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { RiLoaderLine } from "@remixicon/react";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -7,20 +6,25 @@ import {
 	RiDeleteBin6Line,
 	RiEditLine,
 	RiForbid2Line,
+	RiLoaderLine,
 	RiInformationLine,
+	RiTeamLine,
 	RiUserAddLine,
 	RiUserLine,
 } from "@remixicon/react";
 
+import { EditUser, type EditUserPayload, useGetUser } from "@/queries";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { CastedUserProps } from "@/types/casted-types";
-import { EditUser, type EditUserPayload } from "@/queries";
 import { Referrals } from "./user/referrals";
 import { queryClient } from "@/providers";
 import { Profile } from "./user/profile";
 import { Courses } from "./user/courses";
 import type { HttpError } from "@/types";
+import { cn, getInitials } from "@/lib";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
+import { Wards } from "./user/wards";
 import {
 	Dialog,
 	DialogContent,
@@ -39,13 +43,7 @@ type UseMutationProps = {
 	payload: EditUserPayload;
 };
 
-const tabs = [
-	{ label: "user profile", icon: RiUserLine },
-	{ label: "referrals", icon: RiUserAddLine },
-	{ label: "courses", icon: RiBook2Line },
-];
-
-export const UserActions = ({ user }: Props) => {
+export const UserActions = ({ id }: Props) => {
 	const [tab, setTab] = React.useState("user profile");
 	const [open, setOpen] = React.useState({
 		delete: false,
@@ -54,9 +52,18 @@ export const UserActions = ({ user }: Props) => {
 		view: false,
 	});
 
+	const { data: user } = useGetUser(id);
+
+	const tabs = [
+		{ label: "user profile", icon: RiUserLine },
+		{ label: "referrals", icon: RiUserAddLine },
+		{ ...(user?.user_type === "STUDENT" && { label: "courses", icon: RiBook2Line }) },
+		{ ...(user?.user_type === "PARENT" && { label: "wards", icon: RiTeamLine }) },
+	];
+
 	const { isPending: isSuspending, mutate: suspend } = useMutation({
 		mutationFn: ({ id, payload }: UseMutationProps) => EditUser(id, payload),
-		mutationKey: ["suspend-user", user],
+		mutationKey: ["suspend-user", id],
 		onSuccess: (data) => {
 			toast.success(data.message);
 		},
@@ -75,7 +82,7 @@ export const UserActions = ({ user }: Props) => {
 
 	const { isPending: isRemoving, mutate: remove } = useMutation({
 		mutationFn: ({ id, payload }: UseMutationProps) => EditUser(id, payload),
-		mutationKey: ["delete-user", user],
+		mutationKey: ["delete-user", id],
 		onSuccess: (data) => {
 			toast.success(data.message);
 		},
@@ -102,30 +109,68 @@ export const UserActions = ({ user }: Props) => {
 						<RiInformationLine size={18} /> View Details
 					</button>
 				</DialogTrigger>
-				<DialogContent animate={false} className="top-4 w-[550px] -translate-y-0 translate-x-[38%] p-0">
+				<DialogContent
+					animate={false}
+					className="top-4 h-[calc(100vh-32px)] w-[550px] -translate-y-0 translate-x-[48%] overflow-hidden p-0">
 					<div className="w-full space-y-4 rounded-lg border p-4">
-						<DialogTitle className="capitalize">{user.user_user_type.toLowerCase()} Details</DialogTitle>
+						<DialogTitle className="capitalize">{user?.user_type.toLowerCase()} Details</DialogTitle>
 						<DialogDescription hidden>User Details</DialogDescription>
-						<div className="w-full space-y-6">
-							<div className="w-full space-y-6">
+						<div className="h-[calc(100%-28px)] w-full space-y-6">
+							<div className="h-[calc(100%-60px)] w-full space-y-6">
 								<div className="h-[214px] w-full">
 									<div className="h-[150px] w-full rounded-lg bg-gradient-to-r from-secondary-100 to-primary-200"></div>
+									<div className="-mt-[52px] flex w-full items-baseline justify-between px-5">
+										<div className="flex items-baseline gap-x-3">
+											<Avatar className="size-[120px]">
+												<AvatarImage src={String(user?.profile_image)} alt={user?.first_name} />
+												<AvatarFallback className="bg-black text-5xl text-white">
+													{getInitials(`${user?.first_name} ${user?.last_name}`)}
+												</AvatarFallback>
+											</Avatar>
+											<div>
+												<p className="font-medium capitalize">
+													{user?.first_name.toLowerCase()} {user?.last_name.toLowerCase()}
+												</p>
+												<p className="text-sm text-neutral-400">{user?.email}</p>
+											</div>
+										</div>
+										<div
+											className={cn(
+												"rounded-md px-3 py-1 text-sm font-medium",
+												user?.isBlocked ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+											)}>
+											{user?.isBlocked ? "Blocked" : "Active"}
+										</div>
+									</div>
 								</div>
 								<div className="w-full space-y-6">
 									<div className="flex h-10 items-center gap-x-3 border-b">
 										{tabs.map(({ icon: Icon, label }) => (
 											<button
 												key={label}
-												onClick={() => setTab(label)}
+												onClick={() => setTab(String(label))}
 												className={`relative flex h-10 items-center gap-x-1 text-sm font-medium capitalize before:absolute before:bottom-0 before:left-0 before:h-[1px] before:bg-primary-400 ${label === tab ? "text-primary-400 before:w-full" : "text-neutral-400 before:w-0"}`}>
-												<Icon size={14} /> {label}
+												{Icon && <Icon size={14} />} {label}
 											</button>
 										))}
 									</div>
 								</div>
-								<Profile tab={tab} user={user} />
-								<Referrals tab={tab} />
-								<Courses tab={tab} />
+								{!user ? (
+									<div className="flex h-[calc(100%-294px)] w-full flex-col items-center justify-center space-y-4">
+										<RiLoaderLine className="animate-spin text-4xl text-neutral-400" />
+										<p className="text-sm text-neutral-400">Loading user details...</p>
+									</div>
+								) : (
+									<>
+										<Profile tab={tab} user={user} />
+										<Referrals tab={tab} user={user} />
+										{user?.user_type === "STUDENT" ? (
+											<Courses tab={tab} user={user} />
+										) : (
+											<Wards tab={tab} user={user} />
+										)}
+									</>
+								)}
 							</div>
 							<div className="flex w-full items-center justify-between">
 								<Button size="sm" className="w-fit" variant="destructive-outline">
@@ -187,11 +232,11 @@ export const UserActions = ({ user }: Props) => {
 					<div className="w-full rounded-lg border px-4 pb-4 pt-[59px]">
 						<IconLabel icon={RiForbid2Line} variant="warning" />
 						<div className="my-4 space-y-2">
-							<DialogTitle>{user.user_isBlocked ? "Unsuspend" : "Suspend"} Account</DialogTitle>
+							<DialogTitle>{user?.isBlocked ? "Unsuspend" : "Suspend"} Account</DialogTitle>
 							<DialogDescription>
-								Are you sure you want to {user.user_isBlocked ? "unsuspend" : "suspend"} this user account?
+								Are you sure you want to {user?.isBlocked ? "unsuspend" : "suspend"} this user account?
 								<br />
-								{user.user_isBlocked ? (
+								{user?.isBlocked ? (
 									<span className="text-red-500">This user will be able to log in again.</span>
 								) : (
 									<span className="text-red-500">This user will no longer be able to log in.</span>
@@ -209,14 +254,14 @@ export const UserActions = ({ user }: Props) => {
 								className="w-fit"
 								onClick={() =>
 									suspend({
-										id: user.user_id,
-										payload: { isBlocked: user.user_isBlocked ? "NO" : "YES", isDeleted: "NO" },
+										id: String(user?.id),
+										payload: { isBlocked: user?.isBlocked ? "NO" : "YES", isDeleted: "NO" },
 									})
 								}
 								variant="warning">
 								{isSuspending ? (
 									<RiLoaderLine className="animate-spin" />
-								) : user.user_isBlocked ? (
+								) : user?.isBlocked ? (
 									"Unsuspend User"
 								) : (
 									"Suspend User"
@@ -250,7 +295,9 @@ export const UserActions = ({ user }: Props) => {
 							</Button>
 							<Button
 								className="w-fit"
-								onClick={() => remove({ id: user.user_id, payload: { isDeleted: "YES", isBlocked: "NO" } })}
+								onClick={() =>
+									remove({ id: String(user?.id), payload: { isDeleted: "YES", isBlocked: "NO" } })
+								}
 								variant="destructive">
 								{isRemoving ? <RiLoaderLine className="animate-spin" /> : "Delete User Account"}
 							</Button>

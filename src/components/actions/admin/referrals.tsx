@@ -1,3 +1,6 @@
+import { format } from "date-fns";
+import { toast } from "sonner";
+import React from "react";
 import {
 	RiArrowLeftSLine,
 	RiDownload2Line,
@@ -5,17 +8,15 @@ import {
 	RiShareLine,
 	RiUserAddLine,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import React from "react";
 
 import { useGetReferrals, useGetWithdrawals } from "@/queries";
 import { EditPercentage } from "./edit-percentage";
 import { TabPanel } from "@/components/shared";
-import type { AdminProps } from "@/types";
+import type { ViewAdminProps } from "@/types";
 import { formatCurrency } from "@/lib";
 
 interface Props {
-	admin: AdminProps;
+	admin: ViewAdminProps;
 	tab: string;
 }
 
@@ -38,6 +39,11 @@ export const Referrals = ({ admin, tab }: Props) => {
 	const { data: referrals } = useGetReferrals({ limit: 10, page: rpage, timeLine: "THIS_MONTH" });
 	const { data: withdrawals } = useGetWithdrawals({ limit: 10, page: wpage });
 
+	const copy = (value: string) => {
+		navigator.clipboard.writeText(value);
+		toast.success("Copied to clipboard");
+	};
+
 	return (
 		<TabPanel selected={tab} value="referrals">
 			<div className="space-y-4">
@@ -52,13 +58,15 @@ export const Referrals = ({ admin, tab }: Props) => {
 					<div className="flex flex-col justify-between rounded-md bg-gradient-to-r from-primary-50 to-primary-100 p-2">
 						<div>
 							<p className="text-xs text-neutral-400">Referral Code</p>
-							<p className="text-sm"></p>
+							<p className="font-semibold">{admin.admin_referal_code}</p>
 						</div>
 						<div className="flex items-center gap-x-4">
 							<button className="flex items-center gap-x-2 rounded-3xl border bg-white px-3 py-1 text-sm">
 								Share <RiShareLine className="size-4" />
 							</button>
-							<button className="flex items-center gap-x-2 rounded-3xl border bg-white px-3 py-1 text-sm">
+							<button
+								className="flex items-center gap-x-2 rounded-3xl border bg-white px-3 py-1 text-sm"
+								onClick={() => copy(admin.admin_referal_code)}>
 								Copy <RiFileCopyLine className="size-4" />
 							</button>
 						</div>
@@ -68,7 +76,7 @@ export const Referrals = ({ admin, tab }: Props) => {
 					<p className="text-sm">
 						Percentage Per Referral: <span className="text-secondary-400">%</span>
 					</p>
-					<EditPercentage id={admin.id} />
+					<EditPercentage id={admin.admin_id} />
 				</div>
 				<div className="w-full">
 					<div className="flex h-10 items-center gap-x-3 border-b">

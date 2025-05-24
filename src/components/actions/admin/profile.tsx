@@ -3,15 +3,16 @@ import React from "react";
 
 import { CoinsIcon } from "@/assets/icons/coins";
 import { TabPanel } from "@/components/shared";
-import type { AdminProps } from "@/types";
+import type { ViewAdminProps } from "@/types";
 
 interface Props {
-	admin: AdminProps;
+	admin: ViewAdminProps;
 	tab: string;
 }
 
 export const Profile = ({ admin, tab }: Props) => {
-	const adminName = `${admin.first_name} ${admin.last_name}`;
+	const adminName = `${admin.admin_first_name} ${admin.admin_last_name}`;
+
 	return (
 		<TabPanel selected={tab} value="profile">
 			<div className="space-y-4">
@@ -22,14 +23,16 @@ export const Profile = ({ admin, tab }: Props) => {
 					</div>
 					<div className="flex h-10 items-center justify-between">
 						<p className="text-sm text-neutral-400">Email Address</p>
-						<p className="text-sm font-medium">{admin.email}</p>
+						<p className="text-sm font-medium">{admin.admin_email}</p>
 					</div>
 					<div className="flex h-10 items-center justify-between">
 						<p className="text-sm text-neutral-400">Date and Time Joined</p>
-						<p className="text-sm font-medium">{format(admin.createdOn, "MMM dd, yyyy | HH:mm a")}</p>
+						<p className="text-sm font-medium">
+							{admin.admin_createdOn && format(admin.admin_createdOn, "MMM dd, yyyy | HH:mm a")}
+						</p>
 					</div>
 				</div>
-				{admin.role === "marketer" && (
+				{admin.role_name === "marketer" && (
 					<div className="flex w-full space-x-2 rounded-md bg-gradient-to-r from-primary-300/75 to-primary-500 p-3">
 						<div className="grid size-9 place-items-center rounded-full bg-white/25">
 							<CoinsIcon className="text-white" />
