@@ -248,15 +248,120 @@ export type RoleProps = {
 };
 
 export type AdminProps = Node & {
-	__typename?: "User";
-	access_token: string;
-	email: string;
+	id: string;
 	first_name: string;
-	is_blocked: boolean;
-	is_deleted: boolean;
 	last_name: string;
-	phone_number: string;
+	phone_number: string | null;
+	email: string;
+	is_deleted: boolean;
+	is_blocked: boolean;
 	role: string;
+};
+
+export type ViewAdminProps = {
+	admin_id: string;
+	admin_copied_from: string | null;
+	admin_createdOn: Date;
+	admin_updatedOn: Date;
+	admin_updatedBy: string | null;
+	admin_deletedOn: Date | null;
+	admin_deletedBy: string | null;
+	admin_isDeleted: boolean;
+	admin_isBlocked: boolean;
+	admin_first_name: string;
+	admin_last_name: string;
+	admin_phone_number: string | null;
+	admin_email: string;
+	admin_access_token: string;
+	admin_referal_code: string;
+	admin_wallet_id: string | null;
+	admin_player_id: string | null;
+	admin_referral_percentage_for_marketers: string;
+	admin_roleId: string;
+	role_id: string;
+	role_copied_from: string | null;
+	role_createdOn: Date;
+	role_updatedOn: Date;
+	role_updatedBy: string | null;
+	role_deletedOn: Date | null;
+	role_deletedBy: string | null;
+	role_isDeleted: boolean;
+	role_isBlocked: boolean;
+	role_name: string;
+	role_waitlist_read: "NO" | "YES";
+	role_waitlist_write: "NO" | "YES";
+	role_student_read: "NO" | "YES";
+	role_student_write: "NO" | "YES";
+	role_admin_read: "NO" | "YES";
+	role_admin_write: "NO" | "YES";
+	role_tutor_read: "NO" | "YES";
+	role_tutor_write: "NO" | "YES";
+	role_videos_read: "NO" | "YES";
+	role_videos_write: "NO" | "YES";
+	role_transactions_read: "NO" | "YES";
+	role_transactions_write: "NO" | "YES";
+	role_marketer_read: "NO" | "YES";
+	role_marketer_write: "NO" | "YES";
+	role_admin_delete_read: "NO" | "YES";
+	role_admin_delete_write: "NO" | "YES";
+	courses: {
+		id: string;
+		createdOn: Date;
+		updatedOn: Date;
+		subjects: {
+			id: string;
+			createdOn: Date;
+			name: string;
+		}[];
+		exam: string;
+		exam_bundle: {
+			id: string;
+			createdOn: Date;
+			updatedOn: Date;
+			name: string;
+			amount: number;
+			start_date: Date;
+			end_date: Date;
+		};
+	}[];
+	referral_list: {
+		referral_id: string;
+		referral_copied_from: null;
+		referral_createdOn: Date;
+		referral_updatedOn: Date;
+		referral_updatedBy: null;
+		referral_deletedOn: null;
+		referral_deletedBy: null;
+		referral_isDeleted: boolean;
+		referral_isBlocked: boolean;
+		referral_referrer_id: string;
+		referral_referee_id: string;
+		referral_type: null;
+		referral_referee_type: string;
+		referral_verified: boolean;
+		referral_redeemed: boolean;
+		referral_referral_code: null;
+		referral_points: number;
+		user_first_name: string;
+		user_last_name: string;
+		user_email: string;
+		user_id: string;
+	}[];
+	leaderboard: {
+		leaderboard_id: string;
+		leaderboard_user: string;
+		leaderboard_points: number;
+		leaderboard_examination: string;
+		leaderboard_examination_bundle: string;
+		examination_bundle_name: string;
+		examination_name: string;
+		user_id: string;
+		user_first_name: string;
+		user_last_name: string;
+		user_email: string;
+		user_profile_image: null;
+		position: string;
+	}[];
 };
 
 export type AdminOneProps = Node & {
@@ -277,6 +382,94 @@ export type UserProps = Node & {
 	first_name: string;
 	last_name: string;
 	phone_number: string;
+};
+
+export type ViewUserProps = {
+	__typename?: "User";
+	id: string;
+	first_name: string;
+	last_name: string;
+	email: string;
+	access_token: string;
+	referral_code: string;
+	profile_image: string | null;
+	is_verified: boolean;
+	isDeleted: boolean;
+	user_type: "PARENT" | "STUDENT";
+	wallet_balance: number;
+	sign_up_channel: string;
+	classore_points: number;
+	ranking: number;
+	referrals: number;
+	streak: number;
+	quiz_points: number;
+	createdOn: Date;
+	updatedOn: Date;
+	isBlocked: boolean;
+	courses: ViewUserCourse[];
+	referral_list: ViewUserReferral[];
+	leaderboard: ViewUserLeaderboard[];
+};
+
+export type ViewUserCourse = {
+	id: string;
+	createdOn: Date;
+	updatedOn: Date;
+	subjects: {
+		id: string;
+		createdOn: Date;
+		name: string;
+	}[];
+	exam: string;
+	exam_bundle: {
+		id: string;
+		createdOn: Date;
+		updatedOn: Date;
+		name: string;
+		amount: number;
+		start_date: Date;
+		end_date: Date;
+	};
+};
+
+export type ViewUserReferral = {
+	referral_id: string;
+	referral_copied_from: string | null;
+	referral_createdOn: Date;
+	referral_updatedOn: Date;
+	referral_updatedBy: string | null;
+	referral_deletedOn: Date | null;
+	referral_deletedBy: string | null;
+	referral_isDeleted: boolean;
+	referral_isBlocked: boolean;
+	referral_referrer_id: string;
+	referral_referee_id: string;
+	referral_type: string | null;
+	referral_referee_type: "PARENT" | "STUDENT";
+	referral_verified: boolean;
+	referral_redeemed: boolean;
+	referral_referral_code: string | null;
+	referral_points: number;
+	user_first_name: string;
+	user_last_name: string;
+	user_email: string;
+	user_id: string;
+};
+
+export type ViewUserLeaderboard = {
+	leaderboard_id: string;
+	leaderboard_user: string;
+	leaderboard_points: number;
+	leaderboard_examination: string;
+	leaderboard_examination_bundle: string;
+	examination_bundle_name: string;
+	examination_name: string;
+	user_id: string;
+	user_first_name: string;
+	user_last_name: string;
+	user_email: string;
+	user_profile_image: string | null;
+	position: string;
 };
 
 export type ExamProps = Node & {

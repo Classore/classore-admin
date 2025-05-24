@@ -1,6 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
+
 import { endpoints } from "@/config";
 import { axios } from "@/lib";
-import type { AdminProps, HttpResponse, PaginatedResponse, PaginationProps } from "@/types";
+import type {
+	AdminProps,
+	HttpResponse,
+	PaginatedResponse,
+	PaginationProps,
+	ViewAdminProps,
+} from "@/types";
 
 interface AdminResponse {
 	admins: PaginatedResponse<AdminProps>;
@@ -23,6 +31,21 @@ const GetStaffs = async (params: PaginationProps & { admin_role?: string; search
 	return axios
 		.get<HttpResponse<AdminResponse>>(endpoints().auth.get_admins, { params })
 		.then((res) => res.data);
+};
+
+const getStaff = async (id: string) => {
+	return axios
+		.get<HttpResponse<ViewAdminProps[]>>(endpoints(id).auth.get_admin)
+		.then((res) => res.data);
+};
+export const useGetStaff = (id: string) => {
+	return useQuery({
+		queryKey: ["get-admin", id],
+		queryFn: () => getStaff(id),
+		staleTime: Infinity,
+		enabled: !!id,
+		gcTime: Infinity,
+	});
 };
 
 export { GetStaffs };
