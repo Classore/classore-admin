@@ -13,6 +13,7 @@ export const requiredEnvs = [
 	"NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
 	"NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET",
 	"NEXT_PUBLIC_CLOUDINARY_URL",
+	"NEXT_PUBLIC_NODE_ENV",
 	"NEXT_PUBLIC_WSS_URL",
 	"NODE_ENV",
 	"TESTING",
@@ -36,6 +37,7 @@ declare global {
 			readonly NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: string;
 			readonly NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: string;
 			readonly NEXT_PUBLIC_CLOUDINARY_URL: string;
+			readonly NEXT_PUBLIC_NODE_ENV: "development" | "production";
 			readonly NODE_ENV: "development" | "production" | "test";
 			readonly TESTING: string;
 		}
