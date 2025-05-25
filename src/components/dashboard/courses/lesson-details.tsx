@@ -15,7 +15,7 @@ import { Spinner, VideoPlayer } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { endpoints } from "@/config";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { api, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import { PublishResource, UpdateChapterModule, type CreateChapterModuleDto } from "@/queries";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import type { ChapterModuleProps, HttpResponse } from "@/types";
@@ -59,7 +59,7 @@ export const LessonDetails = ({ activeLessonId, chapterId, setCurrentTab }: Less
 			formData.append("content", module.content);
 			abortController.current = new AbortController();
 			try {
-				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
+				const res = await api.post<HttpResponse<ChapterModuleProps>>(
 					endpoints(id).school.create_chapter_module,
 					formData,
 					{

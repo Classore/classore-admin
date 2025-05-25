@@ -12,7 +12,7 @@ import {
 } from "@remixicon/react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { axios, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
+import { api, convertNumberToWord, embedUrl, formatFileSize } from "@/lib";
 import type { ChapterModuleProps, HttpError, HttpResponse } from "@/types";
 import { chapterActions, useChapterStore } from "@/store/z-store/chapter";
 import { TiptapEditor } from "./ui/tiptap-editor";
@@ -118,7 +118,7 @@ export const Lessons = ({ lessonTab, chapterId, setCurrentTab }: LessonsProps) =
 			formData.append("content", module.content);
 			abortController.current = new AbortController();
 			try {
-				const res = await axios.post<HttpResponse<ChapterModuleProps>>(
+				const res = await api.post<HttpResponse<ChapterModuleProps>>(
 					endpoints(chapter_id).school.create_chapter_module,
 					formData,
 					{

@@ -1,4 +1,4 @@
-import { axios, createFormDataFromObject } from "@/lib";
+import { api, createFormDataFromObject } from "@/lib";
 import type { QuestionDto } from "@/store/z-store/quiz";
 import { endpoints } from "@/config";
 import type {
@@ -79,21 +79,21 @@ export type PaginatedQuestions = {
 
 const CreateChapter = async (payload: CreateChapterDto) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.post<HttpResponse<ChapterProps>>(endpoints(payload.subject_id).school.create_chapter, formData)
 		.then((res) => res.data);
 };
 
 const UpdateChapter = async (id: string, payload: Partial<CreateChapterDto>) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.put<HttpResponse<ChapterProps>>(endpoints(id).school.update_chapter, formData)
 		.then((res) => res.data);
 };
 
 const CreateChapterModule = async (chapter_id: string, payload: CreateChapterModuleDto) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.post<
 			HttpResponse<ChapterModuleProps>
 		>(endpoints(chapter_id).school.create_chapter_module, formData)
@@ -129,7 +129,7 @@ const CreateQuestions = async (module_id: string, payload: QuestionDto[]) => {
 		});
 	});
 
-	return axios
+	return api
 		.post<HttpResponse<string>>(endpoints(module_id).school.create_questions, formData)
 		.then((res) => res.data);
 };
@@ -161,7 +161,7 @@ const UpdateQuestion = async (module_id: string, payload: QuestionDto) => {
 
 	console.log("formData", formData);
 
-	return axios
+	return api
 		.put<HttpResponse<string>>(endpoints(module_id).school.update_question, formData)
 		.then((res) => res.data);
 };
@@ -180,7 +180,7 @@ const GetChapters = async (params?: GetChaptersParams) => {
 			}
 		}
 	}
-	return axios
+	return api
 		.get<PaginatedResponse<CastedChapterProps[]>>(endpoints().school.get_chapters, { params })
 		.then((res) => res.data);
 };
@@ -193,7 +193,7 @@ const GetChapterModules = async (params?: PaginationProps & { chapter_id?: strin
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<PaginatedResponse<CastedChapterModuleProps>>>(
 			endpoints().school.get_chapter_modules,
 			{
@@ -216,7 +216,7 @@ const GetQuestions = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<GetQuestionsResponse>(endpoints().school.get_questions, { params })
 		.then((res) => res.data);
 };
@@ -251,11 +251,11 @@ const UpdateChapterModule = async (id: string, payload: UpdateChapterModuleDto) 
 			formData.append(`images[${i}]`, image);
 		});
 	}
-	return axios.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
+	return api.put(endpoints(id).school.update_chapter_module, formData).then((res) => res.data);
 };
 
 // const UpdateQuestion = async (id: string, payload: Partial<CreateQuestionDto>) => {
-// 	return axios.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
+// 	return api.put(endpoints(id).school.update_chapter_module, payload).then((res) => res.data);
 // };
 
 export type UpdateQuizSettingsPayload = {
@@ -269,7 +269,7 @@ export type UpdateQuizSettingsPayload = {
 };
 
 const UpdateQuizSettings = async (id: string, payload: UpdateQuizSettingsPayload) => {
-	return axios.put(endpoints(id).school.update_quiz_settings, payload).then((res) => res.data);
+	return api.put(endpoints(id).school.update_quiz_settings, payload).then((res) => res.data);
 };
 
 export type DeleteEntitiesPayload = {
@@ -287,7 +287,7 @@ export type DeleteEntitiesPayload = {
 };
 
 const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
-	return axios
+	return api
 		.delete(endpoints().school.delete_entities, {
 			data: payload,
 		})
@@ -302,9 +302,7 @@ export type UpdateChapterModuleSequencePayload = {
 	}>;
 };
 const UpdateChapterModuleSequence = async (payload: UpdateChapterModuleSequencePayload) => {
-	return axios
-		.put(endpoints().school.update_chapter_module_sequence, payload)
-		.then((res) => res.data);
+	return api.put(endpoints().school.update_chapter_module_sequence, payload).then((res) => res.data);
 };
 
 export type UpdateChapterSequencePayload = {
@@ -315,7 +313,7 @@ export type UpdateChapterSequencePayload = {
 	}>;
 };
 const UpdateChapterSequence = async (payload: UpdateChapterSequencePayload) => {
-	return axios.put(endpoints().school.update_chapter_sequence, payload).then((res) => res.data);
+	return api.put(endpoints().school.update_chapter_sequence, payload).then((res) => res.data);
 };
 
 export {

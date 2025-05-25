@@ -22,7 +22,7 @@
 //       formData.append("total_chunks", totalChunks.toString());
 //       formData.append("upload_id", upload_id);
 
-//       const uploadPromise = axios
+//       const uploadPromise = api
 //         .put<HttpResponse<UploadResponse>>(
 //           `${API_URL}/admin/learning/chunk_uploads/${moduleId}`,
 //           formData,
@@ -88,7 +88,7 @@
 //   try {
 //     const controller = new AbortController();
 //     const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
-//     const response = await axios.put<HttpResponse<UploadResponse>>(
+//     const response = await api.put<HttpResponse<UploadResponse>>(
 //       `${API_URL}/admin/learning/chunk_uploads/${moduleId}`,
 //       formData,
 //       {

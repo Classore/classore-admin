@@ -9,10 +9,10 @@ import type {
 	WithdrawalProps,
 } from "@/types";
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 
 const getReferrals = async (params: PaginationProps & { timeLine?: Period }) => {
-	return axios
+	return api
 		.get<HttpResponse<ReferralProps[]>>(endpoints().marketer.get_referrals, { params })
 		.then((res) => res.data);
 };
@@ -26,7 +26,7 @@ export const useGetReferrals = (params: PaginationProps & { timeLine?: Period })
 };
 
 const getWithdrawals = async (params: PaginationProps) => {
-	return axios
+	return api
 		.get<
 			HttpResponse<PaginatedResponse<WithdrawalProps>>
 		>(endpoints().marketer.get_withdrawals, { params })
