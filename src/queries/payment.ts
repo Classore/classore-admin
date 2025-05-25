@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 import type { HttpResponse, PaginatedResponse, PaginationProps, SubscriptionProps } from "@/types";
 
 interface SubscriptionResponse {
@@ -56,7 +56,7 @@ const getAllPayments = async (params: PaginationProps) => {
 			}
 		}
 	}
-	return axios.get<HttpResponse<PaymentResponse>>(endpoints().payments.all, { params });
+	return api.get<HttpResponse<PaymentResponse>>(endpoints().payments.all, { params });
 };
 export const useGetAllPayments = (params: PaginationProps) => {
 	return useQuery({
@@ -78,7 +78,7 @@ const GetSubscriptions = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<SubscriptionResponse>>(endpoints().payments.all, { params })
 		.then((res) => res.data);
 };

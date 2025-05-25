@@ -1,4 +1,4 @@
-import axios from "axios";
+import { api } from "@/lib";
 
 /**
  * A class for downloading and processing documents from Cloudinary URLs.
@@ -42,7 +42,7 @@ export class DocumentDownloader {
 				throw new Error("Invalid Cloudinary URL");
 			}
 
-			const response = await axios({
+			const response = await api({
 				method: "GET",
 				url: cloudinaryUrl,
 				responseType: "arraybuffer",

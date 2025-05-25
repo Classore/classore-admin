@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 import type {
 	CastedCourseProps,
 	CastedExamBundleProps,
@@ -96,7 +96,7 @@ export type BundleResponse = HttpResponse<ExamBundleResponse>;
 export type ExaminationBundleResponse = HttpResponse<PaginatedResponse<CastedExamBundleProps>>;
 
 const CreateExamination = async (payload: CreateExaminationDto) => {
-	return axios
+	return api
 		.post<HttpResponse<ExamProps>>(endpoints().school.create_exam, payload)
 		.then((res) => res.data);
 };
@@ -114,7 +114,7 @@ const CreateBundle = async (payload: CreateBundleDto) => {
 	formData.append("max_subjects", payload.max_subjects.toString());
 	formData.append("name", payload.name);
 	formData.append("start_date", format(payload.start_date, "MM/dd/yyyy"));
-	return axios
+	return api
 		.post<HttpResponse<ExamBundleProps>>(endpoints().school.create_exam_bundle, formData)
 		.then((res) => res.data);
 };
@@ -128,13 +128,13 @@ const CreateSubject = async (payload: CreateSubjectDto) => {
 	formData.append("banner", payload.banner as File);
 	formData.append("chapter_dripping", payload.chapter_dripping.toString());
 
-	return axios
+	return api
 		.post<HttpResponse<CourseProps>>(endpoints().school.create_subject, formData)
 		.then((res) => res.data);
 };
 
 const GetExaminations = async (params?: PaginationProps & { search?: string }) => {
-	return axios
+	return api
 		.get<
 			HttpResponse<PaginatedResponse<CastedExamTypeProps>>
 		>(endpoints().school.get_exams, { params })
@@ -157,7 +157,7 @@ const GetBundles = async (params?: PaginationProps & { examination?: string; sea
 			}
 		}
 	}
-	return axios
+	return api
 		.get<
 			HttpResponse<PaginatedResponse<CastedExamBundleProps>>
 		>(endpoints().school.get_exam_bundles, { params })
@@ -187,7 +187,7 @@ const GetBundle = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<ExamBundleResponse>>(endpoints(id).school.get_exam_bundle, { params })
 		.then((res) => res.data);
 };
@@ -206,7 +206,7 @@ const GetSubjects = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<
 			HttpResponse<PaginatedResponse<CastedCourseProps>>
 		>(endpoints().school.get_subjects, { params })
@@ -214,7 +214,7 @@ const GetSubjects = async (
 };
 
 const GetSubject = async (id: string) => {
-	return axios
+	return api
 		.get<HttpResponse<SubjectResponse>>(endpoints(id).school.get_subject)
 		.then((res) => res.data);
 };
@@ -257,7 +257,7 @@ const UpdateBundle = async (id: string, payload: Partial<CreateBundleDto>) => {
 	if (payload.description) {
 		formData.append("description", payload.description);
 	}
-	return axios
+	return api
 		.put<HttpResponse<CastedExamBundleProps>>(endpoints(id).school.update_exam_bundle, formData)
 		.then((res) => res.data);
 };
@@ -286,13 +286,13 @@ const UpdateSubject = async (id: string, payload: Partial<CreateSubjectDto>) => 
 		formData.append("tutor", payload.tutor.toString());
 	}
 
-	return axios
+	return api
 		.put<HttpResponse<CourseProps>>(endpoints(id).school.update_subject, formData)
 		.then((res) => res.data);
 };
 
 const DeleteEntity = async (model_type: EntityTypeProps, ids: string[]) => {
-	return axios
+	return api
 		.delete<HttpResponse<string>>(endpoints().school.delete, { data: { ids, model_type } })
 		.then((res) => res.data);
 };
@@ -304,13 +304,13 @@ type PublishResourcePayload = {
 };
 
 const PublishResource = async (payload: PublishResourcePayload) => {
-	return axios
+	return api
 		.put<HttpResponse<string>>(endpoints().school.publish_entity, payload)
 		.then((res) => res.data);
 };
 
 const DuplicateResource = async (payload: DuplicateResourceDto) => {
-	return axios
+	return api
 		.post<HttpResponse<string>>(endpoints().school.duplicate_resource, payload)
 		.then((res) => res.data);
 };

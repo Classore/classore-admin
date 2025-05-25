@@ -47,7 +47,7 @@ export const EditAdmin = ({ admin, isEditopen, setIsEditOpen }: Props) => {
 			</DialogTrigger>
 			<DialogContent
 				animate={false}
-				className="top-4 h-[calc(100vh-32px)] w-[550px] -translate-y-0 translate-x-[50%]">
+				className="left-full top-4 h-[calc(100vh-32px)] w-[550px] -translate-x-[532px] -translate-y-0">
 				{!user ? (
 					<div className="grid h-full w-full place-items-center">
 						<RiLoaderLine className="size-8 animate-spin text-primary-500" />
