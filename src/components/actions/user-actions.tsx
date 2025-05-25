@@ -111,7 +111,7 @@ export const UserActions = ({ id }: Props) => {
 				</DialogTrigger>
 				<DialogContent
 					animate={false}
-					className="top-4 h-[calc(100vh-32px)] w-[550px] -translate-y-0 translate-x-[48%] overflow-hidden p-0">
+					className="left-full top-4 h-[calc(100vh-32px)] w-[550px] -translate-x-[532px] -translate-y-0 overflow-hidden p-0">
 					<div className="w-full space-y-4 rounded-lg border p-4">
 						<DialogTitle className="capitalize">{user?.user_type.toLowerCase()} Details</DialogTitle>
 						<DialogDescription hidden>User Details</DialogDescription>

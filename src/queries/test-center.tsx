@@ -1,5 +1,5 @@
 import { endpoints } from "@/config";
-import { axios, createFormDataFromObject } from "@/lib";
+import { api, createFormDataFromObject } from "@/lib";
 import type {
 	HttpResponse,
 	Maybe,
@@ -75,7 +75,7 @@ export type GetTestResponse = {
 
 const CreateTest = async (payload: CreateTestDto) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.post<HttpResponse<TestCenterProps>>(endpoints().test_center.create, formData)
 		.then((res) => res.data);
 };
@@ -88,7 +88,7 @@ const GetTests = async (params?: PaginationProps & { sort_by?: "NAME" | "DATE_CR
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<PaginatedResponse<TestCenterProps>>>(endpoints().test_center.all, {
 			params,
 		})
@@ -106,7 +106,7 @@ const GetTest = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<GetTestResponse>>(endpoints(id).test_center.one, {
 			params,
 		})
@@ -115,21 +115,21 @@ const GetTest = async (
 
 const UpdateTest = async (testId: string, payload: Partial<UpdateTestDto>) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.put<HttpResponse<TestCenterProps>>(endpoints(testId).test_center.update, formData)
 		.then((res) => res.data);
 };
 
 const CreateTestSection = async (testId: string, payload: CreateTestDto) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.post<HttpResponse<TestCenterProps>>(endpoints(testId).test_center.create_section, formData)
 		.then((res) => res.data);
 };
 
 const UpdateTestSection = async (sectionId: string, payload: Partial<UpdateTestDto>) => {
 	const formData = createFormDataFromObject(payload);
-	return axios
+	return api
 		.put<HttpResponse<TestCenterProps>>(endpoints(sectionId).test_center.update_section, formData)
 		.then((res) => res.data);
 };
@@ -161,7 +161,7 @@ const CreateTestQuestion = async (sectionId: string, payload: TestQuestionDto[])
 		});
 	});
 
-	return axios
+	return api
 		.post<HttpResponse<TestCenterProps>>(endpoints(sectionId).test_center.create_question, formData)
 		.then((res) => res.data);
 };
@@ -177,7 +177,7 @@ const GetTestQuestions = async (
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<PaginatedResponse<TestCenterQuestionProps>>>(
 			endpoints(sectionId).test_center.get_questions,
 			{
@@ -199,7 +199,7 @@ const UpdateTestQuestion = async (questionId: string, payload: UpdateQuestionDto
 			formData.append(`options[${index}][is_correct]`, option.is_correct);
 		});
 	}
-	return axios
+	return api
 		.put<HttpResponse<TestCenterProps>>(endpoints(questionId).test_center.update_question, payload)
 		.then((res) => res.data);
 };

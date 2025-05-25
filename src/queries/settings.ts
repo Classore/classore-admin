@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import type { HttpError, HttpResponse, SettingConfig } from "@/types";
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 
 interface MutationProps<T> {
 	onError?: (error: HttpError) => void;
@@ -11,7 +11,7 @@ interface MutationProps<T> {
 }
 
 const getConfig = async () => {
-	return axios
+	return api
 		.get<HttpResponse<SettingConfig>>(endpoints().settings.get_config)
 		.then((res) => res.data);
 };
@@ -25,7 +25,7 @@ export const useGetConfig = () => {
 };
 
 const updateConfig = async (payload: Partial<SettingConfig>) => {
-	return axios
+	return api
 		.put<HttpResponse<SettingConfig>>(endpoints().settings.update_config, payload)
 		.then((res) => res.data.data);
 };
@@ -44,6 +44,6 @@ export const useUpdateConfig = ({
 };
 
 // const updateAdminConfig = async(payload: any) => {
-// 	return axios.put(endpoints().settings.update_admin_config, payload)
+// 	return api.put(endpoints().settings.update_admin_config, payload)
 // 		.then((res) => res.data.data)
 // }

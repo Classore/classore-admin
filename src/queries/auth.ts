@@ -1,5 +1,5 @@
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 import type {
 	AdminOneProps,
 	HttpResponse,
@@ -51,43 +51,43 @@ export interface UpdateAdminDto {
 export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;
 
 const SignInMutation = async (payload: SignInDto) => {
-	return axios
+	return api
 		.post<HttpResponse<AdminOneProps>>(endpoints().auth.signin, payload)
 		.then((res) => res.data);
 };
 
 const CreateAdminMutation = async (payload: CreateAdminDto) => {
-	return axios
+	return api
 		.post<HttpResponse<AdminOneProps>>(endpoints().auth.create, payload)
 		.then((res) => res.data);
 };
 
 const CreateRoleMutation = async (payload: CreateRoleDto) => {
-	return axios
+	return api
 		.post<HttpResponse<Node & RoleProps>>(endpoints().auth.create_role, payload)
 		.then((res) => res.data);
 };
 
 const GetRolesQuery = async (params?: PaginationProps) => {
-	return axios
+	return api
 		.get<HttpResponse<PaginatedResponse<PaginatedRoleProps>>>(endpoints().auth.get_roles, { params })
 		.then((res) => res.data);
 };
 
 const UpdateAdmin = async (id: string, payload: UpdateAdminDto) => {
-	return axios
+	return api
 		.put<HttpResponse<string>>(endpoints(id).auth.update_admin, payload)
 		.then((res) => res.data);
 };
 
 const UpdateRole = async (id: string, payload: CreateRoleDto) => {
-	return axios
+	return api
 		.put<HttpResponse<Node & RoleProps>>(endpoints(id).auth.update_role, payload)
 		.then((res) => res.data);
 };
 
 const UpdatePassword = async (payload: { old_password: string; new_password: string }) => {
-	return axios
+	return api
 		.put<HttpResponse<string>>(endpoints().auth.change_password, payload)
 		.then((res) => res.data);
 };
@@ -102,13 +102,13 @@ const GetWaitlistQuery = async ({
 	search?: string;
 }) => {
 	const params = role ? { limit, page, role, search } : { limit, page, search };
-	return axios
+	return api
 		.get<HttpResponse<PaginatedResponse<WaitlistUserProps>>>(endpoints().waitlist.get, { params })
 		.then((res) => res.data);
 };
 
 const DeleteWaitlistUser = async (id: string) => {
-	return axios
+	return api
 		.put<HttpResponse<WaitlistUserProps>>(endpoints().auth.delete_entity, { id, type: "WAITLIST" })
 		.then((res) => res.data);
 };

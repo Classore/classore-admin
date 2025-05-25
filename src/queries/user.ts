@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 import type {
 	CastedUserProps,
 	HttpResponse,
@@ -53,7 +53,7 @@ const GetUsers = async (params?: PaginationProps & UserFilters & { user_type?: s
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<UsersResponse>>(endpoints().users.all, { params })
 		.then((res) => res.data);
 };
@@ -68,7 +68,7 @@ export const useGetAllUsers = (params?: PaginationProps & UserFilters & { user_t
 };
 
 const GetUser = async (id: string) => {
-	return axios.get<HttpResponse<ViewUserProps>>(endpoints(id).users.one).then((res) => res.data);
+	return api.get<HttpResponse<ViewUserProps>>(endpoints(id).users.one).then((res) => res.data);
 };
 export const useGetUser = (id: string) => {
 	return useQuery({
@@ -81,9 +81,7 @@ export const useGetUser = (id: string) => {
 };
 
 const EditUser = async (id: string, payload: EditUserPayload) => {
-	return axios
-		.put<HttpResponse<UserProps>>(endpoints(id).users.edit, payload)
-		.then((res) => res.data);
+	return api.put<HttpResponse<UserProps>>(endpoints(id).users.edit, payload).then((res) => res.data);
 };
 
 export { EditUser, GetUsers, GetUser };

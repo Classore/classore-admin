@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { endpoints } from "@/config";
-import { axios } from "@/lib";
+import { api } from "@/lib";
 import type {
 	AdminProps,
 	HttpResponse,
@@ -28,13 +28,13 @@ const GetStaffs = async (params: PaginationProps & { admin_role?: string; search
 			}
 		}
 	}
-	return axios
+	return api
 		.get<HttpResponse<AdminResponse>>(endpoints().auth.get_admins, { params })
 		.then((res) => res.data);
 };
 
 const getStaff = async (id: string) => {
-	return axios
+	return api
 		.get<HttpResponse<ViewAdminProps[]>>(endpoints(id).auth.get_admin)
 		.then((res) => res.data);
 };
