@@ -3,7 +3,8 @@ import axios from "axios";
 
 const createInstance = () => {
 	const instance = axios.create({
-		baseURL: process.env.NEXT_PUBLIC_API_URL,
+		baseURL:
+			process.env.NEXT_PUBLIC_API_URL || "https://classore-be-prod-1.up.railway.app/classore/v1",
 	});
 
 	instance.interceptors.request.use(
