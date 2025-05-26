@@ -11,6 +11,7 @@ import {
 	RiTeamLine,
 	RiUserAddLine,
 	RiUserLine,
+	RiParentLine,
 } from "@remixicon/react";
 
 import { EditUser, type EditUserPayload, useGetUser } from "@/queries";
@@ -22,6 +23,7 @@ import { Profile } from "./user/profile";
 import { Courses } from "./user/courses";
 import type { HttpError } from "@/types";
 import { cn, getInitials } from "@/lib";
+import { Parent } from "./user/parent";
 import { Button } from "../ui/button";
 import { IconLabel } from "../shared";
 import { Wards } from "./user/wards";
@@ -58,6 +60,7 @@ export const UserActions = ({ id }: Props) => {
 		{ label: "user profile", icon: RiUserLine },
 		{ label: "referrals", icon: RiUserAddLine },
 		{ ...(user?.user_type === "STUDENT" && { label: "courses", icon: RiBook2Line }) },
+		{ ...(user?.user_type === "STUDENT" && { label: "parent", icon: RiParentLine }) },
 		{ ...(user?.user_type === "PARENT" && { label: "wards", icon: RiTeamLine }) },
 	];
 
@@ -145,9 +148,9 @@ export const UserActions = ({ id }: Props) => {
 								</div>
 								<div className="w-full space-y-6">
 									<div className="flex h-10 items-center gap-x-3 border-b">
-										{tabs.map(({ icon: Icon, label }) => (
+										{tabs.map(({ icon: Icon, label }, index) => (
 											<button
-												key={label}
+												key={index}
 												onClick={() => setTab(String(label))}
 												className={`relative flex h-10 items-center gap-x-1 text-sm font-medium capitalize before:absolute before:bottom-0 before:left-0 before:h-[1px] before:bg-primary-400 ${label === tab ? "text-primary-400 before:w-full" : "text-neutral-400 before:w-0"}`}>
 												{Icon && <Icon size={14} />} {label}
@@ -164,11 +167,9 @@ export const UserActions = ({ id }: Props) => {
 									<>
 										<Profile tab={tab} user={user} />
 										<Referrals tab={tab} user={user} />
-										{user?.user_type === "STUDENT" ? (
-											<Courses tab={tab} user={user} />
-										) : (
-											<Wards tab={tab} user={user} />
-										)}
+										{user?.user_type === "STUDENT" && <Courses tab={tab} user={user} />}
+										{user?.user_type === "STUDENT" && <Parent tab={tab} user={user} />}
+										{user?.user_type === "PARENT" && <Wards tab={tab} user={user} />}
 									</>
 								)}
 							</div>

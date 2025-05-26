@@ -46,6 +46,8 @@ export interface CreateRoleDto {
 export interface UpdateAdminDto {
 	isBlocked?: "YES" | "NO";
 	isDeleted?: "YES" | "NO";
+	referral_percentage?: number;
+	referral_percentage_for_marketers?: number;
 }
 
 export type RoleResponse = HttpResponse<PaginatedResponse<PaginatedRoleProps>>;
