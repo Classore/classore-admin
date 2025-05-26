@@ -74,7 +74,10 @@ export const Referrals = ({ admin, tab }: Props) => {
 				</div>
 				<div className="flex items-center justify-between p-4">
 					<p className="text-sm">
-						Percentage Per Referral: <span className="text-secondary-400">%</span>
+						Percentage Per Referral:{" "}
+						<span className="text-secondary-400">
+							{Number(admin.admin_referral_percentage_for_marketers)} %
+						</span>
 					</p>
 					<EditPercentage id={admin.admin_id} />
 				</div>
