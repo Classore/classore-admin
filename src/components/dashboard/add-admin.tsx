@@ -27,7 +27,6 @@ interface Props {
 const initialValues = {
 	email: "",
 	name: "",
-	password: "",
 	phone_number: "",
 	role: "",
 };
@@ -70,12 +69,6 @@ export const AddAdmin = ({ setOpen }: Props) => {
 					"The name must be two names separated by a single space. No other characters are allowed!"
 				),
 			email: Yup.string().email("Invalid email").required("Email is required"),
-			password: Yup.string()
-				.required("Password is required")
-				.min(
-					8,
-					"Password must be at least 8 characters and must contain a number, uppercase, lowercase and special characters"
-				),
 			phone_number: Yup.string().optional(),
 			role: Yup.string().required("Role is required"),
 		}),
@@ -119,19 +112,6 @@ export const AddAdmin = ({ setOpen }: Props) => {
 					type="email"
 					error={named_errors.email}
 				/>
-				<div>
-					<Input
-						label="Password"
-						name="password"
-						onChange={handleChange}
-						type="password"
-						error={named_errors.password}
-					/>
-					<p className="pt-1 text-[10px] text-neutral-400">
-						Password must be at least 8 characters and must contain a number, uppercase, lowercase and
-						special characters
-					</p>
-				</div>
 				<div className="space-y-1.5">
 					<label className="text-xs text-neutral-400 dark:text-neutral-50" htmlFor="role">
 						Set Permission
@@ -152,10 +132,15 @@ export const AddAdmin = ({ setOpen }: Props) => {
 				</div>
 				<hr />
 				<div className="flex w-full items-center justify-end gap-x-4">
-					<Button className="w-fit" type="button" variant="outline">
+					<Button
+						className="w-fit"
+						disabled={isPending}
+						onClick={() => setOpen(false)}
+						type="button"
+						variant="outline">
 						Cancel
 					</Button>
-					<Button className="w-fit" type="submit">
+					<Button className="w-fit" disabled={isPending} type="submit">
 						{isPending ? <RiLoaderLine className="animate-spin" /> : "Add Admin"}
 					</Button>
 				</div>
