@@ -52,7 +52,7 @@ const Page = () => {
 	const [{ data, isLoading }, { data: all }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-users", page, params],
+				queryKey: ["get-users", page, params, user_type],
 				queryFn: () =>
 					GetUsers({
 						is_blocked: params.is_blocked,

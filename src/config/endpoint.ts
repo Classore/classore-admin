@@ -22,6 +22,13 @@ export const endpoints = (id?: string) => {
 			update: `${id}`,
 			delete: `${id}`,
 		},
+		message: {
+			create_room: "/chat/find-or-create-room",
+			get_room: `/chat/get-room/${id}`,
+			upload: "/chat/media-upload",
+			fetch_messages: "/chat/fetch-room-messages",
+			get_user_rooms: "/chat/fetch-user-rooms",
+		},
 		payments: {
 			all: "/admin/payment/get-all",
 			one: `/admin/payment/view-one/${id}`,
