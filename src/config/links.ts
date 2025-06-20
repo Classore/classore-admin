@@ -15,8 +15,8 @@ import {
 import type { RoleProps } from "@/types";
 
 export const role_access: Record<RoleProps["name"], string[]> = {
-	admin: ["dashboard", "courses", "teacher", "users", "account", "settings"],
-	teacher: ["dashboard", "courses", "account"],
+	admin: ["dashboard", "courses", "teacher", "users", "account", "messages", "settings"],
+	teacher: ["dashboard", "courses", "account", "messages"],
 	super: [
 		"dashboard",
 		"courses",
@@ -25,12 +25,13 @@ export const role_access: Record<RoleProps["name"], string[]> = {
 		"transactions",
 		"subscriptions",
 		"account",
+		"messages",
 		"admins",
 		"roles & permissions",
 		"waitlist",
 		"settings",
 	],
-	sub: ["dashboard", "courses", "account"],
+	sub: ["dashboard", "courses", "account", "messages"],
 };
 
 export const dashboard_links = {
@@ -65,6 +66,7 @@ export const dashboard_links = {
 			links: [
 				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
 				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
+				{ name: "messages", href: "/dashboard/messages", icon: RiMessage3Line },
 				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },
 			],
 		},
