@@ -51,7 +51,7 @@ const Page = () => {
 
 	const url = isDev
 		? process.env.NEXT_PUBLIC_WSS_URL
-		: "wss://classore-be-prod-1.up.railway.app/classore/v1";
+		: "wss://classore-be-june-224829194037.europe-west1.run.app";
 
 	React.useEffect(() => {
 		socket.current = io(url, {
