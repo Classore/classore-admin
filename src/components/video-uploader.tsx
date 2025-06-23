@@ -54,6 +54,7 @@ const showNotification = (title: string, options: NotificationOptions) => {
 };
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+const isDev = process.env.NODE_ENV === "development";
 
 export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const queryClient = useQueryClient();
@@ -84,7 +85,10 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const hasVideo = Boolean(video_array.length > 0);
 
 	React.useEffect(() => {
-		socket.current = io(process.env.NEXT_PUBLIC_WSS_URL, {
+		const url = isDev
+			? process.env.NEXT_PUBLIC_WSS_URL
+			: "wss://classore-be-june-224829194037.europe-west1.run.app";
+		socket.current = io(url, {
 			transports: ["websocket"],
 		});
 		socket.current.on("connect", () => {

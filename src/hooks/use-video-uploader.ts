@@ -25,6 +25,7 @@ type VideoUploadStatus = {
 	chunk?: string;
 };
 
+const isDev = process.env.NODE_ENV === "development";
 const showNotification = (title: string, options: NotificationOptions) => {
 	if ("Notification" in window && Notification.permission === "granted") {
 		new Notification(title, options);
@@ -59,7 +60,10 @@ export const useVideoUploader = ({ upload_id, id, model_type }: UseVideoUploadPr
 	const isRunningRef = React.useRef(false);
 
 	React.useEffect(() => {
-		socket.current = io(process.env.NEXT_PUBLIC_WSS_URL, {
+		const url = isDev
+			? process.env.NEXT_PUBLIC_WSS_URL
+			: "wss://classore-be-june-224829194037.europe-west1.run.app";
+		socket.current = io(url, {
 			transports: ["websocket"],
 		});
 		socket.current.on("connect", () => {
