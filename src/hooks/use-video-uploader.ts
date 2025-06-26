@@ -62,7 +62,7 @@ export const useVideoUploader = ({ upload_id, id, model_type }: UseVideoUploadPr
 	React.useEffect(() => {
 		const url = isDev
 			? process.env.NEXT_PUBLIC_WSS_URL
-			: "wss://classore-be-june-224829194037.europe-west1.run.app";
+			: "wss://classore-be-june-224829194037.europe-west1.run.app/classore/v1";
 		socket.current = io(url, {
 			transports: ["websocket"],
 		});

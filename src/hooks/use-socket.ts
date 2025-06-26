@@ -1,7 +1,7 @@
 import { Socket, io } from "socket.io-client";
 import React from "react";
 
-const url = process.env.NEXT_PUBLIC_API_URL;
+const isDev = process.env.NODE_ENV === "development";
 
 interface SocketOptions {
 	moduleId: string;
@@ -14,6 +14,9 @@ export const useVideoUploadProgress = ({ moduleId }: SocketOptions) => {
 	const socket = React.useRef<Socket | null>(null);
 
 	React.useEffect(() => {
+		const url = isDev
+			? process.env.NEXT_PUBLIC_API_URL
+			: "wss://classore-be-june-224829194037.europe-west1.run.app/classore/v1";
 		if (!moduleId) return;
 
 		socket.current = io(url, {
