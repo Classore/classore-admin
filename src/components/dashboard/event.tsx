@@ -11,6 +11,8 @@ import type { CourseResponse, ExaminationBundleResponse, ExaminationResponse } f
 import { type CreateEventDto, CreateCalendarEvent } from "@/queries/calendar";
 import { GetBundles, GetExaminations, GetSubjects } from "@/queries";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { IconLabel } from "@/components/shared";
 import { queryClient } from "@/providers";
 import { TIME_OPTIONS } from "@/config";
@@ -43,6 +45,9 @@ const initialValues: CreateEventDto = {
 	sub_category: "",
 	subject: "",
 	title: "",
+	meeting_link: "",
+	platform: "",
+	note: "",
 };
 
 export const Event = ({ onClose }: Props) => {
@@ -51,7 +56,7 @@ export const Event = ({ onClose }: Props) => {
 		mutationKey: ["create-event"],
 		onSuccess: (data) => {
 			toast.success(data.message);
-			queryClient.invalidateQueries({ queryKey: ["get-events"] }).then(() => {
+			queryClient.invalidateQueries({ queryKey: ["calendar-events"] }).then(() => {
 				resetForm();
 				onClose();
 			});
@@ -70,11 +75,16 @@ export const Event = ({ onClose }: Props) => {
 				event_day: Yup.number()
 					.min(1, "Event requires minimum of one day")
 					.required("number of event days is required"),
-				frequency: Yup.string().required("Frequency is required"),
+				frequency: Yup.string()
+					.oneOf(["once", "daily", "weekly", "biweekly", "monthly"], "Frequency is required")
+					.required("Frequency is required"),
 				start_hour: Yup.number().required("Start time is required"),
 				sub_category: Yup.string().required("Examination bundle is required"),
 				subject: Yup.string().required("Subject is required"),
 				title: Yup.string().required("Event title is required"),
+				meeting_link: Yup.string(),
+				platform: Yup.string(),
+				note: Yup.string(),
 			}),
 			onSubmit: (values) => {
 				const payload = {
@@ -285,6 +295,58 @@ export const Event = ({ onClose }: Props) => {
 							</Select>
 						</div>
 					</div>
+				</div>
+				<div className="grid w-full grid-cols-2 gap-3">
+					<div className="flex flex-col space-y-1">
+						<label htmlFor="meeting_link" className="text-xs text-neutral-400">
+							Meeting Link
+						</label>
+						<Input
+							id="meeting_link"
+							name="meeting_link"
+							type="url"
+							placeholder="https://zoom.us/..."
+							value={values.meeting_link}
+							onChange={handleChange}
+							className="h-11"
+						/>
+						{errorMessage("meeting_link") && (
+							<p className="text-xs text-red-500">{errorMessage("meeting_link")}</p>
+						)}
+					</div>
+					<div className="flex flex-col space-y-1">
+						<label htmlFor="platform" className="text-xs text-neutral-400">
+							Platform
+						</label>
+						<Select value={values.platform} onValueChange={(value) => setFieldValue("platform", value)}>
+							<SelectTrigger className="h-11 border capitalize">
+								<SelectValue placeholder="Select Platform" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="zoom">Zoom</SelectItem>
+								<SelectItem value="google meet">Google Meet</SelectItem>
+								<SelectItem value="microsoft teams">Microsoft Teams</SelectItem>
+								<SelectItem value="other">Other</SelectItem>
+							</SelectContent>
+						</Select>
+						{errorMessage("platform") && (
+							<p className="text-xs text-red-500">{errorMessage("platform")}</p>
+						)}
+					</div>
+				</div>
+				<div className="flex flex-col space-y-1">
+					<label htmlFor="note" className="text-xs text-neutral-400">
+						Note
+					</label>
+					<Textarea
+						id="note"
+						name="note"
+						placeholder="Add a short note for the meeting..."
+						value={values.note}
+						onChange={handleChange}
+						className="min-h-[80px] resize-none"
+					/>
+					{errorMessage("note") && <p className="text-xs text-red-500">{errorMessage("note")}</p>}
 				</div>
 				<hr />
 				<div className="flex w-full items-center justify-end gap-x-4">

@@ -2,7 +2,7 @@ export * from "./auth";
 export * from "./calendar";
 export * from "./course";
 export * from "./marketer";
-export * from "./school";
+export * from "./notifications";
 export * from "./payment";
 export * from "./school";
 export * from "./settings";

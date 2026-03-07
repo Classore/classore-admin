@@ -10,6 +10,7 @@ import {
 	RiMoneyDollarCircleLine,
 	RiSettingsLine,
 	RiTeamLine,
+	RiNotificationBadgeLine,
 } from "@remixicon/react";
 
 import type { RoleProps } from "@/types";
@@ -66,6 +67,7 @@ export const dashboard_links = {
 			links: [
 				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
 				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
+				{ name: "Push Notifications", href: "/dashboard/notifications", icon: RiNotificationBadgeLine },
 				{ name: "messages", href: "/dashboard/messages", icon: RiMessage3Line },
 				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },
 			],

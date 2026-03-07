@@ -134,11 +134,24 @@ const CreateSubject = async (payload: CreateSubjectDto) => {
 };
 
 const GetExaminations = async (params?: PaginationProps & { search?: string }) => {
+	console.log(
+		"[School API] Fetching examinations from:",
+		endpoints().school.get_exams,
+		"with params:",
+		params
+	);
 	return api
-		.get<
-			HttpResponse<PaginatedResponse<CastedExamTypeProps>>
-		>(endpoints().school.get_exams, { params })
-		.then((res) => res.data);
+		.get<HttpResponse<PaginatedResponse<CastedExamTypeProps>>>(endpoints().school.get_exams, {
+			params,
+		})
+		.then((res) => {
+			console.log("[School API] Examinations response:", res.data);
+			return res.data;
+		})
+		.catch((error) => {
+			console.error("[School API] Error fetching examinations:", error);
+			throw error;
+		});
 };
 export const useGetAllExaminations = (params: PaginationProps) => {
 	return useQuery({
@@ -157,11 +170,25 @@ const GetBundles = async (params?: PaginationProps & { examination?: string; sea
 			}
 		}
 	}
+	console.log(
+		"[School API] Fetching bundles from:",
+		endpoints().school.get_exam_bundles,
+		"with params:",
+		params
+	);
 	return api
-		.get<
-			HttpResponse<PaginatedResponse<CastedExamBundleProps>>
-		>(endpoints().school.get_exam_bundles, { params })
-		.then((res) => res.data);
+		.get<HttpResponse<PaginatedResponse<CastedExamBundleProps>>>(
+			endpoints().school.get_exam_bundles,
+			{ params }
+		)
+		.then((res) => {
+			console.log("[School API] Bundles response:", res.data);
+			return res.data;
+		})
+		.catch((error) => {
+			console.error("[School API] Error fetching bundles:", error);
+			throw error;
+		});
 };
 export const useGetAllBundles = (params: PaginationProps) => {
 	return useQuery({
@@ -206,11 +233,24 @@ const GetSubjects = async (
 			}
 		}
 	}
+	console.log(
+		"[School API] Fetching subjects from:",
+		endpoints().school.get_subjects,
+		"with params:",
+		params
+	);
 	return api
-		.get<
-			HttpResponse<PaginatedResponse<CastedCourseProps>>
-		>(endpoints().school.get_subjects, { params })
-		.then((res) => res.data);
+		.get<HttpResponse<PaginatedResponse<CastedCourseProps>>>(endpoints().school.get_subjects, {
+			params,
+		})
+		.then((res) => {
+			console.log("[School API] Subjects response:", res.data);
+			return res.data;
+		})
+		.catch((error) => {
+			console.error("[School API] Error fetching subjects:", error);
+			throw error;
+		});
 };
 
 const GetSubject = async (id: string) => {

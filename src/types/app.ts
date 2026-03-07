@@ -607,13 +607,17 @@ export type Event = Node & {
 		name: string;
 	};
 	title: string;
+	meeting_link?: string;
+	platform?: string;
+	note?: string;
 };
 
 export type EventProps = {
 	__typename: "Event";
+	title: string;
 	date: Date;
 	day: number;
-	events: Event[];
+	events: EventProps[];
 };
 
 export type DayProps = {

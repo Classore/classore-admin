@@ -18,9 +18,9 @@ export const endpoints = (id?: string) => {
 		calendar: {
 			create: "/admin/calendar/events/new",
 			all: "/admin/calendar/events/get-all",
-			one: `${id}`,
-			update: `${id}`,
-			delete: `${id}`,
+			one: `/admin/calendar/events/get-one/${id}`,
+			update: `/admin/calendar/events/update/${id}`,
+			delete: `/admin/calendar/events/delete/${id}`,
 		},
 		message: {
 			create_room: "/chat/find-or-create-room",
@@ -96,6 +96,10 @@ export const endpoints = (id?: string) => {
 			create_withdrawals: "/admin/marketer/make-withdrawal-request",
 			verify_withdrawals: "/withdrawals/verify",
 			get_banks: "/admin/payment/get-banks",
+		},
+		notifications: {
+			create: "/notification/create-new",
+			get_history: "/notification/history",
 		},
 	};
 };

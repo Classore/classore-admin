@@ -1,6 +1,3 @@
-import { addMonths, format, subMonths } from "date-fns";
-import { useQueries } from "@tanstack/react-query";
-import React from "react";
 import {
 	RiAddLine,
 	RiArrowLeftSLine,
@@ -9,15 +6,14 @@ import {
 	RiCalendarEventLine,
 	RiCalendarTodoLine,
 } from "@remixicon/react";
+import { useQueries } from "@tanstack/react-query";
+import { addMonths, format, subMonths } from "date-fns";
+import React from "react";
 
 import { CalendarCard, Event } from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
-import type { DayProps, EventProps } from "@/types";
-import { dayUtils, getEventStatus } from "@/lib";
-import { Button } from "@/components/ui/button";
-import type { EventsResponse } from "@/queries";
-import { GetCalendarEvents } from "@/queries";
 import { Seo } from "@/components/shared";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -32,6 +28,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { dayUtils, getEventStatus } from "@/lib";
+import type { EventsResponse } from "@/queries";
+import { GetCalendarEvents } from "@/queries";
+import type { DayProps, EventProps } from "@/types";
 
 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -47,35 +47,39 @@ const calendarUtils = {
 const Page = () => {
 	const [currentDate, setCurrentDate] = React.useState(new Date());
 	const [open, setOpen] = React.useState(false);
+	const [selectedEvent, setSelectedEvent] = React.useState<unknown>(null);
+	void selectedEvent; // kept for future modal/display functionality
 	const month = currentDate.getMonth();
 
 	const [{ data }] = useQueries({
 		queries: [
 			{
-				queryKey: ["get-events", month],
+				queryKey: ["calendar-events", month],
 				queryFn: () => GetCalendarEvents({ month }),
 				select: (data: unknown) => (data as EventsResponse).data,
+				enabled: month !== undefined,
 			},
 		],
 	});
 
 	const processedEvents = React.useMemo(() => {
 		const monthEvents: Record<string, EventProps[]> = {};
-		data?.events.forEach((event) => {
-			const eventDate = new Date(event.date);
-			if (
-				eventDate.getFullYear() === currentDate.getFullYear() &&
-				eventDate.getMonth() === currentDate.getMonth()
-			) {
-				const dateKey = eventDate.getDate().toString();
-				if (!monthEvents[dateKey]) {
-					monthEvents[dateKey] = [];
-				}
-				monthEvents[dateKey].push(event);
+		console.log("[DEBUG] API events data:", data?.events);
+
+		// Backend returns an array of day objects: [{ date, day, events: [] }, ...]
+		data?.events?.forEach((dayItem) => {
+			const dayEvents = dayItem.events || [];
+			const dayDate = new Date(dayItem.date);
+			console.log("[DEBUG] Day:", dayDate.getUTCDate(), "Events:", dayEvents.length);
+			if (dayEvents.length > 0) {
+				// Use getUTCDate to avoid timezone offset issues
+				const dayDate = new Date(dayItem.date);
+				const dayNum = dayDate.getUTCDate().toString();
+				monthEvents[dayNum] = dayEvents;
 			}
 		});
 		return monthEvents;
-	}, [currentDate, data]);
+	}, [data]);
 
 	const daysOfMonth = React.useMemo(() => {
 		const month = currentDate.getMonth();
@@ -192,30 +196,38 @@ const Page = () => {
 												<span className="text-xs">{day}</span>
 											</div>
 											<div className="mt-1 flex flex-col gap-y-1 overflow-y-auto">
-												{events.map((event, index) => {
-													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } = dayUtils(event);
+												{events.map((eventItem) => {
+													// For each event, calculate day utilities
+													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } = dayUtils(eventItem);
+													const uniqueKey = `${eventItem.date}-${eventItem.title}`;
 
 													return (
-														<div key={index} className="space-y-1">
-															{event.events.map((ev, idx) => (
-																<div
-																	key={idx}
-																	className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(event.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
-																	<div className="flex w-full cursor-pointer items-center">
-																		<div className="flex items-start justify-center">
-																			<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
-																			<div className="absolute left-7 z-50 flex flex-1 flex-col pl-1">
-																				<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
-																					{ev.title}
-																				</span>
+														<div
+															key={uniqueKey}
+															className="space-y-1"
+															onClick={() => {
+																setSelectedEvent(eventItem);
+																setOpen(true);
+															}}>
+															<div
+																className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(eventItem.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
+																<div className="flex w-full cursor-pointer items-center">
+																	<div className="flex items-start justify-center">
+																		<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
+																		<div className="absolute left-7 z-50 flex flex-1 flex-col pl-1">
+																			<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
+																				{eventItem.title}
+																			</span>
+																			{/* Only show date range for multi-day events */}
+																			{isMultiDay && (
 																				<span className="text-[10px] text-neutral-500">
-																					{format(startDate, "EEEE")} - {format(endDate, "EEEE")}
+																					{format(startDate, "EEE")} - {format(endDate, "EEE")}
 																				</span>
-																			</div>
+																			)}
 																		</div>
 																	</div>
 																</div>
-															))}
+															</div>
 														</div>
 													);
 												})}
