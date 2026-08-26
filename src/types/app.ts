@@ -589,23 +589,15 @@ export type WaitlistUserProps = {
 };
 
 export type Event = Node & {
-	category_id: {
-		id: string;
-		name: string;
-	};
+	category_id: { id: string; name: string } | string;
 	date: Date;
 	end_hour: number;
 	event_day: number;
+	frequency: string;
 	is_active: boolean;
 	start_hour: number;
-	sub_category: {
-		id: string;
-		name: string;
-	};
-	subject: {
-		id: string;
-		name: string;
-	};
+	sub_category: { id: string; name: string } | string;
+	subject: { id: string; name: string } | string;
 	title: string;
 	meeting_link?: string;
 	platform?: string;

@@ -51,7 +51,8 @@ export interface SendNotificationParams {
 	sender: string; // Admin ID
 
 	// Target
-	receiver: string; // "ALL" for all users, array of user IDs for specific
+	// "ALL" | bundle name for all-user sends; a single user ID string for specific-user sends
+	receiver: string;
 
 	// Optional fields
 	path?: string; // Deeplink URL

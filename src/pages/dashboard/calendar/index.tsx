@@ -5,9 +5,13 @@ import {
 	RiCalendarCheckLine,
 	RiCalendarEventLine,
 	RiCalendarTodoLine,
+	RiDeleteBinLine,
+	RiEditLine,
+	RiLoaderLine,
 } from "@remixicon/react";
-import { useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { addMonths, format, subMonths } from "date-fns";
+import { toast } from "sonner";
 import React from "react";
 
 import { CalendarCard, Event } from "@/components/dashboard";
@@ -29,9 +33,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { dayUtils, getEventStatus } from "@/lib";
+import { queryClient } from "@/providers";
 import type { EventsResponse } from "@/queries";
-import { GetCalendarEvents } from "@/queries";
-import type { DayProps, EventProps } from "@/types";
+import { DeleteCalendarEvent, GetCalendarEvent, GetCalendarEvents } from "@/queries";
+import type { DayProps, Event as EventType, EventProps } from "@/types";
 
 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -46,9 +51,13 @@ const calendarUtils = {
 
 const Page = () => {
 	const [currentDate, setCurrentDate] = React.useState(new Date());
-	const [open, setOpen] = React.useState(false);
-	const [selectedEvent, setSelectedEvent] = React.useState<unknown>(null);
-	void selectedEvent; // kept for future modal/display functionality
+	// Dialog state for creating or editing
+	const [createOpen, setCreateOpen] = React.useState(false);
+	const [editOpen, setEditOpen] = React.useState(false);
+	const [deleteOpen, setDeleteOpen] = React.useState(false);
+	const [selectedEvent, setSelectedEvent] = React.useState<EventType | null>(null);
+	const [isFetchingEvent, setIsFetchingEvent] = React.useState(false);
+
 	const month = currentDate.getMonth();
 
 	const [{ data }] = useQueries({
@@ -62,18 +71,29 @@ const Page = () => {
 		],
 	});
 
+	const { isPending: isDeleting, mutate: deleteEvent } = useMutation({
+		mutationFn: (id: string) => DeleteCalendarEvent(id),
+		mutationKey: ["delete-event"],
+		onSuccess: (data) => {
+			toast.success(data.message ?? "Event deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["calendar-events"] }).then(() => {
+				setDeleteOpen(false);
+				setSelectedEvent(null);
+			});
+		},
+		onError: (error: { response?: { data?: { message?: string } } }) => {
+			toast.error(error?.response?.data?.message ?? "Failed to delete event");
+		},
+	});
+
 	const processedEvents = React.useMemo(() => {
 		const monthEvents: Record<string, EventProps[]> = {};
-		console.log("[DEBUG] API events data:", data?.events);
-
 		// Backend returns an array of day objects: [{ date, day, events: [] }, ...]
 		data?.events?.forEach((dayItem) => {
 			const dayEvents = dayItem.events || [];
 			const dayDate = new Date(dayItem.date);
-			console.log("[DEBUG] Day:", dayDate.getUTCDate(), "Events:", dayEvents.length);
 			if (dayEvents.length > 0) {
 				// Use getUTCDate to avoid timezone offset issues
-				const dayDate = new Date(dayItem.date);
 				const dayNum = dayDate.getUTCDate().toString();
 				monthEvents[dayNum] = dayEvents;
 			}
@@ -109,6 +129,30 @@ const Page = () => {
 
 	const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
+	const handleEventClick = async (eventItem: EventProps) => {
+		const id = (eventItem as unknown as EventType).id;
+		if (!id) return;
+		try {
+			setIsFetchingEvent(true);
+			const res = await GetCalendarEvent(id);
+			setSelectedEvent(res as unknown as EventType);
+			setEditOpen(true);
+		} catch (err) {
+			console.error("[Calendar] Failed to fetch event:", err);
+			// Fallback to list data so the dialog still opens
+			setSelectedEvent(eventItem as unknown as EventType);
+			setEditOpen(true);
+		} finally {
+			setIsFetchingEvent(false);
+		}
+	};
+
+	const handleDeleteClick = (e: React.MouseEvent, eventItem: EventProps) => {
+		e.stopPropagation();
+		setSelectedEvent(eventItem as unknown as EventType);
+		setDeleteOpen(true);
+	};
+
 	return (
 		<>
 			<Seo title="Calendar" />
@@ -117,7 +161,8 @@ const Page = () => {
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<p className="">Calendar</p>
-							<Dialog open={open} onOpenChange={setOpen}>
+							{/* Create event dialog */}
+							<Dialog open={createOpen} onOpenChange={setCreateOpen}>
 								<DialogTrigger asChild>
 									<Button size="sm" className="w-fit">
 										<RiAddLine /> Add New Event
@@ -126,7 +171,7 @@ const Page = () => {
 								<DialogContent className="w-[450px] max-w-[90%] p-1">
 									<DialogTitle hidden>New Event</DialogTitle>
 									<DialogDescription hidden>New Event</DialogDescription>
-									<Event open={open} onClose={() => setOpen(false)} />
+									<Event open={createOpen} onClose={() => setCreateOpen(false)} />
 								</DialogContent>
 							</Dialog>
 						</div>
@@ -197,20 +242,17 @@ const Page = () => {
 											</div>
 											<div className="mt-1 flex flex-col gap-y-1 overflow-y-auto">
 												{events.map((eventItem) => {
-													// For each event, calculate day utilities
-													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } = dayUtils(eventItem);
+													const { endDate, isFirstDay, isLastDay, isMultiDay, startDate } =
+														dayUtils(eventItem);
 													const uniqueKey = `${eventItem.date}-${eventItem.title}`;
 
 													return (
 														<div
 															key={uniqueKey}
 															className="space-y-1"
-															onClick={() => {
-																setSelectedEvent(eventItem);
-																setOpen(true);
-															}}>
+															onClick={() => handleEventClick(eventItem)}>
 															<div
-																className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(eventItem.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} `}>
+																className={`group relative flex min-h-14 items-center truncate px-1 py-0.5 text-xs ${getEventStatus(eventItem.date)} ${isMultiDay ? "rounded-none" : "rounded"} ${isFirstDay ? "ml-2 rounded-l border-l-2" : "-ml-1"} ${isLastDay ? "rounded-r" : "pr-0"} ${!isFirstDay && !isLastDay && isMultiDay ? "pl-0" : ""} cursor-pointer`}>
 																<div className="flex w-full cursor-pointer items-center">
 																	<div className="flex items-start justify-center">
 																		<RiCalendarEventLine className="ml-1 size-4 text-inherit" />
@@ -218,7 +260,6 @@ const Page = () => {
 																			<span className={`truncate font-medium ${!isFirstDay ? "pl-1" : ""}`}>
 																				{eventItem.title}
 																			</span>
-																			{/* Only show date range for multi-day events */}
 																			{isMultiDay && (
 																				<span className="text-[10px] text-neutral-500">
 																					{format(startDate, "EEE")} - {format(endDate, "EEE")}
@@ -226,6 +267,31 @@ const Page = () => {
 																			)}
 																		</div>
 																	</div>
+																</div>
+																{/* Edit / Delete action buttons shown on hover */}
+																<div className="absolute right-1 top-1 hidden gap-x-0.5 group-hover:flex">
+																	<button
+																		type="button"
+																		title="Edit event"
+																		disabled={isFetchingEvent}
+																		className="grid size-5 place-items-center rounded bg-white/80 text-neutral-600 hover:text-primary-600 disabled:cursor-wait"
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			handleEventClick(eventItem);
+																		}}>
+																		{isFetchingEvent ? (
+																			<RiLoaderLine size={12} className="animate-spin" />
+																		) : (
+																			<RiEditLine size={12} />
+																		)}
+																	</button>
+																	<button
+																		type="button"
+																		title="Delete event"
+																		className="grid size-5 place-items-center rounded bg-white/80 text-neutral-600 hover:text-red-600"
+																		onClick={(e) => handleDeleteClick(e, eventItem)}>
+																		<RiDeleteBinLine size={12} />
+																	</button>
 																</div>
 															</div>
 														</div>
@@ -240,6 +306,54 @@ const Page = () => {
 					</div>
 				</div>
 			</DashboardLayout>
+
+			{/* Edit event dialog */}
+			<Dialog open={editOpen} onOpenChange={setEditOpen}>
+				<DialogContent className="w-[450px] max-w-[90%] p-1">
+					<DialogTitle hidden>Edit Event</DialogTitle>
+					<DialogDescription hidden>Edit Event</DialogDescription>
+					<Event
+						key={selectedEvent?.id ?? "edit"}
+						open={editOpen}
+						onClose={() => {
+							setEditOpen(false);
+							setSelectedEvent(null);
+						}}
+						eventData={selectedEvent ?? undefined}
+					/>
+				</DialogContent>
+			</Dialog>
+
+			{/* Delete confirmation dialog */}
+			<Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+				<DialogContent className="w-[400px] max-w-[90%] p-6">
+					<DialogTitle>Delete Event</DialogTitle>
+					<DialogDescription className="mt-2 text-sm text-neutral-500">
+						Are you sure you want to delete{" "}
+						<span className="font-semibold text-neutral-800">{selectedEvent?.title}</span>? This action
+						cannot be undone.
+					</DialogDescription>
+					<div className="mt-6 flex items-center justify-end gap-x-3">
+						<Button
+							variant="outline"
+							className="w-fit"
+							disabled={isDeleting}
+							onClick={() => {
+								setDeleteOpen(false);
+								setSelectedEvent(null);
+							}}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							className="w-fit"
+							disabled={isDeleting || !selectedEvent?.id}
+							onClick={() => selectedEvent?.id && deleteEvent(selectedEvent.id)}>
+							{isDeleting ? "Deleting..." : "Delete Event"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 };

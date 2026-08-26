@@ -60,6 +60,9 @@ const DEEPLINK_OPTIONS = [
 	{ value: "classore://dashboard/notifications", label: "Notifications" },
 	{ value: "classore://dashboard/live-class", label: "Live Classes" },
 	{ value: "classore://dashboard/messages", label: "Messages List" },
+	{ value: "classore://dashboard/messages/[id]", label: "Direct Message Room (Requires Room ID)" },
+	{ value: "classore://dashboard/blog", label: "Blog Articles List" },
+	{ value: "classore://dashboard/blog/[id]", label: "Blog Article Detail (Requires Article ID)" },
 	{ value: "classore://dashboard/leaderboard", label: "Leaderboard" },
 	{ value: "classore://dashboard/ai-chat-screen", label: "AI Chat" },
 	{ value: "classore://dashboard/calendar", label: "Calendar" },
@@ -119,6 +122,8 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
 	const allUsers = useMemo(() => {
 		return data?.users?.data || [];
 	}, [data]);
+
+	// console.log("This is all Users: ", data?.users?.data)
 
 	// Filter users locally based on search
 	const filteredUsers = useMemo(() => {
@@ -369,28 +374,53 @@ const NotificationForm = () => {
 		try {
 			const finalDeeplink = getFinalDeeplink();
 
-			const payload: SendNotificationParams = {
+			// Base payload shared across all sends
+			const basePayload: Omit<SendNotificationParams, "receiver"> = {
 				title,
 				message,
 				category,
 				type: bundle && bundle !== "ALL" && bundle !== "PAID" && bundle !== "EXPIRED" ? "ADMIN" : type,
 				sender: senderId,
-				receiver:
-					type === "USER"
-						? bundle === "PAID"
-							? "true"
-							: bundle || "ALL"
-						: selectedUsers.map((u) => u.user_id).join(","),
 			};
 
-			if (finalDeeplink) payload.path = finalDeeplink;
-			if (notificationTypeId) payload.notification_type_id = notificationTypeId;
-			if (notificationIcon) payload.notification_icon = notificationIcon;
+			if (finalDeeplink) basePayload.path = finalDeeplink;
+			if (notificationTypeId) basePayload.notification_type_id = notificationTypeId;
+			if (notificationIcon) basePayload.notification_icon = notificationIcon;
 
-			console.log("Sending notification payload:", JSON.stringify(payload, null, 2));
+			if (type === "ADMIN" && selectedUsers.length > 0) {
+				// Backend only accepts a single string receiver per request.
+				// Send one notification per selected user and collect results.
+				const results = await Promise.allSettled(
+					selectedUsers.map((u) =>
+						sendNotification.mutateAsync({
+							...basePayload,
+							receiver: u.user_id,
+						}),
+					),
+				);
 
-			await sendNotification.mutateAsync(payload);
-			setResult({ success: true, message: "Notification sent successfully!" });
+				const failed = results.filter((r) => r.status === "rejected");
+				const succeeded = results.filter((r) => r.status === "fulfilled").length;
+
+				if (failed.length === 0) {
+					setResult({
+						success: true,
+						message: `Notification sent successfully to ${succeeded} user${succeeded !== 1 ? "s" : ""}!`,
+					});
+				} else if (succeeded > 0) {
+					setResult({
+						success: false,
+						message: `Sent to ${succeeded} user${succeeded !== 1 ? "s" : ""}, but failed for ${failed.length}. Please retry.`,
+					});
+				} else {
+					setResult({ success: false, message: "Failed to send notification. Please try again." });
+				}
+			} else {
+				// "All users" or bundle-based send — single request
+				const receiver = bundle === "PAID" ? "true" : bundle || "ALL";
+				await sendNotification.mutateAsync({ ...basePayload, receiver });
+				setResult({ success: true, message: "Notification sent successfully!" });
+			}
 
 			// Reset form
 			setTitle("");
@@ -450,11 +480,10 @@ const NotificationForm = () => {
 						{TYPE_OPTIONS.map((option) => (
 							<label
 								key={option.value}
-								className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-colors ${
-									type === option.value
-										? "border-blue-500 bg-blue-50 text-blue-700"
-										: "border-gray-200 hover:border-gray-300"
-								}`}>
+								className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-colors ${type === option.value
+									? "border-blue-500 bg-blue-50 text-blue-700"
+									: "border-gray-200 hover:border-gray-300"
+									}`}>
 								<input
 									type="radio"
 									name="type"
@@ -652,9 +681,8 @@ const NotificationForm = () => {
 					<button
 						type="submit"
 						disabled={isDisabled}
-						className={`rounded-lg px-6 py-3 font-medium text-white transition-colors ${
-							isDisabled ? "cursor-not-allowed bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-						}`}>
+						className={`rounded-lg px-6 py-3 font-medium text-white transition-colors ${isDisabled ? "cursor-not-allowed bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+							}`}>
 						{isSubmitting ? (
 							<span className="flex items-center gap-2">
 								<svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">

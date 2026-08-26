@@ -66,12 +66,11 @@ export function DataTable<TData, TValue>({ columns, data, isLoading }: Props<TDa
 				<TableBody>
 					{isLoading ? (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-[500px] text-center">
-								<RiLoaderLine className="size-8 text-primary-400" />
+							<TableCell colSpan={columns.length} className="h-64 text-center">
+								<RiLoaderLine className="mx-auto size-8 animate-spin text-primary-400" />
 							</TableCell>
 						</TableRow>
-					) : null}
-					{table.getRowModel().rows?.length ? (
+					) : table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 								{row.getVisibleCells().map((cell) => (
@@ -83,8 +82,8 @@ export function DataTable<TData, TValue>({ columns, data, isLoading }: Props<TDa
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-[500px] text-center">
-								No results.
+							<TableCell colSpan={columns.length} className="h-64 text-center text-neutral-400">
+								No results found.
 							</TableCell>
 						</TableRow>
 					)}

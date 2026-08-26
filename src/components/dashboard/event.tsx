@@ -8,7 +8,11 @@ import React from "react";
 import dayjs from "dayjs";
 
 import type { CourseResponse, ExaminationBundleResponse, ExaminationResponse } from "@/queries";
-import { type CreateEventDto, CreateCalendarEvent } from "@/queries/calendar";
+import {
+	type CreateEventDto,
+	CreateCalendarEvent,
+	UpdateCalendarEvent,
+} from "@/queries/calendar";
 import { GetBundles, GetExaminations, GetSubjects } from "@/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { IconLabel } from "@/components/shared";
 import { queryClient } from "@/providers";
 import { TIME_OPTIONS } from "@/config";
+import type { Event as EventType } from "@/types";
 import {
 	Select,
 	SelectContent,
@@ -31,27 +36,43 @@ dayjs.locale("en-gb");
 interface Props {
 	onClose: () => void;
 	open: boolean;
+	/** When provided, the form opens in edit mode pre-populated with this event */
+	eventData?: EventType;
 }
 
 const event_frequency = ["once", "daily", "weekly", "biweekly", "monthly"];
 
-const initialValues: CreateEventDto = {
-	category_id: "",
-	date: new Date(),
-	end_hour: 0,
-	event_day: 1,
-	frequency: "",
-	start_hour: 0,
-	sub_category: "",
-	subject: "",
-	title: "",
-	meeting_link: "",
-	platform: "",
-	note: "",
+/** Resolve a field that may be a nested {id,name} object OR a flat UUID string */
+const resolveId = (field: unknown): string => {
+	if (!field) return "";
+	if (typeof field === "string") return field;
+	if (typeof field === "object" && field !== null && "id" in field)
+		return (field as { id: string }).id ?? "";
+	return "";
 };
 
-export const Event = ({ onClose }: Props) => {
-	const { isPending, mutate } = useMutation({
+const buildInitialValues = (eventData?: EventType): CreateEventDto => ({
+	category_id: resolveId(eventData?.category_id),
+	date: eventData?.date ?? new Date(),
+	end_hour: eventData?.end_hour ?? 0,
+	event_day: eventData?.event_day ?? 1,
+	frequency: eventData?.frequency ?? "",
+	start_hour: eventData?.start_hour ?? 0,
+	sub_category: resolveId(eventData?.sub_category),
+	subject: resolveId(eventData?.subject),
+	title: eventData?.title ?? "",
+	meeting_link: eventData?.meeting_link ?? "",
+	platform: eventData?.platform ?? "",
+	note: eventData?.note ?? "",
+});
+
+export const Event = ({ onClose, eventData }: Props) => {
+	const isEditMode = !!eventData;
+	const eventId = eventData?.id;
+
+	const initialValues = React.useMemo(() => buildInitialValues(eventData), [eventData]);
+
+	const { isPending: isCreating, mutate: create } = useMutation({
 		mutationFn: (payload: CreateEventDto) => CreateCalendarEvent(payload),
 		mutationKey: ["create-event"],
 		onSuccess: (data) => {
@@ -61,16 +82,35 @@ export const Event = ({ onClose }: Props) => {
 				onClose();
 			});
 		},
+		onError: (error: { response?: { data?: { message?: string } } }) => {
+			toast.error(error?.response?.data?.message ?? "Failed to create event");
+		},
 	});
+
+	const { isPending: isUpdating, mutate: update } = useMutation({
+		mutationFn: (payload: Partial<CreateEventDto>) =>
+			UpdateCalendarEvent(eventId!, payload),
+		mutationKey: ["update-event", eventId],
+		onSuccess: (data) => {
+			toast.success(data.message);
+			queryClient.invalidateQueries({ queryKey: ["calendar-events"] }).then(() => {
+				onClose();
+			});
+		},
+		onError: (error: { response?: { data?: { message?: string } } }) => {
+			toast.error(error?.response?.data?.message ?? "Failed to update event");
+		},
+	});
+
+	const isPending = isCreating || isUpdating;
 
 	const { errors, handleChange, handleSubmit, resetForm, setFieldValue, values, touched } =
 		useFormik({
 			initialValues,
+			enableReinitialize: true,
 			validationSchema: Yup.object().shape({
 				category_id: Yup.string().required("Examination type is required"),
-				date: Yup.date()
-					.min(new Date(), "Event date cannot be today")
-					.required("Event date is required"),
+				date: Yup.date().required("Event date is required"),
 				end_hour: Yup.number().required("End time is required"),
 				event_day: Yup.number()
 					.min(1, "Event requires minimum of one day")
@@ -93,7 +133,11 @@ export const Event = ({ onClose }: Props) => {
 					end_hour: Number(values.end_hour),
 					date: format(values.date, "MM/dd/yyyy"),
 				};
-				mutate(payload);
+				if (isEditMode) {
+					update(payload);
+				} else {
+					create(payload);
+				}
 			},
 		});
 
@@ -153,6 +197,7 @@ export const Event = ({ onClose }: Props) => {
 						<input
 							type="text"
 							name="title"
+							value={values.title}
 							onChange={handleChange}
 							className="w-full appearance-none border-0 border-none bg-transparent text-2xl font-semibold outline-none placeholder:text-neutral-200 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
 							placeholder="Event title here"
@@ -260,11 +305,12 @@ export const Event = ({ onClose }: Props) => {
 							onChange={(date) => setFieldValue("date", date ? new Date(date.toString()) : null)}
 							className="h-11 w-full border-0 font-body font-medium"
 							format="DD/MM/YYYY"
-							minDate={dayjs(new Date()).add(1, "day")}
+							minDate={isEditMode ? undefined : dayjs(new Date()).add(1, "day")}
 						/>
 						<div className="grid w-full grid-cols-2 border-t">
 							<Select
 								name="start_hour"
+								value={values.start_hour ? values.start_hour.toString() : undefined}
 								onValueChange={(value) => setFieldValue("start_hour", value)}
 								disabled={!values.date || new Date(values.date).getTime() < new Date().getTime()}>
 								<SelectTrigger className="rounded-none border-0 border-r focus:border-neutral-300">
@@ -280,6 +326,7 @@ export const Event = ({ onClose }: Props) => {
 							</Select>
 							<Select
 								name="end_hour"
+								value={values.end_hour ? values.end_hour.toString() : undefined}
 								onValueChange={(value) => setFieldValue("end_hour", value)}
 								disabled={!values.start_hour}>
 								<SelectTrigger className="border-0">
@@ -359,7 +406,13 @@ export const Event = ({ onClose }: Props) => {
 						Cancel
 					</Button>
 					<Button className="w-fit" type="submit" disabled={isPending}>
-						{isPending ? <RiLoaderLine className="animate-spin" /> : "Create Event"}
+						{isPending ? (
+							<RiLoaderLine className="animate-spin" />
+						) : isEditMode ? (
+							"Save Changes"
+						) : (
+							"Create Event"
+						)}
 					</Button>
 				</div>
 			</form>

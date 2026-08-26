@@ -3,6 +3,8 @@ import {
 	RiBarChart2Line,
 	RiBookLine,
 	RiCalendar2Line,
+	RiCoinLine,
+	RiCoupon3Line,
 	RiFlaskLine,
 	RiHourglassLine,
 	RiLogoutBoxRLine,
@@ -11,6 +13,7 @@ import {
 	RiSettingsLine,
 	RiTeamLine,
 	RiNotificationBadgeLine,
+	RiBook3Line,
 } from "@remixicon/react";
 
 import type { RoleProps } from "@/types";
@@ -30,6 +33,7 @@ export const role_access: Record<RoleProps["name"], string[]> = {
 		"admins",
 		"roles & permissions",
 		"waitlist",
+		"study guides",
 		"settings",
 	],
 	sub: ["dashboard", "courses", "account", "messages"],
@@ -56,6 +60,16 @@ export const dashboard_links = {
 					icon: RiMoneyDollarCircleLine,
 				},
 				{
+					name: "promo codes",
+					href: "/dashboard/promo-codes",
+					icon: RiCoupon3Line,
+				},
+				{
+					name: "token packages",
+					href: "/dashboard/token-packages",
+					icon: RiCoinLine,
+				},
+				{
 					name: "manage roles",
 					href: "/dashboard/roles-and-permissions",
 					icon: RiAdminLine,
@@ -67,6 +81,7 @@ export const dashboard_links = {
 			links: [
 				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
 				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
+				{ name: "study guides", href: "/dashboard/study-guides", icon: RiBook3Line },
 				{ name: "Push Notifications", href: "/dashboard/notifications", icon: RiNotificationBadgeLine },
 				{ name: "messages", href: "/dashboard/messages", icon: RiMessage3Line },
 				{ name: "settings", href: "/dashboard/settings", icon: RiSettingsLine },

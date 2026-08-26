@@ -18,7 +18,7 @@ export const endpoints = (id?: string) => {
 		calendar: {
 			create: "/admin/calendar/events/new",
 			all: "/admin/calendar/events/get-all",
-			one: `/admin/calendar/events/get-one/${id}`,
+			one: `/admin/calendar/event/${id}`,
 			update: `/admin/calendar/events/update/${id}`,
 			delete: `/admin/calendar/events/delete/${id}`,
 		},
@@ -100,6 +100,34 @@ export const endpoints = (id?: string) => {
 		notifications: {
 			create: "/notification/create-new",
 			get_history: "/notification/history",
+		},
+		blog_categories: {
+			create: `/admin/blog-categories/add-category/${id}`,
+			all: `/admin/blog-categories/all-blog-category/${id}`,
+			one_with_user: (userId: string) => `/admin/blog-categories/${id}/${userId}`,
+			update: (userId: string) => `/admin/blog-categories/${id}/${userId}`,
+			delete: (userId: string) => `/admin/blog-categories/${id}/${userId}`,
+		},
+		blog: {
+			create: `/admin/blog/add-blog/${id}`,
+			all: `/blog/all-blogs`,
+			one: `/blog/${id}`,
+			update: (userId: string) => `/admin/blog/${id}/${userId}`,
+			delete: (userId: string) => `/admin/blog/${id}/${userId}`,
+		},
+		promo_codes: {
+			create: `/admin/promo-code/create-promocode/${id}`,
+			all: `/admin/promo-code/fetch-promo-codes/${id}`,
+			delete: (promoCodeId: string) =>
+				`/admin/promo-code/delete/promo-code/${promoCodeId}/${id}`,
+			update: (promoCodeId: string) =>
+				`/admin/promo-code/update-promoCode/${promoCodeId}/${id}`,
+		},
+		token_payment: {
+			all: "/admin/payment/token-packages/fetch",
+			create: "/admin/payment/token-packages/create",
+			update: `/admin/payment/token-packages/update/${id}`,
+			delete: `/admin/payment/token-packages/delete/${id}`,
 		},
 	};
 };

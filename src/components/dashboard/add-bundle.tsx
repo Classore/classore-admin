@@ -86,6 +86,8 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 		start_date: new Date(),
 		banner: null,
 		description: "",
+		token_cost: 0,
+		token_cost_per_subject: 0,
 	};
 
 	const { clearFiles, handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -132,6 +134,8 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
 			description: Yup.string().required("Bundle description is required"),
+			token_cost: Yup.number().min(0, "Token cost cannot be negative").nullable(),
+			token_cost_per_subject: Yup.number().min(0, "Token cost per subject cannot be negative").nullable(),
 		}),
 		onSubmit: (values) => {
 			mutate(values);
@@ -318,6 +322,31 @@ export const AddBundle = ({ onOpenChange, open }: Props) => {
 									onChange={handleChange}
 									error={errors.max_subjects && touched.max_subjects ? errors.max_subjects : ""}
 								/>
+							</div>
+							{/* ── Token Pricing ── */}
+							<div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-4 space-y-3">
+								<p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Token Pricing</p>
+								<div className="grid w-full grid-cols-2 gap-x-4">
+									<Input
+										type="number"
+										name="token_cost"
+										label="Bundle Token Cost"
+										placeholder="e.g. 500"
+										value={values.token_cost ?? ""}
+										onChange={handleChange}
+										error={errors.token_cost && touched.token_cost ? errors.token_cost : ""}
+									/>
+									<Input
+										type="number"
+										name="token_cost_per_subject"
+										label="Single Course Token Cost"
+										placeholder="e.g. 100"
+										value={values.token_cost_per_subject ?? ""}
+										onChange={handleChange}
+										error={errors.token_cost_per_subject && touched.token_cost_per_subject ? errors.token_cost_per_subject : ""}
+									/>
+								</div>
+								<p className="text-[10px] text-neutral-400">Bundle Token Cost = base cost when subjects ≤ allowed. Single Course Token Cost applies per extra subject beyond the allowed count.</p>
 							</div>
 							<Button type="submit" className="w-full" disabled={isPending}>
 								{isPending ? <RiLoaderLine className="animate-spin" /> : "Save Subcategory"}

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import * as Yup from "yup";
 
 import { useFileHandler } from "@/hooks";
-import type { BundleResponse, CreateBundleDto, ExaminationResponse } from "@/queries";
+import type { CreateBundleDto, ExaminationResponse } from "@/queries";
 import { GetBundle, GetExaminations, UpdateBundle } from "@/queries";
 import type { CastedExamBundleProps, HttpError } from "@/types";
 import { Button } from "../ui/button";
@@ -37,6 +37,9 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 			queryClient.invalidateQueries({
 				queryKey: ["bundles"],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["get-bundle"],
+			});
 			onOpenChange(false);
 		},
 		onError: (error: HttpError) => {
@@ -44,7 +47,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 		},
 	});
 
-	const [{ data }, {}] = useQueries({
+	const [{ data: examsData }, { data: bundleData }] = useQueries({
 		queries: [
 			{
 				queryKey: ["get-exams"],
@@ -63,26 +66,106 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 				queryKey: ["get-bundle", id],
 				queryFn: () => GetBundle(id),
 				enabled: !!id,
-				select: (data: BundleResponse) => ({
-					bundle: data.data.examBundle,
+				select: (data: any) => ({
+					bundle: data?.data?.examBundle ?? data?.data?.data?.examBundle ?? data?.data ?? data,
 				}),
 			},
 		],
 	});
 
+	const bundle = bundleData?.bundle;
+	const b = bundle || subcategory;
+
 	const initialValues: Partial<CreateBundleDto> = {
-		allow_extra_subjects: subcategory.examinationbundle_allow_extra_subjects,
-		allowed_subjects: subcategory.examinationbundle_allowed_subjects,
-		amount: subcategory.examinationbundle_amount,
-		amount_per_subject: subcategory.examinationbundle_amount_per_subject,
-		banner: subcategory.examinationbundle_banner,
-		end_date: subcategory.examinationbundle_end_date,
-		examination: subcategory.examinationbundle_examination,
-		extra_charge: subcategory.examinationbundle_extra_charge,
-		max_subjects: subcategory.examinationbundle_max_subjects,
-		name: subcategory.examinationbundle_name,
-		start_date: subcategory.examinationbundle_start_date,
-		description: subcategory.examinationbundle_description,
+		allow_extra_subjects:
+			bundle?.allow_extra_subjects ??
+			(b as any)?.examinationbundle_allow_extra_subjects ??
+			(b as any)?.allow_extra_subjects ??
+			subcategory.examinationbundle_allow_extra_subjects ??
+			"NO",
+		allowed_subjects:
+			bundle?.allowed_subjects ??
+			(b as any)?.examinationbundle_allowed_subjects ??
+			(b as any)?.allowed_subjects ??
+			subcategory.examinationbundle_allowed_subjects ??
+			0,
+		amount:
+			bundle?.amount ??
+			(b as any)?.examinationbundle_amount ??
+			(b as any)?.amount ??
+			subcategory.examinationbundle_amount ??
+			0,
+		amount_per_subject:
+			bundle?.amount_per_subject ??
+			(b as any)?.examinationbundle_amount_per_subject ??
+			(b as any)?.amount_per_subject ??
+			subcategory.examinationbundle_amount_per_subject ??
+			0,
+		banner:
+			bundle?.banner ??
+			(b as any)?.examinationbundle_banner ??
+			(b as any)?.banner ??
+			subcategory.examinationbundle_banner ??
+			null,
+		end_date:
+			bundle?.end_date ??
+			(b as any)?.examinationbundle_end_date ??
+			(b as any)?.end_date ??
+			subcategory.examinationbundle_end_date,
+		examination:
+			bundle?.examination ??
+			(b as any)?.examinationbundle_examination ??
+			(b as any)?.examination ??
+			subcategory.examinationbundle_examination,
+		extra_charge:
+			bundle?.extra_charge ??
+			(b as any)?.examinationbundle_extra_charge ??
+			(b as any)?.extra_charge ??
+			subcategory.examinationbundle_extra_charge ??
+			0,
+		max_subjects:
+			bundle?.max_subjects ??
+			(b as any)?.examinationbundle_max_subjects ??
+			(b as any)?.max_subjects ??
+			subcategory.examinationbundle_max_subjects ??
+			0,
+		name:
+			bundle?.name ??
+			(b as any)?.examinationbundle_name ??
+			(b as any)?.name ??
+			subcategory.examinationbundle_name ??
+			"",
+		start_date:
+			bundle?.start_date ??
+			(b as any)?.examinationbundle_start_date ??
+			(b as any)?.start_date ??
+			subcategory.examinationbundle_start_date,
+		description:
+			bundle?.description ??
+			(b as any)?.examinationbundle_description ??
+			(b as any)?.description ??
+			subcategory.examinationbundle_description ??
+			"",
+		token_cost:
+			Number(
+				bundle?.token_cost ??
+				(bundle as any)?.examinationbundle_token_cost ??
+				(b as any)?.examinationbundle_token_cost ??
+				(b as any)?.token_cost ??
+				(subcategory as any)?.examinationbundle_token_cost ??
+				(subcategory as any)?.token_cost ??
+				0
+			),
+		token_cost_per_subject:
+			Number(
+				bundle?.token_cost_per_subject ??
+				(bundle as any)?.examinationbundle_token_cost_per_subject ??
+				(b as any)?.examinationbundle_token_cost_per_subject ??
+				(b as any)?.token_cost_per_subject ??
+				(subcategory as any)?.examinationbundle_token_cost_per_subject ??
+				(subcategory as any)?.token_cost_per_subject ??
+				0
+			),
 	};
 
 	const { handleClick, handleFileChange, inputRef } = useFileHandler({
@@ -103,6 +186,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 
 	const { errors, handleChange, handleSubmit, setFieldValue, touched, values } = useFormik({
 		initialValues,
+		enableReinitialize: true,
 		validateOnChange: true,
 		validationSchema: Yup.object({
 			allow_extra_subjects: Yup.string()
@@ -111,10 +195,10 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 			allowed_subjects: Yup.number()
 				.required("Allowed Subjects is required")
 				.min(1, "Allowed Subjects must be at least 1"),
-			amount: Yup.number().required("Amount is required").min(0, "Amount must be at least 1"),
+			amount: Yup.number().required("Amount is required").min(0, "Amount must be at least 0"),
 			amount_per_subject: Yup.number()
 				.required("Amount Per Subject is required")
-				.min(1, "Amount Per Subject must be at least 1"),
+				.min(0, "Amount Per Subject must be at least 0"),
 			end_date: Yup.string().required("End Date is required"),
 			examination: Yup.string().required("Examination is required"),
 			extra_charge: Yup.number().when("allow_extra_subjects", ([value]) => {
@@ -129,6 +213,8 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 				.min(1, "Max Subjects must be at least 1"),
 			name: Yup.string().required("Name is required"),
 			description: Yup.string().required("Description is required"),
+			token_cost: Yup.number().min(0, "Token cost cannot be negative").nullable(),
+			token_cost_per_subject: Yup.number().min(0, "Token cost per subject cannot be negative").nullable(),
 		}),
 		onSubmit: (values) => {
 			mutate(values);
@@ -170,7 +256,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 					placeholder="IELTS"
 					className="col-span-full"
 					name="name"
-					defaultValue={values.name}
+					value={values.name ?? ""}
 					onChange={handleChange}
 					error={touched.name && errors.name ? errors.name : ""}
 				/>
@@ -178,7 +264,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 					label="Description"
 					name="description"
 					className="col-span-full h-32"
-					value={values.description}
+					value={values.description ?? ""}
 					onChange={handleChange}
 					error={touched.description && errors.description ? errors.description : ""}
 				/>
@@ -186,7 +272,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 					label="Amount"
 					type="number"
 					name="amount"
-					defaultValue={values.amount}
+					value={values.amount ?? ""}
 					onChange={handleChange}
 					error={errors.amount && touched.amount ? errors.amount : ""}
 				/>
@@ -195,7 +281,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 						label="Amount per Subject"
 						type="number"
 						name="amount_per_subject"
-						defaultValue={values.amount_per_subject}
+						value={values.amount_per_subject ?? ""}
 						onChange={handleChange}
 						error={
 							errors.amount_per_subject && touched.amount_per_subject ? errors.amount_per_subject : ""
@@ -206,7 +292,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 						label="Extra Charge"
 						type="number"
 						name="extra_charge"
-						defaultValue={values.extra_charge as unknown as string}
+						value={values.extra_charge ?? ""}
 						onChange={handleChange}
 						error={errors.extra_charge && touched.extra_charge ? errors.extra_charge : ""}
 					/>
@@ -223,7 +309,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 								<SelectValue placeholder="Select Examination" />
 							</SelectTrigger>
 							<SelectContent className="capitalize">
-								{data?.examinations.map((exam) => (
+								{examsData?.examinations.map((exam) => (
 									<SelectItem key={exam.examination_id} value={exam.examination_id}>
 										{exam.examination_name}
 									</SelectItem>
@@ -288,7 +374,7 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 						type="number"
 						name="allowed_subjects"
 						label="Allowed Subjects"
-						defaultValue={values.allowed_subjects as unknown as string}
+						value={values.allowed_subjects ?? ""}
 						onChange={handleChange}
 						error={errors.allowed_subjects && touched.allowed_subjects ? errors.allowed_subjects : ""}
 					/>
@@ -296,10 +382,35 @@ export const EditSubcategory = ({ id, onOpenChange, subcategory }: Props) => {
 						type="number"
 						name="max_subjects"
 						label="Maximum Number of Subjects"
-						defaultValue={values.max_subjects as unknown as string}
+						value={values.max_subjects ?? ""}
 						onChange={handleChange}
 						error={errors.max_subjects && touched.max_subjects ? errors.max_subjects : ""}
 					/>
+				</div>
+				{/* ── Token Pricing ── */}
+				<div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-4 space-y-3">
+					<p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Token Pricing</p>
+					<div className="grid w-full grid-cols-2 gap-x-4">
+						<Input
+							type="number"
+							name="token_cost"
+							label="Bundle Token Cost"
+							placeholder="e.g. 500"
+							value={values.token_cost ?? ""}
+							onChange={handleChange}
+							error={errors.token_cost && touched.token_cost ? errors.token_cost : ""}
+						/>
+						<Input
+							type="number"
+							name="token_cost_per_subject"
+							label="Single Course Token Cost"
+							placeholder="e.g. 100"
+							value={values.token_cost_per_subject ?? ""}
+							onChange={handleChange}
+							error={errors.token_cost_per_subject && touched.token_cost_per_subject ? errors.token_cost_per_subject : ""}
+						/>
+					</div>
+					<p className="text-[10px] text-neutral-400">Bundle Token Cost = base cost when subjects ≤ allowed. Single Course Token Cost applies per extra subject beyond the allowed count.</p>
 				</div>
 			</div>
 			<div className="mt-6 flex w-full items-center justify-end gap-x-4">

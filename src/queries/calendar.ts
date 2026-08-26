@@ -79,7 +79,6 @@ export const useGetAllCalendarEvants = (params?: PaginationProps & { month: numb
 };
 
 const GetCalendarEvent = async (id: string) => {
-	console.log("[Calendar API] Fetching single event from:", endpoints(id).calendar.one);
 	return api.get<HttpResponse<EventProps>>(endpoints(id).calendar.one).then((res) => res.data);
 };
 

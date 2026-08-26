@@ -40,6 +40,8 @@ export type CastedExamBundleProps = {
 	examination_name: string;
 	subject_count: number;
 	enrolled: number;
+	examinationbundle_token_cost: number;
+	examinationbundle_token_cost_per_subject: number;
 };
 
 export type CastedCourseProps = {

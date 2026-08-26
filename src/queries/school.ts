@@ -45,6 +45,8 @@ export interface CreateBundleDto {
 	name: string;
 	start_date: Date;
 	description: string;
+	token_cost: number;
+	token_cost_per_subject: number;
 }
 
 export interface ExamBundleResponse {
@@ -114,6 +116,8 @@ const CreateBundle = async (payload: CreateBundleDto) => {
 	formData.append("max_subjects", payload.max_subjects.toString());
 	formData.append("name", payload.name);
 	formData.append("start_date", format(payload.start_date, "MM/dd/yyyy"));
+	formData.append("token_cost", (payload.token_cost ?? 0).toString());
+	formData.append("token_cost_per_subject", (payload.token_cost_per_subject ?? 0).toString());
 	return api
 		.post<HttpResponse<ExamBundleProps>>(endpoints().school.create_exam_bundle, formData)
 		.then((res) => res.data);
@@ -296,6 +300,12 @@ const UpdateBundle = async (id: string, payload: Partial<CreateBundleDto>) => {
 	}
 	if (payload.description) {
 		formData.append("description", payload.description);
+	}
+	if (payload.token_cost !== undefined) {
+		formData.append("token_cost", payload.token_cost.toString());
+	}
+	if (payload.token_cost_per_subject !== undefined) {
+		formData.append("token_cost_per_subject", payload.token_cost_per_subject.toString());
 	}
 	return api
 		.put<HttpResponse<CastedExamBundleProps>>(endpoints(id).school.update_exam_bundle, formData)
