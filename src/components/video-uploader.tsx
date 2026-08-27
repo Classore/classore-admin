@@ -12,7 +12,8 @@ import {
 	RiUploadCloud2Line,
 	RiVideoAddLine,
 } from "@remixicon/react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DeleteLessonVideo } from "@/queries";
 import Cookies from "js-cookie";
 import * as React from "react";
 import { type Socket, io } from "socket.io-client";
@@ -41,10 +42,12 @@ type VideoUploadStatus = {
 };
 
 const UPLOAD_STATUS = {
+	started: "Starting...",
 	chunk: "Uploading...",
-	uploading: "Processing...",
+	uploading: "Uploading...",
 	transcoding_in_progress: "Transcoding...",
 	completed: "Completed",
+	failed: "Failed",
 };
 
 const showNotification = (title: string, options: NotificationOptions) => {
@@ -80,9 +83,27 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [previewUrl, setPreviewUrl] = React.useState("");
 	const [open, setOpen] = React.useState(false);
+	// Tracks whether the user has started a new upload session.
+	// When true, clearing previewUrl shows the dropzone (not the stale server URL).
+	const [hasNewUpload, setHasNewUpload] = React.useState(false);
 
 	const upload_id = React.useMemo(() => generateUuid(), []);
 	const hasVideo = Boolean(video_array.length > 0);
+
+	// DELETE VIDEO MUTATION
+	const { mutate: deleteVideoMutate, isPending: isDeletingVideo } = useMutation({
+		mutationFn: () => DeleteLessonVideo(moduleId),
+		mutationKey: ["delete-lesson-video", moduleId],
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+			setHasNewUpload(false);
+			toast.success("Video deleted successfully");
+		},
+		onError: () => {
+			toast.error("Failed to delete video. Please try again.");
+		},
+	});
 
 	React.useEffect(() => {
 		const url = isDev
@@ -97,25 +118,50 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 		socket.current.on("error", (error) => {
 			Logger.error("Socket error", error);
 		});
+
+		// Handles both event orderings from the backend:
+		//   • completed → failed  (HEAD loop fires after completed)
+		//   • failed → completed  (HEAD loop fires before completed)
+		// We debounce the failed handler by 5s so that if 'completed' arrives
+		// in the meantime we cancel the error entirely.
+		let completedReceived = false;
+		let pendingFailedTimer: ReturnType<typeof setTimeout> | null = null;
+
 		socket.current.on(`video_upload_status.${moduleId}`, (data) => {
 			if (data) {
 				setIsLoading(true);
 
 				const parsedData = JSON.parse(data) as VideoUploadStatus;
-				setUploadStatus(parsedData);
 
 				Logger.info("Video upload status", parsedData);
 
+				// When transcoding starts, reset progress to 0 so the bar
+				// reflects the new phase instead of appearing stuck at 100%.
+				if (parsedData.status === "transcoding_in_progress") {
+					setUploadStatus({ status: "transcoding_in_progress", progress: 0, chunk: undefined });
+					return;
+				}
+
 				if (parsedData.status === "completed") {
-					queryClient.invalidateQueries({ queryKey: ["get-modules", "get-subject"] });
+					completedReceived = true;
+					// Cancel any pending failed toast — the upload actually succeeded.
+					if (pendingFailedTimer !== null) {
+						clearTimeout(pendingFailedTimer);
+						pendingFailedTimer = null;
+					}
+					queryClient.invalidateQueries({ queryKey: ["get-modules"] });
+					queryClient.invalidateQueries({ queryKey: ["get-subject"] });
 					setIsLoading(false);
 					setIsUploading(false);
 					setRetryCount(0);
-					setUploadStatus({
-						status: "",
-						progress: 0,
-						chunk: undefined,
+					setUploadStatus({ status: "", progress: 0, chunk: undefined });
+					// Clear the blob preview — the HLS file is publicly accessible now.
+					setPreviewUrl((prev) => {
+						if (prev) URL.revokeObjectURL(prev);
+						return "";
 					});
+					setHasNewUpload(false);
+					if (fileInputRef.current) fileInputRef.current.value = "";
 					toast.success("Video upload completed!");
 					showNotification("Video Upload Completed", {
 						body: "Your video has been uploaded, processed and is ready to use.",
@@ -123,6 +169,28 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 					});
 					return;
 				}
+
+				if (parsedData.status === "failed") {
+					// Don't show the error immediately — 'completed' may arrive within
+					// the next few seconds (backend race condition where the verification
+					// loop emits 'failed' on each retry attempt rather than once at the end).
+					// 20s covers the backend's full retry window (15 retries × 500ms = 7.5s)
+					// plus a generous buffer before we give up and show the error.
+					if (completedReceived) return;
+					if (pendingFailedTimer !== null) clearTimeout(pendingFailedTimer);
+					pendingFailedTimer = setTimeout(() => {
+						pendingFailedTimer = null;
+						if (completedReceived) return;
+						setIsLoading(false);
+						setIsUploading(false);
+						isRunningRef.current = false;
+						setUploadStatus({ status: "", progress: 0, chunk: undefined });
+						toast.error("Video upload failed. Please try again.");
+					}, 20_000);
+					return;
+				}
+
+				setUploadStatus(parsedData);
 			}
 		});
 
@@ -131,6 +199,8 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 			socket.current?.off("error");
 			socket.current?.off(`video_upload_status.${moduleId}`);
 			socket.current?.disconnect();
+			// Clean up any pending failed timer to avoid setState on unmounted component.
+			if (pendingFailedTimer !== null) clearTimeout(pendingFailedTimer);
 		};
 	}, [moduleId, queryClient]);
 
@@ -297,6 +367,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 
 			const objectURL = URL.createObjectURL(selectedFile);
 			setPreviewUrl(objectURL);
+			setHasNewUpload(true);
 
 			const video = document.createElement("video");
 			video.src = objectURL;
@@ -323,6 +394,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 	const handleFileRemove = React.useCallback(() => {
 		URL.revokeObjectURL(previewUrl);
 		setPreviewUrl("");
+		setHasNewUpload(false);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
@@ -394,9 +466,7 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 							<button
 								onClick={() => {
 									handleFileRemove();
-									if (isUploading) {
-										handleCancelUpload();
-									}
+									if (isUploading) handleCancelUpload();
 								}}
 								type="button"
 								className="absolute right-2 top-2 z-50 rounded-md bg-white p-1">
@@ -404,9 +474,21 @@ export const VideoUploader = ({ moduleId, sequence, video_array }: Props) => {
 							</button>
 						</div>
 					</div>
-				) : hasVideo && uploadedVideo ? (
-					<div className="aspect-video">
+				) : hasVideo && uploadedVideo && !hasNewUpload ? (
+					<div className="relative aspect-video">
 						<VideoPlayer src={embedUrl(uploadedVideo)} className="h-full w-full rounded-lg" />
+						<button
+							onClick={() => deleteVideoMutate()}
+							disabled={isDeletingVideo}
+							type="button"
+							className="absolute right-2 top-2 z-50 flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs text-red-500 shadow transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60">
+							{isDeletingVideo ? (
+								<span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
+							) : (
+								<RiDeleteBin5Line className="size-3.5" />
+							)}
+							<span>{isDeletingVideo ? "Deleting..." : "Delete Video"}</span>
+						</button>
 					</div>
 				) : (
 					<label

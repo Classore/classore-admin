@@ -61,12 +61,24 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 	});
 
 	// DELETE LESSON
-	const { mutate: deleteMutate } = useMutation({
-		mutationFn: (payload: DeleteEntitiesPayload) => DeleteEntities(payload),
+	const { mutate: deleteMutate, isPending: isDeleting } = useMutation({
+		mutationFn: (payload: DeleteEntitiesPayload & { _chapterSequence: number; _lessonSequence: number }) => {
+			const { ids, model_type } = payload;
+			return DeleteEntities({ ids, model_type });
+		},
 		mutationKey: ["delete-entities"],
-		onSettled: () => {
+		onSuccess: (_data, variables) => {
+			// Only remove from store after confirmed server deletion
+			removeLesson(variables._chapterSequence, variables._lessonSequence);
+			setActiveLessonId("");
+			setIsOpen(false);
 			queryClient.invalidateQueries({ queryKey: ["get-modules"] });
 			queryClient.invalidateQueries({ queryKey: ["get-subject"] });
+			import("sonner").then(({ toast }) => toast.success("Lesson deleted successfully"));
+		},
+		onError: () => {
+			setIsOpen(false);
+			import("sonner").then(({ toast }) => toast.error("Failed to delete lesson. Please try again."));
 		},
 	});
 
@@ -159,21 +171,24 @@ export const Modules = ({ setSection, section, activeChapterId }: ModulesProps) 
 													<button
 														onClick={(e) => {
 															e.stopPropagation();
-															// setLessonTab("");
 															if (lesson?.lesson_chapter) {
-																// delete the data immediately and send the request in the background
 																deleteMutate({
 																	ids: [lesson.id],
 																	model_type: "CHAPTER_MODULE",
+																	_chapterSequence: chapter?.sequence || 0,
+																	_lessonSequence: lesson.sequence,
 																});
+															} else {
+																// Lesson was never saved to backend — just remove locally
+																removeLesson(chapter?.sequence || 0, lesson.sequence);
+																setActiveLessonId("");
+																setIsOpen(false);
 															}
-															removeLesson(chapter?.sequence || 0, lesson.sequence);
-															setIsOpen(false);
 														}}
+														disabled={isDeleting}
 														type="button"
-														className="rounded bg-red-600 px-2 py-1 font-medium text-white">
-														{/* {isDeleting ? <RiLoaderLine className="animate-spin" /> : "Confirm"} */}
-														Confirm
+														className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 font-medium text-white disabled:opacity-60">
+														{isDeleting ? <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : "Confirm"}
 													</button>
 												</div>
 											) : (

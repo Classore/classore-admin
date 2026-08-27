@@ -51,6 +51,7 @@ export const endpoints = (id?: string) => {
 			get_chapter_modules: "/admin/learning/chapter-modules/fetch-all",
 			get_questions: "/admin/learning/question/fetch-all",
 			add_video: `/admin/learning/chunk_uploads/${id}`,
+			delete_video: `/admin/learning/video/${id}`,
 			update_exam: `${id}`,
 			update_exam_bundle: `/admin/examination/update-exam-bundle/${id}`,
 			update_class: `${id}`,

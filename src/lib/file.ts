@@ -1,6 +1,5 @@
 import { read, utils, write } from "xlsx";
 
-import type { TestQuestionDto } from "@/queries/test-center";
 import type { QuestionDto } from "@/store/z-store/quiz";
 import { removeLeadingAndTrailingQuotes, removeLeadingAndTrailingSlashes } from "./string";
 
@@ -157,75 +156,6 @@ export const getFileChunks = (fileSize: number): Chunk[] => {
 	}
 
 	return chunks;
-};
-
-export const testQuestionFromXlsxToJSON = (
-	file: File,
-	lastIndex: number
-): Promise<TestQuestionDto[]> => {
-	return new Promise((resolve, reject) => {
-		if (!file) {
-			throw new Error("No file provided");
-		}
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			try {
-				const data = new Uint8Array(e.target?.result as ArrayBuffer);
-				const workbook = read(data, { type: "array" });
-				const worksheetName = workbook?.SheetNames[0];
-				const worksheet = workbook?.Sheets[worksheetName];
-				const rawJson = utils.sheet_to_json(worksheet);
-
-				type SheetRow = {
-					content: string;
-					media: string;
-					options: string;
-					instruction: string;
-					question_type: string;
-					images: string;
-					is_correct: string;
-				};
-
-				const questions: TestQuestionDto[] = rawJson?.map((row, rowIndex) => {
-					const sheetRow = row as SheetRow;
-					return {
-						sequence: lastIndex + rowIndex + 1,
-						content: sheetRow?.content,
-						media: sheetRow?.media || null,
-						images: sheetRow?.images ? sheetRow?.images.split(",").map((img: string) => img.trim()) : [],
-						instruction: sheetRow?.instruction || null,
-						question_type: sheetRow?.question_type,
-						options:
-							sheetRow?.options && typeof sheetRow?.options === "string"
-								? sheetRow?.options.split(",").map((option: string, index) => {
-										const is_correct = Number(sheetRow?.is_correct) === index + 1 ? "YES" : "NO";
-										console.log({
-											optionIndex: `option ${index + 1}`,
-											option,
-											is_correct,
-											sheetRow,
-											sheetRowIsCorrect: sheetRow?.is_correct,
-										});
-										return {
-											content: option,
-											is_correct: Number(sheetRow?.is_correct) === index + 1 ? "YES" : "NO",
-											sequence_number: index + 1,
-										};
-									})
-								: [],
-					};
-				});
-
-				resolve(questions);
-			} catch (error) {
-				reject(error);
-			}
-		};
-		reader.onerror = () => {
-			reject(new Error("Error reading the Excel file"));
-		};
-		reader.readAsArrayBuffer(file);
-	});
 };
 
 export const quizQuestionFromXlsxToJSON = (

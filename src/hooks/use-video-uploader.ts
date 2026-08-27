@@ -77,9 +77,15 @@ export const useVideoUploader = ({ upload_id, id, model_type }: UseVideoUploadPr
 				setIsLoading(true);
 
 				const parsedData = JSON.parse(data) as VideoUploadStatus;
-				setUploadStatus(parsedData);
 
 				Logger.info("Video upload status", parsedData);
+
+				// When transcoding starts, reset progress to 0 so the bar
+				// reflects the new phase instead of appearing stuck at 100%.
+				if (parsedData.status === "transcoding_in_progress") {
+					setUploadStatus({ status: "transcoding_in_progress", progress: 0, chunk: undefined });
+					return;
+				}
 
 				if (parsedData.status === "completed") {
 					queryClient.invalidateQueries({ queryKey: ["get-modules"] });
@@ -99,6 +105,8 @@ export const useVideoUploader = ({ upload_id, id, model_type }: UseVideoUploadPr
 					});
 					return;
 				}
+
+				setUploadStatus(parsedData);
 			}
 		});
 

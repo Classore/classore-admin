@@ -294,6 +294,21 @@ const DeleteEntities = async (payload: DeleteEntitiesPayload) => {
 		.then((res) => res.data);
 };
 
+/**
+ * Deletes just the video from a lesson module without removing the module itself.
+ * The backend handles cloud cleanup and clone-safety checks automatically.
+ * Endpoint: DELETE /admin/learning/video/:moduleId
+ * Aborts after 15 seconds to prevent the button spinning indefinitely.
+ */
+const DeleteLessonVideo = async (moduleId: string) => {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 15_000);
+	return api
+		.delete(endpoints(moduleId).school.delete_video, { signal: controller.signal })
+		.then((res) => res.data)
+		.finally(() => clearTimeout(timeoutId));
+};
+
 export type UpdateChapterModuleSequencePayload = {
 	chapter_id: string;
 	updates: Array<{
@@ -321,6 +336,7 @@ export {
 	CreateChapterModule,
 	CreateQuestions,
 	DeleteEntities,
+	DeleteLessonVideo,
 	GetChapter,
 	GetChapterModule,
 	GetChapterModules,

@@ -5,8 +5,6 @@ import {
 	RiCalendar2Line,
 	RiCoinLine,
 	RiCoupon3Line,
-	RiFlaskLine,
-	RiHourglassLine,
 	RiLogoutBoxRLine,
 	RiMessage3Line,
 	RiMoneyDollarCircleLine,
@@ -32,7 +30,6 @@ export const role_access: Record<RoleProps["name"], string[]> = {
 		"messages",
 		"admins",
 		"roles & permissions",
-		"waitlist",
 		"study guides",
 		"settings",
 	],
@@ -79,7 +76,6 @@ export const dashboard_links = {
 		{
 			id: "3",
 			links: [
-				{ name: "test center", href: "/dashboard/test-center", icon: RiFlaskLine },
 				{ name: "calendar", href: "/dashboard/calendar", icon: RiCalendar2Line },
 				{ name: "study guides", href: "/dashboard/study-guides", icon: RiBook3Line },
 				{ name: "Push Notifications", href: "/dashboard/notifications", icon: RiNotificationBadgeLine },
@@ -90,7 +86,6 @@ export const dashboard_links = {
 		{
 			id: "4",
 			links: [
-				{ name: "waitlist", href: "/dashboard/waitlist", icon: RiHourglassLine },
 				{ name: "log out", href: "", icon: RiLogoutBoxRLine },
 			],
 		},
