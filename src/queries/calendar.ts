@@ -17,6 +17,7 @@ export interface CreateEventDto {
 	meeting_link?: string;
 	platform?: string;
 	note?: string;
+	recurrence_end_date?: Date | string;
 }
 
 export interface GetEventsResponse {
@@ -50,7 +51,7 @@ const CreateCalendarEvent = async (payload: CreateEventDto) => {
 		});
 };
 
-const GetCalendarEvents = async (params?: PaginationProps & { month: number }) => {
+const GetCalendarEvents = async (params?: PaginationProps & { month?: number }) => {
 	console.log(
 		"[Calendar API] Fetching events from:",
 		endpoints().calendar.all,
@@ -68,9 +69,9 @@ const GetCalendarEvents = async (params?: PaginationProps & { month: number }) =
 			throw error;
 		});
 };
-export const useGetAllCalendarEvants = (params?: PaginationProps & { month: number }) => {
+export const useGetAllCalendarEvants = (params?: PaginationProps & { month?: number }) => {
 	return useQuery({
-		queryKey: ["calendar-events", params?.month],
+		queryKey: ["calendar-events", params?.month ?? "all"],
 		queryFn: () => GetCalendarEvents(params),
 		staleTime: Infinity,
 		gcTime: Infinity,
@@ -99,10 +100,40 @@ const DeleteCalendarEvent = async (id: string) => {
 	return api.delete<HttpResponse<EventProps>>(endpoints(id).calendar.delete).then((res) => res.data);
 };
 
+const GetAllCalendarEventsAcrossMonths = async (): Promise<EventProps[]> => {
+	const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+	const results = await Promise.allSettled(
+		months.map((m) => GetCalendarEvents({ month: m }))
+	);
+
+	const eventMap = new Map<string, EventProps>();
+
+	results.forEach((res, targetMonth) => {
+		if (res.status === "fulfilled" && res.value?.data?.events) {
+			res.value.data.events.forEach((dayItem) => {
+				const dayEvents = dayItem.events || [];
+				const dayDate = new Date(dayItem.date);
+				// Verify date matches targetMonth to guard against backend's month=0 fallback
+				if (dayDate.getUTCMonth() === targetMonth) {
+					dayEvents.forEach((event) => {
+						if (event.id) {
+							eventMap.set(event.id, event);
+						}
+					});
+				}
+			});
+		}
+	});
+
+	return Array.from(eventMap.values());
+};
+
 export {
 	CreateCalendarEvent,
 	DeleteCalendarEvent,
+	GetAllCalendarEventsAcrossMonths,
 	GetCalendarEvent,
 	GetCalendarEvents,
 	UpdateCalendarEvent,
 };
+

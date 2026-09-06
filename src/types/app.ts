@@ -602,14 +602,20 @@ export type Event = Node & {
 	meeting_link?: string;
 	platform?: string;
 	note?: string;
+	recurrence_end_date?: Date | string;
 };
 
 export type EventProps = {
-	__typename: "Event";
+	__typename?: "Event";
+	id?: string;
 	title: string;
 	date: Date;
 	day: number;
-	events: EventProps[];
+	events?: EventProps[];
+	start_hour?: number;
+	end_hour?: number;
+	frequency?: string;
+	is_active?: boolean;
 };
 
 export type DayProps = {

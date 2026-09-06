@@ -32,10 +32,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { dayUtils, getEventStatus } from "@/lib";
+import { dayUtils, getEventStatus, getEventTemporalStatus } from "@/lib";
 import { queryClient } from "@/providers";
 import type { EventsResponse } from "@/queries";
-import { DeleteCalendarEvent, GetCalendarEvent, GetCalendarEvents } from "@/queries";
+import {
+	DeleteCalendarEvent,
+	GetAllCalendarEventsAcrossMonths,
+	GetCalendarEvent,
+	GetCalendarEvents,
+} from "@/queries";
 import type { DayProps, Event as EventType, EventProps } from "@/types";
 
 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -60,13 +65,18 @@ const Page = () => {
 
 	const month = currentDate.getMonth();
 
-	const [{ data }] = useQueries({
+	const [{ data: monthData }, { data: allEventsData }] = useQueries({
 		queries: [
 			{
 				queryKey: ["calendar-events", month],
 				queryFn: () => GetCalendarEvents({ month }),
 				select: (data: unknown) => (data as EventsResponse).data,
 				enabled: month !== undefined,
+			},
+			{
+				queryKey: ["calendar-events", "all"],
+				queryFn: () => GetAllCalendarEventsAcrossMonths(),
+				staleTime: 5 * 60 * 1000,
 			},
 		],
 	});
@@ -88,18 +98,63 @@ const Page = () => {
 
 	const processedEvents = React.useMemo(() => {
 		const monthEvents: Record<string, EventProps[]> = {};
+		const targetMonth = currentDate.getMonth();
+
 		// Backend returns an array of day objects: [{ date, day, events: [] }, ...]
-		data?.events?.forEach((dayItem) => {
+		monthData?.events?.forEach((dayItem) => {
 			const dayEvents = dayItem.events || [];
 			const dayDate = new Date(dayItem.date);
-			if (dayEvents.length > 0) {
+			// Verify that the event date actually matches the selected month (guards against backend's month=0 bug)
+			if (dayDate.getUTCMonth() === targetMonth && dayEvents.length > 0) {
 				// Use getUTCDate to avoid timezone offset issues
 				const dayNum = dayDate.getUTCDate().toString();
 				monthEvents[dayNum] = dayEvents;
 			}
 		});
 		return monthEvents;
-	}, [data]);
+	}, [monthData, currentDate]);
+
+	const monthlyStats = React.useMemo(() => {
+		const eventsList = Object.values(processedEvents).flat();
+		let upcoming = 0;
+		let live = 0;
+		let ended = 0;
+
+		eventsList.forEach((ev) => {
+			const status = getEventTemporalStatus(ev);
+			if (status === "LIVE") live++;
+			else if (status === "UPCOMING") upcoming++;
+			else ended++;
+		});
+
+		return {
+			total_events: eventsList.length,
+			upcoming,
+			live,
+			ended,
+		};
+	}, [processedEvents]);
+
+	const overallStats = React.useMemo(() => {
+		const eventsList = allEventsData || [];
+		let upcoming = 0;
+		let live = 0;
+		let ended = 0;
+
+		eventsList.forEach((ev) => {
+			const status = getEventTemporalStatus(ev);
+			if (status === "LIVE") live++;
+			else if (status === "UPCOMING") upcoming++;
+			else ended++;
+		});
+
+		return {
+			total_events: eventsList.length,
+			upcoming,
+			live,
+			ended,
+		};
+	}, [allEventsData]);
 
 	const daysOfMonth = React.useMemo(() => {
 		const month = currentDate.getMonth();
@@ -107,6 +162,7 @@ const Page = () => {
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
 		return Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1).toString());
 	}, [currentDate]);
+
 
 	const calendarDays = React.useMemo(() => {
 		const year = currentDate.getFullYear();
@@ -158,9 +214,21 @@ const Page = () => {
 			<Seo title="Calendar" />
 			<DashboardLayout>
 				<div className="flex w-full flex-col gap-y-6">
+					{/* 1. Overall / General Event Stats (All Events) */}
 					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
-							<p className="">Calendar</p>
+							<div className="flex flex-col gap-y-0.5">
+								<div className="flex items-center gap-x-2">
+									<h4 className="text-base font-semibold text-neutral-900">Overall Calendar Overview</h4>
+									<span className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-0.5 text-xs font-semibold text-primary-700">
+										All Events
+									</span>
+								</div>
+								<p className="text-xs text-neutral-400">
+									Cumulative event statistics across the entire calendar
+								</p>
+							</div>
+
 							{/* Create event dialog */}
 							<Dialog open={createOpen} onOpenChange={setCreateOpen}>
 								<DialogTrigger asChild>
@@ -178,18 +246,84 @@ const Page = () => {
 						<div className="grid w-full grid-cols-4 gap-x-4">
 							<CalendarCard
 								icon={RiCalendar2Line}
-								value={data?.calendar.total_events ?? 0}
+								value={overallStats.total_events}
 								label="Total No of Events"
+								variant="total"
+								tag="All Time"
 							/>
 							<CalendarCard
 								icon={RiCalendarTodoLine}
-								value={data?.calendar.upcoming ?? 0}
+								value={overallStats.upcoming}
 								label="Upcoming"
+								variant="upcoming"
+								tag="All Time"
 							/>
-							<CalendarCard icon={RiCalendarEventLine} value={data?.calendar.live ?? 0} label="Live" />
-							<CalendarCard icon={RiCalendarCheckLine} value={data?.calendar.ended ?? 0} label="Ended" />
+							<CalendarCard
+								icon={RiCalendarEventLine}
+								value={overallStats.live}
+								label="Live"
+								variant="live"
+								tag="All Time"
+							/>
+							<CalendarCard
+								icon={RiCalendarCheckLine}
+								value={overallStats.ended}
+								label="Ended"
+								variant="ended"
+								tag="All Time"
+							/>
 						</div>
 					</div>
+
+					{/* 2. Monthly Stats for the Selected Month */}
+					<div className="flex w-full flex-col gap-y-4 rounded-lg bg-white p-5">
+						<div className="flex w-full items-center justify-between">
+							<div className="flex flex-col gap-y-0.5">
+								<div className="flex items-center gap-x-2">
+									<h4 className="text-base font-semibold text-neutral-900">Monthly Statistics</h4>
+									<span className="rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-700">
+										{format(currentDate, "MMMM yyyy")}
+									</span>
+								</div>
+								<p className="text-xs text-neutral-400">
+									Event statistics for the currently selected month
+								</p>
+							</div>
+						</div>
+						<div className="grid w-full grid-cols-4 gap-x-4">
+							<CalendarCard
+								icon={RiCalendar2Line}
+								value={monthlyStats.total_events}
+								label="Total No of Events"
+								variant="total"
+								tag={format(currentDate, "MMM")}
+							/>
+							<CalendarCard
+								icon={RiCalendarTodoLine}
+								value={monthlyStats.upcoming}
+								label="Upcoming"
+								variant="upcoming"
+								tag={format(currentDate, "MMM")}
+							/>
+							<CalendarCard
+								icon={RiCalendarEventLine}
+								value={monthlyStats.live}
+								label="Live"
+								variant="live"
+								tag={format(currentDate, "MMM")}
+							/>
+							<CalendarCard
+								icon={RiCalendarCheckLine}
+								value={monthlyStats.ended}
+								label="Ended"
+								variant="ended"
+								tag={format(currentDate, "MMM")}
+							/>
+						</div>
+
+					</div>
+
+					{/* 3. Month Calendar View */}
 					<div className="flex w-full flex-col gap-y-2 rounded-lg bg-white p-5">
 						<div className="flex w-full items-center justify-between">
 							<div className="flex items-center gap-x-2">
@@ -221,6 +355,7 @@ const Page = () => {
 							</div>
 						</div>
 						<div className="flex w-full flex-col rounded-md border">
+
 							<div className="grid w-full grid-cols-7 border-b">
 								{daysOfWeek.map((day) => (
 									<div

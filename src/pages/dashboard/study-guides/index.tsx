@@ -260,22 +260,20 @@ export default function StudyGuidesAdminPage() {
 						<button
 							type="button"
 							onClick={() => setTab("articles")}
-							className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
-								tab === "articles"
+							className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${tab === "articles"
 									? "bg-white text-primary-600 shadow-md ring-1 ring-neutral-200/50"
 									: "text-neutral-500 hover:bg-neutral-100/50 hover:text-neutral-800"
-							}`}>
+								}`}>
 							<RiBook3Line className="size-4" />
 							Articles
 						</button>
 						<button
 							type="button"
 							onClick={() => setTab("categories")}
-							className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
-								tab === "categories"
+							className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${tab === "categories"
 									? "bg-white text-primary-600 shadow-md ring-1 ring-neutral-200/50"
 									: "text-neutral-500 hover:bg-neutral-100/50 hover:text-neutral-800"
-							}`}>
+								}`}>
 							<RiLayoutGridLine className="size-4" />
 							Categories
 						</button>
