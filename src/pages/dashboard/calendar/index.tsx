@@ -243,7 +243,7 @@ const Page = () => {
 								</DialogContent>
 							</Dialog>
 						</div>
-						<div className="grid w-full grid-cols-4 gap-x-4">
+						<div className="grid w-full grid-cols-3 gap-x-4">
 							<CalendarCard
 								icon={RiCalendar2Line}
 								value={overallStats.total_events}
@@ -256,13 +256,6 @@ const Page = () => {
 								value={overallStats.upcoming}
 								label="Upcoming"
 								variant="upcoming"
-								tag="All Time"
-							/>
-							<CalendarCard
-								icon={RiCalendarEventLine}
-								value={overallStats.live}
-								label="Live"
-								variant="live"
 								tag="All Time"
 							/>
 							<CalendarCard
